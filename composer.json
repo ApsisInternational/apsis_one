@@ -1,0 +1,26 @@
+{
+  "name": "apsis/one",
+  "description": "APSIS One integration for PrestaShop",
+  "type": "prestashop-module",
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "authors": [
+    {
+      "name": "Adeel Qamar",
+      "email": "adeel.qamar@apsis.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.1",
+    "prestashop/module-lib-service-container": ">=1.3.1",
+    "giggsey/libphonenumber-for-php": ">=8.12.4"
+  },
+  "autoload": {
+    "psr-4": {
+      "Apsis\\One\\": "src/"
+    }
+  },
+  "config": {
+    "prepend-autoloader": false
+  }
+}

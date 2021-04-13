@@ -4,17 +4,19 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-class ApsisOne extends Module
+require_once __DIR__ . '/vendor/autoload.php';
+
+class Apsis_one extends Module
 {
     public function __construct()
     {
-        $this->name = 'apsisone';
+        $this->name = 'apsis_one';
         $this->tab = 'advertising_marketing';
         $this->version = '1.0.0';
         $this->author = 'APSIS';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = [
-            'min' => '1.7',
+            'min' => '1.7.7.3',
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
