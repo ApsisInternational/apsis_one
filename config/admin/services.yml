@@ -1,0 +1,21 @@
+imports:
+  - { resource: ../common.yml }
+
+services:
+  apsis_one.module.install:
+    class: 'Apsis\One\Module\Install'
+    arguments:
+      - '@apsis_one.repository.configuration'
+      - '@apsis_one.helper.logger'
+
+  apsis_one.module.uninstall:
+    class: 'Apsis\One\Module\Uninstall'
+    arguments:
+      - '@apsis_one.repository.configuration'
+      - '@apsis_one.helper.logger'
+
+  apsis_one.module.configuration:
+    class: 'Apsis\One\Module\Configuration'
+    arguments:
+      - '@apsis_one.repository.configuration'
+      - '@apsis_one.helper.logger'

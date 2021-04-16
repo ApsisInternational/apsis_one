@@ -1,0 +1,19 @@
+services:
+  apsis_one.module:
+    class: 'Apsis_one'
+    factory: [ 'Module', 'getInstanceByName' ]
+    arguments:
+      - 'apsis_one'
+
+  apsis_one.helper.logger:
+    class: 'Apsis\One\Helper\LoggerHelper'
+
+  apsis_one.context.prestashop:
+    class: 'Apsis\One\Context\PrestaShopContext'
+
+  apsis_one.repository.configuration:
+    class: 'Apsis\One\Repository\ConfigurationRepository'
+    arguments:
+      - '@apsis_one.context.prestashop'
+      - '@apsis_one.helper.logger'
+
