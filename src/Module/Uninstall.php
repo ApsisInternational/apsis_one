@@ -44,6 +44,11 @@ class Uninstall
      */
     private function uninstallConfiguration()
     {
-        return $this->configurationRepository->deleteGlobalKey();
+        return $this->configurationRepository->deleteGlobalKey() &&
+            $this->configurationRepository->deleteProfileSyncFlagFromAllContext() &&
+            $this->configurationRepository->deleteEventSyncFlagFromAllContext() &&
+            $this->configurationRepository->deleteTrackingCodeFromAllContext() &&
+            $this->configurationRepository->deleteInstallationConfigsFromAllContext() &&
+            $this->configurationRepository->deleteApiTokenForAllContext();
     }
 }

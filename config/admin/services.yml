@@ -17,5 +17,6 @@ services:
   apsis_one.module.configuration:
     class: 'Apsis\One\Module\Configuration'
     arguments:
+      - '@apsis_one.module'
       - '@apsis_one.repository.configuration'
       - '@apsis_one.helper.logger'

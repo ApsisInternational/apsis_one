@@ -32,11 +32,12 @@ class Apsis_one extends Module
             'min' => '1.7.7.3',
             'max' => _PS_VERSION_
         ];
+        $this->bootstrap = true;
 
         parent::__construct();
 
         $this->displayName = $this->l('APSIS One Integration');
-        $this->description = $this->l('Grow faster with the all-in-One marketing platform');
+        $this->description = $this->l('Grow faster with the all-in-One marketing platform.');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
 
         if ($this->serviceContainer === null) {
@@ -44,18 +45,20 @@ class Apsis_one extends Module
         }
     }
 
+    /**
+     * @return bool
+     */
     public function install()
     {
-        if (Shop::isFeatureActive()) {
-            Shop::setContext(Shop::CONTEXT_ALL);
-        }
-
         /** @var Install $installModule */
         $installModule = $this->getService('apsis_one.module.install');
 
         return parent::install() && $installModule->init();
     }
 
+    /**
+     * @return bool
+     */
     public function uninstall()
     {
         /** @var Uninstall $uninstallModule */
@@ -64,16 +67,9 @@ class Apsis_one extends Module
         return parent::uninstall() && $uninstallModule->init();
     }
 
-    public function enable($force_all = false)
-    {
-        return parent::enable($force_all);
-    }
-
-    public function disable($force_all = false)
-    {
-        return parent::disable($force_all);
-    }
-
+    /**
+     * @return string
+     */
     public function getContent()
     {
         /** @var Configuration $configurationModule */
