@@ -13,6 +13,14 @@ use AdminController;
 class Configuration
 {
     const READ_ONLY_FIELD_ACCOUNT_STATUS = 'APSIS_ONE_ACCOUNT_STATUS';
+    const READ_ONLY_FILED_API_STORES_ENDPOINT = 'APSIS_ONE_API_STORES_ENDPOINT';
+    const READ_ONLY_FILED_API_PROFILE_ENDPOINT = 'APSIS_ONE_API_PROFILE_ENDPOINT';
+    const READ_ONLY_FILED_API_INSTALLATION_CONFIG_ENDPOINT = 'APSIS_ONE_API_INSTALLATION_CONFIG_ENDPOINT';
+    const READ_ONLY_FILED_API_SUBSCRIPTION_UPDATE_ENDPOINT = 'APSIS_ONE_API_SUBSCRIPTION_UPDATE_ENDPOINT';
+    const API_STORES_CONTROLLER_FILENAME = 'apistores';
+    const API_PROFILE_CONTROLLER_FILENAME = 'apiprofiles';
+    const API_INSTALLATION_CONFIG_CONTROLLER_FILENAME = 'apiinstallationconfig';
+    const API_SUBSCRIPTION_UPDATE_CONTROLLER_FILENAME = 'apisubscriptionupdate';
 
     /**
      * @var ConfigurationRepository
@@ -114,6 +122,26 @@ class Configuration
         // Load current value
         $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] =
             empty($this->configurationRepository->getInstallationConfigs()) ? 'NOT CONNECTED' : 'CONNECTED';
+        $helper->fields_value[self::READ_ONLY_FILED_API_STORES_ENDPOINT] =
+            $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
+                $this->module->name,
+                self::API_STORES_CONTROLLER_FILENAME
+            );
+        $helper->fields_value[self::READ_ONLY_FILED_API_PROFILE_ENDPOINT] =
+            $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
+                $this->module->name,
+                self::API_PROFILE_CONTROLLER_FILENAME
+            );
+        $helper->fields_value[self::READ_ONLY_FILED_API_INSTALLATION_CONFIG_ENDPOINT] =
+            $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
+                $this->module->name,
+                self::API_INSTALLATION_CONFIG_CONTROLLER_FILENAME
+            );
+        $helper->fields_value[self::READ_ONLY_FILED_API_SUBSCRIPTION_UPDATE_ENDPOINT] =
+            $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
+                $this->module->name,
+                self::API_SUBSCRIPTION_UPDATE_CONTROLLER_FILENAME
+            );
         $helper->fields_value[ConfigurationRepository::CONFIG_KEY_GLOBAL_KEY] =
             $this->configurationRepository->getGlobalKey();
         $helper->fields_value[ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG] =
@@ -188,6 +216,34 @@ class Configuration
                     'type' => 'text',
                     'label' => $this->module->l('Account Status'),
                     'name' => self::READ_ONLY_FIELD_ACCOUNT_STATUS,
+                    'readonly' => true,
+                    'disabled' => true
+                ],
+                [
+                    'type' => 'text',
+                    'label' => $this->module->l('Stores Endpoint [GET]'),
+                    'name' => self::READ_ONLY_FILED_API_STORES_ENDPOINT,
+                    'readonly' => true,
+                    'disabled' => true
+                ],
+                [
+                    'type' => 'text',
+                    'label' => $this->module->l('Profiles Endpoint [GET]'),
+                    'name' => self::READ_ONLY_FILED_API_PROFILE_ENDPOINT,
+                    'readonly' => true,
+                    'disabled' => true
+                ],
+                [
+                    'type' => 'text',
+                    'label' => $this->module->l('Installation Config Endpoint [POST]'),
+                    'name' => self::READ_ONLY_FILED_API_INSTALLATION_CONFIG_ENDPOINT,
+                    'readonly' => true,
+                    'disabled' => true
+                ],
+                [
+                    'type' => 'text',
+                    'label' => $this->module->l('Subscription Update Endpoint [PUT]'),
+                    'name' => self::READ_ONLY_FILED_API_SUBSCRIPTION_UPDATE_ENDPOINT,
                     'readonly' => true,
                     'disabled' => true
                 ],

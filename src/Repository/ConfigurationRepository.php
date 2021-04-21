@@ -39,6 +39,11 @@ class ConfigurationRepository
     private $loggerHelper;
 
     /**
+     * @var PrestaShopContext
+     */
+    private $prestaShopContext;
+
+    /**
      * ConfigurationRepository constructor.
      *
      * @param PrestaShopContext $prestashopContext
@@ -46,6 +51,7 @@ class ConfigurationRepository
      */
     public function __construct(PrestaShopContext $prestashopContext, LoggerHelper $loggerHelper)
     {
+        $this->prestaShopContext = $prestashopContext;
         $this->shopId = $prestashopContext->getCurrentShopId();
         $this->shopGroupId = $prestashopContext->getCurrentShopGroupId();
         $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);
@@ -261,16 +267,24 @@ class ConfigurationRepository
 
     /**
      * @param array $configs
+     * @param null $idShopGroup
+     * @param null $idShop
      *
      * @return bool
      */
-    public function saveInstallationConfigs(array $configs)
+    public function saveInstallationConfigs(array $configs, $idShopGroup = null, $idShop = null)
     {
         try {
             if (strlen($configs = (string) json_encode($configs)) === 0) {
                 return false;
             }
-            return Configuration::updateValue(self::CONFIG_KEY_INSTALLATION_CONFIGS, $configs);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_INSTALLATION_CONFIGS,
+                $configs,
+                false,
+                $idShopGroup,
+                $idShop
+            );
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -400,5 +414,13 @@ class ConfigurationRepository
         }
 
         return $str;
+    }
+
+    /**
+     * @return PrestaShopContext
+     */
+    public function getPrestaShopContext()
+    {
+        return $this->prestaShopContext;
     }
 }
