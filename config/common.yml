@@ -8,8 +8,15 @@ services:
   apsis_one.helper.logger:
     class: 'Apsis\One\Helper\LoggerHelper'
 
+  apsis_one.helper.date:
+    class: 'Apsis\One\Helper\DateHelper'
+    arguments:
+      - '@apsis_one.helper.logger'
+
   apsis_one.context.prestashop:
     class: 'Apsis\One\Context\PrestaShopContext'
+    arguments:
+      - '@apsis_one.helper.logger'
 
   apsis_one.repository.configuration:
     class: 'Apsis\One\Repository\ConfigurationRepository'
@@ -17,3 +24,16 @@ services:
       - '@apsis_one.context.prestashop'
       - '@apsis_one.helper.logger'
 
+  apsis_one.helper.apiclient:
+    class: 'Apsis\One\Helper\ApiClientHelper'
+    arguments:
+      - '@apsis_one.repository.configuration'
+      - '@apsis_one.helper.logger'
+      - '@apsis_one.helper.date'
+
+  apsis_one.repository.apiclient:
+    class: 'Apsis\One\Repository\ApiClientRepository'
+    arguments:
+      - '@apsis_one.repository.configuration'
+      - '@apsis_one.helper.logger'
+      - '@apsis_one.helper.apiclient'

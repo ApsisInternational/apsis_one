@@ -7,7 +7,7 @@ class apsis_OneApiStoresModuleFrontController extends AbstractApiController
     /**
      * @var string
      */
-    protected $validRequestMethod = 'GET';
+    protected $validRequestMethod = AbstractApiController::HTTP_GET;
 
     public function init()
     {

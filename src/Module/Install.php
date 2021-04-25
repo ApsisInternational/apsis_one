@@ -4,18 +4,19 @@ namespace Apsis\One\Module;
 
 use Apsis\One\Helper\LoggerHelper;
 use Apsis\One\Repository\ConfigurationRepository;
+use Exception;
 
 class Install
 {
     /**
      * @var ConfigurationRepository
      */
-    private $configurationRepository;
+    protected $configurationRepository;
 
     /**
      * @var LoggerHelper
      */
-    private $loggerHelper;
+    protected $loggerHelper;
 
     /**
      * Install constructor.
@@ -36,7 +37,12 @@ class Install
      */
     public function init()
     {
-        return $this->installConfiguration();
+        try {
+            return $this->installConfiguration();
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
     }
 
     /**

@@ -4,18 +4,19 @@ namespace Apsis\One\Module;
 
 use Apsis\One\Helper\LoggerHelper;
 use Apsis\One\Repository\ConfigurationRepository;
+use Exception;
 
 class Uninstall
 {
     /**
      * @var ConfigurationRepository
      */
-    private $configurationRepository;
+    protected $configurationRepository;
 
     /**
      * @var LoggerHelper
      */
-    private $loggerHelper;
+    protected $loggerHelper;
 
     /**
      * Uninstall constructor.
@@ -36,7 +37,12 @@ class Uninstall
      */
     public function init()
     {
-        return $this->uninstallConfiguration();
+        try {
+            return $this->uninstallConfiguration();
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
     }
 
     /**
@@ -49,6 +55,7 @@ class Uninstall
             $this->configurationRepository->deleteEventSyncFlagFromAllContext() &&
             $this->configurationRepository->deleteTrackingCodeFromAllContext() &&
             $this->configurationRepository->deleteInstallationConfigsFromAllContext() &&
-            $this->configurationRepository->deleteApiTokenForAllContext();
+            $this->configurationRepository->deleteApiTokenForAllContext() &&
+            $this->configurationRepository->deleteApiTokenExpiryForAllContext();
     }
 }

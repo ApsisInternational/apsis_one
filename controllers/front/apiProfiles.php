@@ -7,7 +7,14 @@ class apsis_OneApiProfilesModuleFrontController extends AbstractApiController
     /**
      * @var string
      */
-    protected $validRequestMethod = 'GET';
+    protected $validRequestMethod = AbstractApiController::HTTP_GET;
+
+    /**
+     * @var array
+     */
+    protected $validQueryParams = [
+        AbstractApiController::QUERY_PARAM_CONTEXT_IDS => AbstractApiController::DATA_TYPE_STRING
+    ];
 
     public function init()
     {

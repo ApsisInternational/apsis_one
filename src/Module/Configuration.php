@@ -6,7 +6,6 @@ use Apsis\One\Helper\LoggerHelper;
 use Apsis\One\Repository\ConfigurationRepository;
 use Apsis_one;
 use Tools;
-use Validate;
 use HelperForm;
 use AdminController;
 
@@ -17,6 +16,7 @@ class Configuration
     const READ_ONLY_FILED_API_PROFILE_ENDPOINT = 'APSIS_ONE_API_PROFILE_ENDPOINT';
     const READ_ONLY_FILED_API_INSTALLATION_CONFIG_ENDPOINT = 'APSIS_ONE_API_INSTALLATION_CONFIG_ENDPOINT';
     const READ_ONLY_FILED_API_SUBSCRIPTION_UPDATE_ENDPOINT = 'APSIS_ONE_API_SUBSCRIPTION_UPDATE_ENDPOINT';
+
     const API_STORES_CONTROLLER_FILENAME = 'apistores';
     const API_PROFILE_CONTROLLER_FILENAME = 'apiprofiles';
     const API_INSTALLATION_CONFIG_CONTROLLER_FILENAME = 'apiinstallationconfig';
@@ -25,17 +25,17 @@ class Configuration
     /**
      * @var ConfigurationRepository
      */
-    private $configurationRepository;
+    protected $configurationRepository;
 
     /**
      * @var LoggerHelper
      */
-    private $loggerHelper;
+    protected $loggerHelper;
 
     /**
      * @var Apsis_one
      */
-    private $module;
+    protected $module;
 
     /**
      * Install constructor.
@@ -64,15 +64,11 @@ class Configuration
         if (Tools::isSubmit('submit' . $this->module->name)) {
             $profileSyncEnabled =  Tools::getValue(ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
             $eventSyncEnabled =  Tools::getValue(ConfigurationRepository::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
-            $trackingScript = (string) Tools::getValue(ConfigurationRepository::CONFIG_KEY_TRACKING_CODE);
+            $trackingScript = Tools::getValue(ConfigurationRepository::CONFIG_KEY_TRACKING_CODE);
 
-            if (! $this->isFormFieldsValid($profileSyncEnabled, $eventSyncEnabled, $trackingScript)) {
-                $output .= $this->module->displayError($this->module->l('Invalid configuration values.'));
-            } else {
-                $output .= $this->saveConfigurationValues($profileSyncEnabled, $eventSyncEnabled, $trackingScript) ?
-                    $this->module->displayConfirmation($this->module->l('Settings updated.')) :
-                    $this->module->displayError($this->module->l('Unable to save some settings.'));
-            }
+            $output .= $this->saveConfigurationValues($profileSyncEnabled, $eventSyncEnabled, $trackingScript) ?
+                $this->module->displayConfirmation($this->module->l('Settings updated.')) :
+                $this->module->displayError($this->module->l('Unable to save some settings.'));
         }
 
         return $output . $this->displayConfigurationForm();
@@ -90,25 +86,6 @@ class Configuration
         return $this->configurationRepository->saveProfileSyncFlag($profileSyncEnabled) &&
             $this->configurationRepository->saveEventSyncFlag($eventSyncEnabled) &&
             $this->configurationRepository->saveTrackingCode($trackingScript);
-    }
-
-    /**
-     * @param int $profileSyncEnabled
-     * @param int $eventSyncEnabled
-     * @param string $trackingScript
-     *
-     * @return bool
-     */
-    private function isFormFieldsValid(int $profileSyncEnabled, int $eventSyncEnabled, string $trackingScript)
-    {
-       if (!Validate::isInt($profileSyncEnabled) ||
-           !Validate::isInt($eventSyncEnabled) ||
-           !Validate::isCleanHtml($trackingScript)
-       ) {
-           return false;
-       }
-
-       return true;
     }
 
     /**
@@ -242,7 +219,7 @@ class Configuration
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->module->l('Subscription Update Endpoint [PUT]'),
+                    'label' => $this->module->l('Subscription Update Endpoint [PATCH]'),
                     'name' => self::READ_ONLY_FILED_API_SUBSCRIPTION_UPDATE_ENDPOINT,
                     'readonly' => true,
                     'disabled' => true
@@ -262,12 +239,12 @@ class Configuration
                     'values' => [
                         [
                             'id' => 'active_on',
-                            'value' => 1,
+                            'value' => ConfigurationRepository::CONFIG_FLAG_YES,
                             'label' => $this->module->l('Yes'),
                         ],
                         [
                             'id' => 'active_off',
-                            'value' => 0,
+                            'value' => ConfigurationRepository::CONFIG_FLAG_NO,
                             'label' => $this->module->l('No'),
                         ]
                     ]
@@ -280,12 +257,12 @@ class Configuration
                     'values' => [
                         [
                             'id' => 'active_on',
-                            'value' => 1,
+                            'value' => ConfigurationRepository::CONFIG_FLAG_YES,
                             'label' => $this->module->l('Yes'),
                         ],
                         [
                             'id' => 'active_off',
-                            'value' => 0,
+                            'value' => ConfigurationRepository::CONFIG_FLAG_NO,
                             'label' => $this->module->l('No'),
                         ]
                     ]

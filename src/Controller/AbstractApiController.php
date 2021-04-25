@@ -2,14 +2,34 @@
 
 namespace Apsis\One\Controller;
 
+use Apsis\One\Helper\LoggerHelper;
 use ModuleFrontController;
 use WebserviceRequestCore;
 use Apsis\One\Repository\ConfigurationRepository;
 use Apsis_one;
 use Validate;
+use Tools;
 
 abstract class AbstractApiController extends ModuleFrontController
 {
+    /** QUERY PARAMS */
+    const QUERY_PARAM_CONTEXT_IDS = 'context_ids';
+    const QUERY_PARAM_RESET = 'reset';
+
+    /** DATA TYPES */
+    const DATA_TYPE_STRING = 'string';
+    const DATA_TYPE_INT = 'int';
+    const DATA_TYPE_URL = 'url';
+
+    /** HTTP METHODS */
+    const HTTP_GET = 'GET';
+    const HTTP_POST = 'POST';
+    const HTTP_PUT = 'PUT';
+    const HTTP_PATCH = 'PATCH';
+    const HTTP_DELETE = 'DELETE';
+
+    const REQUEST_BODY_FOR_HTTP_METHOD = [self::HTTP_POST, self::HTTP_PATCH, self::HTTP_PUT];
+
     /**
      * @var Apsis_one
      */
@@ -19,6 +39,11 @@ abstract class AbstractApiController extends ModuleFrontController
      * @var ConfigurationRepository
      */
     protected $configurationRepository;
+
+    /**
+     * @var LoggerHelper
+     */
+    protected $loggerHelper;
 
     /**
      * @var string
@@ -33,7 +58,32 @@ abstract class AbstractApiController extends ModuleFrontController
     /**
      * @var array
      */
+    protected $validQueryParams = [];
+
+    /**
+     * @var array
+     */
+    protected $optionalQueryParams = [];
+
+    /**
+     * @var array
+     */
     protected $bodyParams = [];
+
+    /**
+     * @var array
+     */
+    protected $queryParams = [];
+
+    /**
+     * @var int
+     */
+    protected $groupId;
+
+    /**
+     * @var int
+     */
+    protected $shopId;
 
     /**
      * AbstractApiController constructor.
@@ -44,14 +94,23 @@ abstract class AbstractApiController extends ModuleFrontController
 
         $this->controller_type = 'module';
         $this->configurationRepository = $this->module->getService('apsis_one.repository.configuration');
+        $this->loggerHelper = $this->module->getService('apsis_one.helper.logger');
     }
 
     public function init()
     {
         $this->validateHttpMethod();
         $this->authorize();
+        $this->validateAndSetQueryParams();
+        $this->validateAndSetOptionalQueryParams();
 
-        if (in_array($this->validRequestMethod, ['POST', 'PATCH'])) {
+        if (isset($this->queryParams[self::QUERY_PARAM_CONTEXT_IDS])) {
+            $this->setContextIds();
+        }
+
+        $this->checkForResetParam();
+
+        if (in_array($this->validRequestMethod, self::REQUEST_BODY_FOR_HTTP_METHOD)) {
             $this->setBodyParams();
             $this->validateBodyParams();
         }
@@ -75,6 +134,69 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
+    private function validateAndSetQueryParams()
+    {
+        foreach ($this->validQueryParams as $queryParam => $dataType) {
+            if (! Tools::getIsset($queryParam)) {
+                $msg = "Missing query param: " . $queryParam;
+                $this->exitWithResponse($this->generateResponse(400, [], $msg));
+            }
+
+            $this->setQueryParam($queryParam, $dataType);
+        }
+    }
+
+    private function validateAndSetOptionalQueryParams()
+    {
+        foreach ($this->optionalQueryParams as $queryParam => $dataType) {
+            if (Tools::getIsset($queryParam)) {
+                $this->setQueryParam($queryParam, $dataType);
+            }
+        }
+    }
+
+    /**
+     * @param string $queryParam
+     * @param string $dataType
+     */
+    private function setQueryParam(string $queryParam, string $dataType)
+    {
+        $value = Tools::getValue($queryParam, false);
+        if (! $this->isDataValid($value, $dataType)) {
+            $msg = "Invalid value for query param: " . $queryParam;
+            $this->exitWithResponse($this->generateResponse(400, [], $msg));
+        }
+        $this->queryParams[$queryParam] = Tools::safeOutput($value);
+    }
+
+    private function setContextIds()
+    {
+        $contextIds = explode(',', $this->queryParams[self::QUERY_PARAM_CONTEXT_IDS]);
+        if (count($contextIds) === 2 && is_numeric($contextIds[0]) && is_numeric($contextIds[1])) {
+            $this->groupId = (int) $contextIds[0];
+            $this->shopId = (int) $contextIds[1];
+        } else {
+            $this->exitWithResponse($this->generateResponse(400, [], 'Invalid context ids.'));
+        }
+    }
+
+    private function checkForResetParam()
+    {
+        if (get_class($this) === "apsis_OneApiInstallationConfigModuleFrontController" &&
+            ! empty($this->queryParams[self::QUERY_PARAM_RESET])
+        ) {
+            //@todo also reset events and profiles
+            $context = $this->configurationRepository->getContextForSavingConfig(
+                ConfigurationRepository::CONFIG_KEY_INSTALLATION_CONFIGS,
+                $this->groupId,
+                $this->shopId
+            );
+            $this->configurationRepository->disableFeaturesAndDeleteConfig($this->groupId, $this->shopId);
+            $this->configurationRepository->saveInstallationConfigs([], $context['idShopGroup'], $context['idShop']);
+            $this->exitWithResponse($this->generateResponse(204));
+        }
+    }
+
     private function setBodyParams()
     {
         $body = file_get_contents('php://input');
@@ -83,19 +205,28 @@ abstract class AbstractApiController extends ModuleFrontController
             $this->exitWithResponse($this->generateResponse(400, [], 'Invalid payload.'));
         }
 
-        $this->bodyParams = (array) json_decode($body);
+        $params = (array) json_decode($body);
+        foreach ($params as $key => $value) {
+            if (! isset($this->validBodyParams[$key])) {
+                unset($params[$key]);
+            } else {
+                $params[$key] = Tools::safeOutput($value);
+            }
+        }
+
+        $this->bodyParams = $params;
     }
 
     private function validateBodyParams()
     {
-        $bodyParams = array_diff($this->validBodyParams, array_keys($this->bodyParams));
+        $bodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
         if (! empty($bodyParams)) {
             $msg = 'Incomplete payload. Missing ' . implode(', ', $bodyParams);
             $this->exitWithResponse($this->generateResponse(400, [], $msg));
         }
 
         foreach ($this->bodyParams as $param => $value) {
-            if (empty($value) || ! Validate::isCleanHtml($value)) {
+            if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
                 $this->exitWithResponse($this->generateResponse(400, [], $param . ': is invalid.'));
             }
         }
@@ -123,7 +254,7 @@ abstract class AbstractApiController extends ModuleFrontController
      * @param array $data
      * @param string $msg
      *
-     * @return int[]
+     * @return array
      */
     protected function generateResponse(int $httpCode, array $data = [], string $msg = '')
     {
@@ -135,6 +266,35 @@ abstract class AbstractApiController extends ModuleFrontController
             $response['message'] = $msg;
         }
         return $response;
+    }
+
+    /**
+     * @param mixed $data
+     * @param string $type
+     *
+     * @return bool
+     */
+    private function isDataValid($data, string $type)
+    {
+        $isValid = false;
+
+        if (empty($data)) {
+            return $isValid;
+        }
+
+        switch ($type) {
+            case self::DATA_TYPE_STRING:
+                $isValid = preg_match('/^[a-zA-Z0-9.,_-]+$/', $data);
+                break;
+            case self::DATA_TYPE_INT:
+                $isValid = is_numeric($data);
+                break;
+            case self::DATA_TYPE_URL:
+                $isValid = filter_var($data, FILTER_VALIDATE_URL);
+                break;
+        }
+
+        return $isValid;
     }
 
     /**

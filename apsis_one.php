@@ -10,6 +10,7 @@ use PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer;
 use Apsis\One\Module\Install;
 use Apsis\One\Module\Uninstall;
 use Apsis\One\Module\Configuration;
+use Apsis\One\Helper\LoggerHelper;
 
 class Apsis_one extends Module
 {
@@ -17,6 +18,11 @@ class Apsis_one extends Module
      * @var ServiceContainer
      */
     private $serviceContainer;
+
+    /**
+     * @var LoggerHelper
+     */
+    private $loggerHelper;
 
     /**
      * Apsis_one constructor.
@@ -40,9 +46,7 @@ class Apsis_one extends Module
         $this->description = $this->l('Grow faster with the all-in-One marketing platform.');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
 
-        if ($this->serviceContainer === null) {
-            $this->serviceContainer = new ServiceContainer($this->name, $this->getLocalPath());
-        }
+        $this->loggerHelper = $this->getService('apsis_one.helper.logger');
     }
 
     /**
@@ -65,6 +69,26 @@ class Apsis_one extends Module
         $uninstallModule = $this->getService('apsis_one.module.uninstall');
 
         return parent::uninstall() && $uninstallModule->init();
+    }
+
+    /**
+     * @param int $shopId
+     *
+     * @return bool
+     */
+    public function isModuleEnabledForGivenShop(int $shopId)
+    {
+        $active = false;
+        try {
+            $sql = 'SELECT `id_module` FROM `' . _DB_PREFIX_ . 'module_shop` WHERE `id_module` = ' .
+                (int) Module::getModuleIdByName($this->name) .' AND `id_shop` = ' . $shopId;
+            if (Db::getInstance()->getValue($sql)) {
+                $active = true;
+            }
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+        }
+        return $active;
     }
 
     /**

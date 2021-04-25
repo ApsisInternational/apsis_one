@@ -1,25 +1,39 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
+use Apsis\One\Repository\ConfigurationRepository;
 
 class apsis_OneApiInstallationConfigModuleFrontController extends AbstractApiController
 {
     /**
      * @var string
      */
-    protected $validRequestMethod = 'POST';
+    protected $validRequestMethod = AbstractApiController::HTTP_POST;
 
     /**
-     * @var string[]
+     * @var array
      */
     protected $validBodyParams = [
-        'context_ids',
-        'client_id',
-        'client_secret',
-        'account_id',
-        'section_discriminator',
-        'keyspace_discriminator',
-        'api_base_url'
+        ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID => AbstractApiController::DATA_TYPE_STRING,
+        ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET => AbstractApiController::DATA_TYPE_STRING,
+        ConfigurationRepository::INSTALLATION_CONFIG_ACCOUNT_ID => AbstractApiController::DATA_TYPE_STRING,
+        ConfigurationRepository::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR => AbstractApiController::DATA_TYPE_STRING,
+        ConfigurationRepository::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR => AbstractApiController::DATA_TYPE_STRING,
+        ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL  => AbstractApiController::DATA_TYPE_URL
+    ];
+
+    /**
+     * @var array
+     */
+    protected $validQueryParams = [
+        AbstractApiController::QUERY_PARAM_CONTEXT_IDS => AbstractApiController::DATA_TYPE_STRING
+    ];
+
+    /**
+     * @var array
+     */
+    protected $optionalQueryParams = [
+        AbstractApiController::QUERY_PARAM_RESET => AbstractApiController::DATA_TYPE_INT
     ];
 
     public function init()
@@ -31,17 +45,13 @@ class apsis_OneApiInstallationConfigModuleFrontController extends AbstractApiCon
 
     private function processRequest()
     {
-        $contextIds = explode(',', $this->bodyParams['context_ids']);
-        if (count($contextIds) === 2) {
-            $groupId = (int) $contextIds[0];
-            $shopId = (int) $contextIds[1];
-            unset($this->bodyParams['context_ids']);
-
-            $this->configurationRepository->saveInstallationConfigs($this->bodyParams, $groupId, $shopId) ?
-                $this->exitWithResponse($this->generateResponse(201)) :
-                $this->exitWithResponse($this->generateResponse(500, [], 'Unable to save configurations.'));
-        } else {
-            $this->exitWithResponse($this->generateResponse(400, [], 'Invalid context ids.'));
-        }
+        $this->configurationRepository
+            ->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId) &&
+        $this->configurationRepository
+            ->saveProfileSyncFlag(ConfigurationRepository::CONFIG_FLAG_YES, $this->groupId, $this->shopId) &&
+        $this->configurationRepository
+            ->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_YES, $this->groupId, $this->shopId) ?
+            $this->exitWithResponse($this->generateResponse(201)) :
+            $this->exitWithResponse($this->generateResponse(500, [], 'Unable to save configurations.'));
     }
 }

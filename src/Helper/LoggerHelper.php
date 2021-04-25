@@ -12,7 +12,7 @@ class LoggerHelper
     /**
      * @var FileLogger
      */
-    private $fileLogger;
+    protected $fileLogger;
 
     /**
      * LoggerHelper constructor.

@@ -17,16 +17,17 @@ class ConfigurationRepository
     const CONFIG_KEY_TRACKING_CODE = self::CONFIG_PREFIX . 'TRACKING_CODE';
     const CONFIG_KEY_INSTALLATION_CONFIGS = self::CONFIG_PREFIX . 'INSTALLATION_CONFIGS';
     const CONFIG_KEY_API_TOKEN = self::CONFIG_PREFIX . 'API_TOKEN';
+    const CONFIG_KEY_API_TOKEN_EXPIRY = self::CONFIG_PREFIX . 'API_TOKEN_EXPIRY';
 
-    /**
-     * @var int
-     */
-    private $shopId;
+    const INSTALLATION_CONFIG_CLIENT_ID = 'client_id';
+    const INSTALLATION_CONFIG_CLIENT_SECRET = 'client_secret';
+    const INSTALLATION_CONFIG_ACCOUNT_ID = 'account_id';
+    const INSTALLATION_CONFIG_SECTION_DISCRIMINATOR = 'section_discriminator';
+    const INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR = 'keyspace_discriminator';
+    const INSTALLATION_CONFIG_API_BASE_URL = 'api_base_url';
 
-    /**
-     * @var int
-     */
-    private $shopGroupId;
+    const CONFIG_FLAG_YES = 1;
+    const CONFIG_FLAG_NO = 0;
 
     /**
      * @var PhpEncryption
@@ -52,8 +53,6 @@ class ConfigurationRepository
     public function __construct(PrestaShopContext $prestashopContext, LoggerHelper $loggerHelper)
     {
         $this->prestaShopContext = $prestashopContext;
-        $this->shopId = $prestashopContext->getCurrentShopId();
-        $this->shopGroupId = $prestashopContext->getCurrentShopGroupId();
         $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);
         $this->loggerHelper = $loggerHelper;
     }
@@ -102,13 +101,21 @@ class ConfigurationRepository
 
     /**
      * @param int $flag
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return bool
      */
-    public function saveProfileSyncFlag(int $flag)
+    public function saveProfileSyncFlag(int $flag, $idShopGroup = null, $idShop = null)
     {
         try {
-            return Configuration::updateValue(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG, $flag);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG,
+                $flag,
+                false,
+                $idShopGroup,
+                $idShop
+            );
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -116,12 +123,15 @@ class ConfigurationRepository
     }
 
     /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
      * @return bool
      */
-    public function getProfileSyncFlag()
+    public function getProfileSyncFlag($idShopGroup = null, $idShop = null)
     {
         try {
-            return (boolean) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
+            return (boolean) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -157,13 +167,21 @@ class ConfigurationRepository
 
     /**
      * @param int $flag
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return bool
      */
-    public function saveEventSyncFlag(int $flag)
+    public function saveEventSyncFlag(int $flag, $idShopGroup = null, $idShop = null)
     {
         try {
-            return Configuration::updateValue(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG, $flag);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG,
+                $flag,
+                false,
+                $idShopGroup,
+                $idShop
+            );
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -171,12 +189,15 @@ class ConfigurationRepository
     }
 
     /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
      * @return bool
      */
-    public function getEventSyncFlag()
+    public function getEventSyncFlag($idShopGroup = null, $idShop = null)
     {
         try {
-            return (boolean) Configuration::get(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
+            return (boolean) Configuration::get(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -212,13 +233,21 @@ class ConfigurationRepository
 
     /**
      * @param string $jsCode
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return bool
      */
-    public function saveTrackingCode(string $jsCode)
+    public function saveTrackingCode(string $jsCode, $idShopGroup = null, $idShop = null)
     {
         try {
-            return Configuration::updateValue(self::CONFIG_KEY_TRACKING_CODE, $jsCode);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_TRACKING_CODE,
+                $jsCode,
+                true,
+                $idShopGroup,
+                $idShop
+            );
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
@@ -226,12 +255,15 @@ class ConfigurationRepository
     }
 
     /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
      * @return string
      */
-    public function getTrackingCode()
+    public function getTrackingCode($idShopGroup = null, $idShop = null)
     {
         try {
-            return (string) Configuration::get(self::CONFIG_KEY_TRACKING_CODE);
+            return (string) Configuration::get(self::CONFIG_KEY_TRACKING_CODE, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return '';
@@ -275,12 +307,18 @@ class ConfigurationRepository
     public function saveInstallationConfigs(array $configs, $idShopGroup = null, $idShop = null)
     {
         try {
-            if (strlen($configs = (string) json_encode($configs)) === 0) {
+            if (! empty($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
+                $configs[self::INSTALLATION_CONFIG_CLIENT_SECRET] =
+                    $this->phpEncryption->encrypt($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET]);
+            }
+
+            if (($value = json_encode($configs)) === false) {
                 return false;
             }
+
             return Configuration::updateValue(
                 self::CONFIG_KEY_INSTALLATION_CONFIGS,
-                $configs,
+                empty($configs) ? '' : $value,
                 false,
                 $idShopGroup,
                 $idShop
@@ -292,17 +330,49 @@ class ConfigurationRepository
     }
 
     /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
      * @return array
      */
-    public function getInstallationConfigs()
+    public function getInstallationConfigs($idShopGroup = null, $idShop = null)
     {
         try {
-            $value = (string) Configuration::get(self::CONFIG_KEY_INSTALLATION_CONFIGS);
-            return empty($configs = (array) json_decode($value)) ? [] : $configs;
+            $configs = (array) json_decode(
+                Configuration::get(self::CONFIG_KEY_INSTALLATION_CONFIGS, null, $idShopGroup, $idShop)
+            );
+
+            if (! empty($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
+                $configs[self::INSTALLATION_CONFIG_CLIENT_SECRET] =
+                    $this->phpEncryption->decrypt($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET]);
+            }
+
+            return $configs;
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return [];
         }
+    }
+
+    /**
+     * @param string $key
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return string
+     */
+    public function getInstallationConfigByKey(string $key, $idShopGroup = null, $idShop = null)
+    {
+        try {
+            $configs = $this->getInstallationConfigs($idShopGroup, $idShop);
+            if (isset($configs[$key])) {
+                return (string) $configs[$key];
+            }
+
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+        }
+        return '';
     }
 
     /**
@@ -334,27 +404,45 @@ class ConfigurationRepository
 
     /**
      * @param string $token
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return bool
      */
-    public function saveApiToken(string $token)
+    public function saveApiToken(string $token, $idShopGroup = null, $idShop = null)
     {
         try {
-            return Configuration::updateValue(self::CONFIG_KEY_API_TOKEN, $this->phpEncryption->encrypt($token));
+            $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_API_TOKEN,
+                ($token) ? $this->phpEncryption->encrypt($token) : $token,
+                false,
+                $context['idShopGroup'],
+                $context['idShop']
+            );
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }
 
-    public function getApiToken()
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return string
+     */
+    public function getApiToken($idShopGroup = null, $idShop = null)
     {
         try {
-            return (string) $this->phpEncryption->decrypt(Configuration::get(self::CONFIG_KEY_API_TOKEN));
+            $value = Configuration::get(self::CONFIG_KEY_API_TOKEN, null, $idShopGroup, $idShop);
+            if ($value) {
+                return $this->phpEncryption->decrypt($value);
+            }
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return '';
         }
+        return '';
     }
 
     /**
@@ -385,6 +473,88 @@ class ConfigurationRepository
     }
 
     /**
+     * @param string $tokenExpiry
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function saveApiTokenExpiry(string $tokenExpiry, $idShopGroup = null, $idShop = null)
+    {
+        try {
+            $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
+            return Configuration::updateValue(
+                self::CONFIG_KEY_API_TOKEN_EXPIRY,
+                $tokenExpiry,
+                false,
+                $context['idShopGroup'],
+                $context['idShop']
+            );
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return string
+     */
+    public function getApiTokenExpiry($idShopGroup = null, $idShop = null)
+    {
+        try {
+            return (string) Configuration::get(self::CONFIG_KEY_API_TOKEN_EXPIRY, null, $idShopGroup, $idShop);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return '';
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteApiTokenExpiry()
+    {
+        try {
+            Configuration::deleteFromContext(self::CONFIG_KEY_API_TOKEN_EXPIRY);
+            return true;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteApiTokenExpiryForAllContext()
+    {
+        try {
+            return Configuration::deleteByName(self::CONFIG_KEY_API_TOKEN_EXPIRY);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function disableFeaturesAndDeleteConfig($idShopGroup, $idShop)
+    {
+        $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
+        return $this->saveApiToken('', $context['idShopGroup'], $context['idShop']) &&
+            $this->saveApiTokenExpiry('', $context['idShopGroup'], $context['idShop']) &&
+            $this->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
+            $this->saveProfileSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop);
+    }
+
+    /**
      * @param string $key
      * @param null $idLang
      * @param null $idShopGroup
@@ -396,6 +566,23 @@ class ConfigurationRepository
     public function get(string $key, $idLang = null, $idShopGroup = null, $idShop = null, $default = false)
     {
         return Configuration::get($key, $idLang, $idShopGroup, $idShop, $default);
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return array
+     */
+    public function getContextForSavingConfig(string $key, $idShopGroup = null, $idShop = null)
+    {
+        if ($idShop && Configuration::hasKey($key, null, null, $idShop)) {
+            return ['idShopGroup' => 0, 'idShop' => $idShop];
+        } elseif ($idShopGroup && Configuration::hasKey($key, null, $idShopGroup)) {
+            return ['idShopGroup' => $idShopGroup, 'idShop' => 0];
+        } else {
+            return ['idShopGroup' => 0, 'idShop' => 0];
+        }
     }
 
     /**
