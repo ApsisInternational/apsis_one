@@ -697,6 +697,9 @@ class ConfigurationRepository
             return $this->deleteApiToken() && $this->deleteApiTokenExpiry() && $this->deleteEventSyncFlag() &&
                 $this->deleteProfileSyncFlag();
         } else {
+            if ($installation) {
+                $this->saveInstallationConfigs([], $idShopGroup, $idShop);
+            }
             return $this->saveApiToken('', $idShopGroup, $idShop) &&
                 $this->saveApiTokenExpiry('', $idShopGroup, $idShop) &&
                 $this->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
