@@ -70,7 +70,7 @@ class PrestashopContext
                 $gIndex = 'g' . (int) $group['id'];
                 if (! isset($result[$gIndex])) {
                     $result[$gIndex] = [
-                        'context_ids' => '0,' . $group['id'],
+                        'context_ids' => $group['id'] . ',0',
                         'context_name' => 'SHOP GROUP: ' . $group['name']
                     ];
 
