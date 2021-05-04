@@ -67,12 +67,13 @@ class PrestashopContext
             $result[] = ['context_ids' => '0,0', 'context_name' => 'All shops'];
             foreach ($this->getAllActiveShopIdsAsList() as $shopId) {
                 $group = $this->context->shop->getGroupFromShop($shopId, false);
-                if (! isset($result[$group['id']])) {
-                    $result[$group['id']] = [
+                $gIndex = 'g' . (int) $group['id'];
+                if (! isset($result[$gIndex])) {
+                    $result[$gIndex] = [
                         'context_ids' => '0,' . $group['id'],
                         'context_name' => 'SHOP GROUP: ' . $group['name']
                     ];
-                } else {
+
                     foreach ($group['shops'] as $shop) {
                         if ($shop['active']) {
                             $result[] = [
