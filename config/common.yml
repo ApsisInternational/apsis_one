@@ -14,7 +14,7 @@ services:
       - '@apsis_one.helper.logger'
 
   apsis_one.context.prestashop:
-    class: 'Apsis\One\Context\PrestaShopContext'
+    class: 'Apsis\One\Context\PrestashopContext'
     arguments:
       - '@apsis_one.helper.logger'
 
