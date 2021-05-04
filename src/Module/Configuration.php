@@ -62,11 +62,7 @@ class Configuration
         $output = '';
 
         if (Tools::isSubmit('submit' . $this->module->name)) {
-            $profileSyncEnabled =  Tools::getValue(ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
-            $eventSyncEnabled =  Tools::getValue(ConfigurationRepository::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
-            $trackingScript = Tools::getValue(ConfigurationRepository::CONFIG_KEY_TRACKING_CODE);
-
-            $output .= $this->saveConfigurationValues($profileSyncEnabled, $eventSyncEnabled, $trackingScript) ?
+            $output .= $this->saveConfigurationValues() ?
                 $this->module->displayConfirmation($this->module->l('Settings updated.')) :
                 $this->module->displayError($this->module->l('Unable to save some settings.'));
         }
@@ -75,17 +71,20 @@ class Configuration
     }
 
     /**
-     * @param int $profileSyncEnabled
-     * @param int $eventSyncEnabled
-     * @param string $trackingScript
-     *
      * @return bool
      */
-    private function saveConfigurationValues(int $profileSyncEnabled, int $eventSyncEnabled, string $trackingScript)
+    private function saveConfigurationValues()
     {
+        $profileSyncEnabled =  (int) Tools::getValue(ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
+        $eventSyncEnabled =  (int) Tools::getValue(ConfigurationRepository::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
+        $trackingScript = (string) Tools::getValue(ConfigurationRepository::CONFIG_KEY_TRACKING_CODE);
+        $profileSyncSize = (int) Tools::getValue(ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_SIZE);
+        $dbCleanUpAfter = (int) Tools::getValue(ConfigurationRepository::CONFIG_KEY_DB_CLEANUP_AFTER);
         return $this->configurationRepository->saveProfileSyncFlag($profileSyncEnabled) &&
             $this->configurationRepository->saveEventSyncFlag($eventSyncEnabled) &&
-            $this->configurationRepository->saveTrackingCode($trackingScript);
+            $this->configurationRepository->saveTrackingCode($trackingScript) &&
+            $this->configurationRepository->saveProfileSynSize($profileSyncSize) &&
+            $this->configurationRepository->saveDbCleanUpAfter($dbCleanUpAfter);
     }
 
     /**
@@ -136,6 +135,10 @@ class Configuration
                 ConfigurationRepository::CONFIG_KEY_TRACKING_CODE,
                 $this->configurationRepository->getTrackingCode()
             );
+        $helper->fields_value[ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_SIZE] =
+            $this->configurationRepository->getProfileSynSize();
+        $helper->fields_value[ConfigurationRepository::CONFIG_KEY_DB_CLEANUP_AFTER] =
+            $this->configurationRepository->getDbCleanUpAfter();
 
         return $helper->generateForm($this->initFieldsFormArr());
     }
@@ -250,6 +253,12 @@ class Configuration
                     ]
                 ],
                 [
+                    'type' => 'text',
+                    'label' => $this->module->l('Profile Sync Size'),
+                    'name' => ConfigurationRepository::CONFIG_KEY_PROFILE_SYNC_SIZE,
+                    'required' => true
+                ],
+                [
                     'type' => 'switch',
                     'label' => $this->module->l('Event Sync Enabled'),
                     'name' => ConfigurationRepository::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG,
@@ -272,7 +281,28 @@ class Configuration
                     'label' => $this->module->l('Tracking Script'),
                     'desc' => $this->module->l('If left empty feature is automatically disabled.'),
                     'name' => ConfigurationRepository::CONFIG_KEY_TRACKING_CODE,
-                ]
+                ],
+                [
+                    'type' => 'select',
+                    'label' => $this->module->l('DB Cleanup - After'),
+                    'name' => ConfigurationRepository::CONFIG_KEY_DB_CLEANUP_AFTER,
+                    'required' => true,
+                    'options' => [
+                        'query' => [
+                            ['id' => 7, 'name' => '7 Days'],
+                            ['id' => 14, 'name' => '14 Days'],
+                            ['id' => 30, 'name' => '30 Days'],
+                            ['id' => 60, 'name' => '60 Days'],
+                            ['id' => 90, 'name' => '90 Days'],
+                            ['id' => 180, 'name' => '180 Days'],
+                        ],
+                        'id' => 'id',
+                        'name' => 'name',
+                    ],
+                    'desc' => $this->module->l(
+                        'Cleanup cronjob will remove entries from DB tables older then set value.'
+                    ),
+                ],
             ],
             'submit' => [
                 'title' => $this->module->l('Save'),

@@ -561,79 +561,23 @@ class Client extends AbstractHttpRest
     }
 
     /**
-     * EXPORTS & IMPORTS: Import profiles - Initialize
+     * INTEGRATIONS: Justin Delta Sync Manager
      *
-     * Initialize importing profiles into APSIS One.
+     * Schedule an update of profiles
      *
      * @param string $sectionDiscriminator
      * @param array $data
+     * @param string $integrationName
      *
      * @return mixed
      */
-    public function initializeProfileImport(string $sectionDiscriminator, array $data)
+    public function insertOrUpdateProfiles(string $sectionDiscriminator, array $data, string $integrationName = 'prestashop')
     {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/imports')
+        $url = $this->hostName . '/audience/sections/' . $sectionDiscriminator . '/integrations/' . $integrationName
+            . '/updates';
+        $this->setUrl($url)
             ->setVerb(AbstractHttpRest::VERB_POST)
             ->buildBody($data);
-        return $this->processResponse($this->execute(), __METHOD__);
-    }
-
-    /**
-     * EXPORTS & IMPORTS: Import profiles - Upload file
-     *
-     * Upload CSV file after initializeProfileImport
-     *
-     * @param string $url
-     * @param array $fields
-     * @param string $fileNameWithPath
-     *
-     * @return mixed
-     */
-    public function uploadFileForProfileImport(string $url, array $fields, string $fileNameWithPath)
-    {
-        $ch = curl_init();
-        try {
-            if (function_exists('curl_file_create')) {
-                $fields['file'] = curl_file_create($fileNameWithPath, 'text/csv');
-            } else {
-                $fields['file'] = '@' . $fileNameWithPath;
-            }
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_ENCODING, "");
-            curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
-            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, AbstractHttpRest::VERB_POST);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: multipart/form-data']);
-
-            $this->responseBody = json_decode(curl_exec($ch));
-            $this->responseInfo = curl_getinfo($ch);
-            $this->curlError = curl_error($ch);
-        } catch (Exception $e) {
-            curl_close($ch);
-            $this->logHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-        }
-        return $this->processResponse($this->responseBody, __METHOD__);
-    }
-
-    /**
-     * EXPORTS & IMPORTS: Get import status
-     *
-     * Gets a status of a profile import that has been previously requested
-     *
-     * @param string $sectionDiscriminator
-     * @param string $importId
-     *
-     * @return mixed
-     */
-    public function getImportStatus(string $sectionDiscriminator, string $importId)
-    {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/imports/' . $importId)
-            ->setVerb(AbstractHttpRest::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 }

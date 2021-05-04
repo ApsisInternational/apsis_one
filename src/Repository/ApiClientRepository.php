@@ -42,12 +42,12 @@ class ApiClientRepository
     }
 
     /**
-     * @param null $idShopGroup
-     * @param null $idShop
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return Client|false
      */
-    public function getApiClientInstanceForGivenContext($idShopGroup = null, $idShop = null)
+    public function getApiClientInstanceForContext($idShopGroup = null, $idShop = null)
     {
         try {
             $token = $this->apiClientHelper->getToken($this, $idShopGroup, $idShop);

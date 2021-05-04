@@ -56,6 +56,8 @@ class Uninstall
             $this->configurationRepository->deleteTrackingCodeFromAllContext() &&
             $this->configurationRepository->deleteInstallationConfigsFromAllContext() &&
             $this->configurationRepository->deleteApiTokenForAllContext() &&
-            $this->configurationRepository->deleteApiTokenExpiryForAllContext();
+            $this->configurationRepository->deleteApiTokenExpiryForAllContext() &&
+            $this->configurationRepository->deleteDbCleanUpAfterForAllContext() &&
+            $this->configurationRepository->deleteProfileSynSizeForAllContext();
     }
 }

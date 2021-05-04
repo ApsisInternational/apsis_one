@@ -11,14 +11,21 @@ class apsis_OneApiStoresModuleFrontController extends AbstractApiController
 
     public function init()
     {
-        parent::init();
-
-        $this->processRequest();
+        try {
+            parent::init();
+            $this->handleRequest();
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
     }
 
-    private function processRequest()
+    protected function handleRequest()
     {
-        $shopsList = $this->configurationRepository->getPrestaShopContext()->getAllContextList();
-        $this->exitWithResponse($this->generateResponse(200, $shopsList));
+        try {
+            $shopsList = $this->configurationRepository->getPrestaShopContext()->getAllContextList();
+            $this->exitWithResponse($this->generateResponse(200, ['shops' => $shopsList]));
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
     }
 }

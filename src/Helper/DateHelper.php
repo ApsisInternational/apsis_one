@@ -17,6 +17,11 @@ class DateHelper
      */
     protected $loggerHelper;
 
+    /**
+     * DateHelper constructor.
+     *
+     * @param LoggerHelper $loggerHelper
+     */
     public function __construct(LoggerHelper $loggerHelper)
     {
         $this->loggerHelper = $loggerHelper;
@@ -30,10 +35,11 @@ class DateHelper
      */
     public function formatDateForPlatformCompatibility($date = null, $format = self::TIMESTAMP)
     {
-        if (empty($date)) {
-            $date = 'now';
-        }
         try {
+            if (empty($date)) {
+                $date = 'now';
+            }
+
             return $this->getDateTimeFromTime($date)->format($format);
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
@@ -49,10 +55,11 @@ class DateHelper
      */
     public function addSecond($date = null, $format = self::TIMESTAMP)
     {
-        if (empty($date)) {
-            $date = 'now';
-        }
         try {
+            if (empty($date)) {
+                $date = 'now';
+            }
+
             return $this->getDateTimeFromTime($date)
                 ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
                 ->format($format);

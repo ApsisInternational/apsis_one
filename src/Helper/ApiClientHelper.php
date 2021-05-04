@@ -48,17 +48,17 @@ class ApiClientHelper
      *
      * @return string
      */
-    public function getToken(ApiClientRepository $apiClientRepository, $idShopGroup, $idShop)
+    public function getToken(ApiClientRepository $apiClientRepository, $idShopGroup = null, $idShop = null)
     {
-        if(empty($configs = $this->configurationRepository->getInstallationConfigs($idShopGroup, $idShop)) ||
-            empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID]) ||
-            empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET]) ||
-            empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL])
-        ) {
-            return false;
-        }
-
         try{
+            if(empty($configs = $this->configurationRepository->getInstallationConfigs($idShopGroup, $idShop)) ||
+                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID]) ||
+                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET]) ||
+                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL])
+            ) {
+                return false;
+            }
+
             if ($this->isTokenExpired($idShopGroup, $idShop)) {
                 return $this->getTokenFromApi($apiClientRepository, $configs, $idShopGroup, $idShop);
             } else {
@@ -77,7 +77,7 @@ class ApiClientHelper
      *
      * @return bool
      */
-    private function isTokenExpired($idShopGroup, $idShop)
+    private function isTokenExpired($idShopGroup = null, $idShop = null)
     {
         try {
             $expiryTime = $this->configurationRepository->getApiTokenExpiry($idShopGroup, $idShop);
@@ -100,8 +100,12 @@ class ApiClientHelper
      *
      * @return string
      */
-    private function getTokenFromApi(ApiClientRepository $apiClientRepository, array $configs, $idShopGroup, $idShop)
-    {
+    private function getTokenFromApi(
+        ApiClientRepository $apiClientRepository,
+        array $configs,
+        $idShopGroup = null,
+        $idShop = null
+    ) {
         try {
             $apiClient = $apiClientRepository->getApiClientInstance(
                 $configs[ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL]
@@ -117,7 +121,7 @@ class ApiClientHelper
             );
 
             if ($response && isset($response->access_token)) {
-                return $this->saveTokenAndExpiry($idShopGroup, $idShop, $response) ?
+                return $this->saveTokenAndExpiry($response, $idShopGroup, $idShop) ?
                     (string) $response->access_token : '';
             }
             if ($response && isset($response->status) && in_array($response->status, [400, 401, 403])) {
@@ -133,13 +137,13 @@ class ApiClientHelper
     }
 
     /**
-     * @param $idShopGroup
-     * @param $idShop
      * @param stdClass $request
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return bool
      */
-    private function saveTokenAndExpiry($idShopGroup, $idShop, stdClass $request)
+    private function saveTokenAndExpiry(stdClass $request, $idShopGroup = null, $idShop = null)
     {
         try {
             $time = $this->dateHelper->getDateTimeFromTimeAndTimeZone()

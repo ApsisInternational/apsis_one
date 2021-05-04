@@ -3,18 +3,21 @@
 namespace Apsis\One\Controller;
 
 use Apsis\One\Helper\LoggerHelper;
-use ModuleFrontController;
-use WebserviceRequestCore;
 use Apsis\One\Repository\ConfigurationRepository;
 use Apsis_one;
+use ModuleFrontController;
+use WebserviceRequestCore;
 use Validate;
 use Tools;
+use Exception;
 
 abstract class AbstractApiController extends ModuleFrontController
 {
+    const PARAM_TYPE_QUERY = 'query';
+    const PARAM_TYPE_BODY = 'body';
+
     /** QUERY PARAMS */
     const QUERY_PARAM_CONTEXT_IDS = 'context_ids';
-    const QUERY_PARAM_RESET = 'reset';
 
     /** DATA TYPES */
     const DATA_TYPE_STRING = 'string';
@@ -24,11 +27,19 @@ abstract class AbstractApiController extends ModuleFrontController
     /** HTTP METHODS */
     const HTTP_GET = 'GET';
     const HTTP_POST = 'POST';
-    const HTTP_PUT = 'PUT';
     const HTTP_PATCH = 'PATCH';
-    const HTTP_DELETE = 'DELETE';
 
-    const REQUEST_BODY_FOR_HTTP_METHOD = [self::HTTP_POST, self::HTTP_PATCH, self::HTTP_PUT];
+    /** HTTP Codes  */
+    const HTTP_CODE_200 = 200;
+    const HTTP_CODE_204 = 204;
+    const HTTP_CODE_400 = 400;
+    const HTTP_CODE_401 = 401;
+    const HTTP_CODE_403 = 403;
+    const HTTP_CODE_404 = 404;
+    const HTTP_CODE_405 = 405;
+    const HTTP_CODE_500 = 500;
+
+    const REQUEST_BODY_FOR_HTTP_METHOD = [self::HTTP_POST, self::HTTP_PATCH];
 
     /**
      * @var Apsis_one
@@ -68,6 +79,11 @@ abstract class AbstractApiController extends ModuleFrontController
     /**
      * @var array
      */
+    protected $optionalQueryParamIgnoreRelations = [];
+
+    /**
+     * @var array
+     */
     protected $bodyParams = [];
 
     /**
@@ -78,80 +94,154 @@ abstract class AbstractApiController extends ModuleFrontController
     /**
      * @var int
      */
-    protected $groupId;
+    protected $groupId = null;
 
     /**
      * @var int
      */
-    protected $shopId;
+    protected $shopId = null;
 
     /**
      * AbstractApiController constructor.
      */
     public function __construct()
     {
-        parent::__construct();
+        try {
+            parent::__construct();
 
-        $this->controller_type = 'module';
-        $this->configurationRepository = $this->module->getService('apsis_one.repository.configuration');
-        $this->loggerHelper = $this->module->getService('apsis_one.helper.logger');
+            $this->controller_type = 'module';
+            $this->configurationRepository = $this->module->getService('apsis_one.repository.configuration');
+            $this->loggerHelper = $this->module->getService('apsis_one.helper.logger');
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
     }
+
+    abstract protected function handleRequest();
 
     public function init()
     {
-        $this->validateHttpMethod();
-        $this->authorize();
-        $this->validateAndSetQueryParams();
-        $this->validateAndSetOptionalQueryParams();
+        try {
+            //Check if http method is allowed or not
+            $this->validateHttpMethod();
 
-        if (isset($this->queryParams[self::QUERY_PARAM_CONTEXT_IDS])) {
-            $this->setContextIds();
-        }
+            //Check if authorized to make the call
+            $this->authorize();
 
-        $this->checkForResetParam();
+            //Check|set if optional query params are valid
+            $this->validateAndSetOptionalQueryParams();
 
-        if (in_array($this->validRequestMethod, self::REQUEST_BODY_FOR_HTTP_METHOD)) {
-            $this->setBodyParams();
-            $this->validateBodyParams();
+            //Check|set if compulsory query params are valid
+            $this->validateAndSetCompulsoryQueryParams();
+
+            //Check if module is enabled
+            $this->validateModuleStatus();
+
+            //Check|set body params if http method allows it
+            if (in_array($this->validRequestMethod, self::REQUEST_BODY_FOR_HTTP_METHOD)) {
+                $this->setBodyParams();
+                $this->validateBodyParams();
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
     private function validateHttpMethod()
     {
-        if ($this->validRequestMethod !== $_SERVER['REQUEST_METHOD']) {
-            $msg = $_SERVER['REQUEST_METHOD'] . ': method not allowed to this endpoint.';
-            $this->exitWithResponse($this->generateResponse(405, [], $msg));
+        try {
+            if ($this->validRequestMethod !== $_SERVER['REQUEST_METHOD']) {
+                $msg = $_SERVER['REQUEST_METHOD'] . ': method not allowed to this endpoint.';
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_405, [], $msg));
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
     private function authorize()
     {
-        $headers = WebserviceRequestCore::getallheaders();
-        if (empty($headers['Authorization']) ||
-            $headers['Authorization'] !== $this->configurationRepository->getGlobalKey()
-        ) {
-            $this->exitWithResponse($this->generateResponse(401, [], 'Invalid key.'));
+        try {
+            $headers = WebserviceRequestCore::getallheaders();
+            if (empty($headers['Authorization']) ||
+                $headers['Authorization'] !== $this->configurationRepository->getGlobalKey()
+            ) {
+                $msg = 'Invalid key for authorization header.';
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
-    private function validateAndSetQueryParams()
+    private function validateModuleStatus()
     {
-        foreach ($this->validQueryParams as $queryParam => $dataType) {
-            if (! Tools::getIsset($queryParam)) {
-                $msg = "Missing query param: " . $queryParam;
-                $this->exitWithResponse($this->generateResponse(400, [], $msg));
+        try {
+            if ($this->module->isModuleEnabledForContext($this->groupId, $this->shopId) === false) {
+                $this->exitWithResponse(
+                    $this->generateResponse(self::HTTP_CODE_403, [], 'Module is disabled.')
+                );
             }
-
-            $this->setQueryParam($queryParam, $dataType);
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
+    }
+
+    private function validateAndSetCompulsoryQueryParams()
+    {
+        try {
+            foreach ($this->validQueryParams as $queryParam => $dataType) {
+                if ($this->isOkToIgnoreParam($queryParam, self::PARAM_TYPE_QUERY)) {
+                    continue;
+                }
+
+                if (! Tools::getIsset($queryParam)) {
+                    $msg = "Missing query param: " . $queryParam;
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
+                }
+
+                $this->setQueryParam($queryParam, $dataType);
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
+    }
+
+    /**
+     * @param string $compulsoryParam
+     * @param string $paramType
+     *
+     * @return bool
+     */
+    private function isOkToIgnoreParam(string $compulsoryParam, string $paramType)
+    {
+        try {
+            foreach ($this->optionalQueryParamIgnoreRelations as $param => $typeList) {
+                if (key_exists($param, $this->queryParams) &&
+                    isset($typeList[$paramType]) &&
+                    ! empty($list = $typeList[$paramType]) &&
+                    in_array($compulsoryParam, $list)
+                ) {
+                    return true;
+                }
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
+
+        return false;
     }
 
     private function validateAndSetOptionalQueryParams()
     {
-        foreach ($this->optionalQueryParams as $queryParam => $dataType) {
-            if (Tools::getIsset($queryParam)) {
-                $this->setQueryParam($queryParam, $dataType);
+        try {
+            foreach ($this->optionalQueryParams as $queryParam => $dataType) {
+                if (Tools::getIsset($queryParam)) {
+                    $this->setQueryParam($queryParam, $dataType);
+                }
             }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
@@ -161,74 +251,120 @@ abstract class AbstractApiController extends ModuleFrontController
      */
     private function setQueryParam(string $queryParam, string $dataType)
     {
-        $value = Tools::getValue($queryParam, false);
-        if (! $this->isDataValid($value, $dataType)) {
-            $msg = "Invalid value for query param: " . $queryParam;
-            $this->exitWithResponse($this->generateResponse(400, [], $msg));
-        }
-        $this->queryParams[$queryParam] = Tools::safeOutput($value);
-    }
+        try {
+            $value = Tools::getValue($queryParam, false);
+            if (! $this->isDataValid($value, $dataType)) {
+                $msg = "Invalid value for query param: " . $queryParam;
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
+            }
+            $this->queryParams[$queryParam] = Tools::safeOutput($value);
 
-    private function setContextIds()
-    {
-        $contextIds = explode(',', $this->queryParams[self::QUERY_PARAM_CONTEXT_IDS]);
-        if (count($contextIds) === 2 && is_numeric($contextIds[0]) && is_numeric($contextIds[1])) {
-            $this->groupId = (int) $contextIds[0];
-            $this->shopId = (int) $contextIds[1];
-        } else {
-            $this->exitWithResponse($this->generateResponse(400, [], 'Invalid context ids.'));
+            if ($queryParam === self::QUERY_PARAM_CONTEXT_IDS) {
+                $this->setContextIds($this->queryParams[$queryParam]);
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
-    private function checkForResetParam()
+    private function setContextIds(string $contextIdsString)
     {
-        if (get_class($this) === "apsis_OneApiInstallationConfigModuleFrontController" &&
-            ! empty($this->queryParams[self::QUERY_PARAM_RESET])
-        ) {
-            //@todo also reset events and profiles
-            $context = $this->configurationRepository->getContextForSavingConfig(
-                ConfigurationRepository::CONFIG_KEY_INSTALLATION_CONFIGS,
-                $this->groupId,
-                $this->shopId
-            );
-            $this->configurationRepository->disableFeaturesAndDeleteConfig($this->groupId, $this->shopId);
-            $this->configurationRepository->saveInstallationConfigs([], $context['idShopGroup'], $context['idShop']);
-            $this->exitWithResponse($this->generateResponse(204));
+        try {
+            $contextIds = explode(',', $contextIdsString);
+            if (count($contextIds) === 2 && is_numeric($contextIds[0]) && is_numeric($contextIds[1])) {
+                $this->groupId = (int) $contextIds[0];
+                $this->shopId = (int) $contextIds[1];
+            } else {
+                $msg = 'Invalid context ids string.';
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
         }
     }
 
     private function setBodyParams()
     {
-        $body = file_get_contents('php://input');
-
-        if (empty($body) || ! Validate::isJson($body)) {
-            $this->exitWithResponse($this->generateResponse(400, [], 'Invalid payload.'));
-        }
-
-        $params = (array) json_decode($body);
-        foreach ($params as $key => $value) {
-            if (! isset($this->validBodyParams[$key])) {
-                unset($params[$key]);
+        try {
+            if ($this->isOkToIgnoreParam(self::PARAM_TYPE_BODY, self::PARAM_TYPE_BODY)) {
+                $this->validBodyParams = [];
             } else {
-                $params[$key] = Tools::safeOutput($value);
-            }
-        }
+                $body = file_get_contents('php://input');
+                if (empty($body) || ! Validate::isJson($body)) {
+                    $msg = 'Invalid payload.';
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
+                }
 
-        $this->bodyParams = $params;
+                $params = (array) json_decode($body);
+                foreach ($params as $key => $value) {
+                    if (! isset($this->validBodyParams[$key])) {
+                        unset($params[$key]);
+                    } else {
+                        $params[$key] = Tools::safeOutput($value);
+                    }
+                }
+
+                $this->bodyParams = $params;
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
     }
 
     private function validateBodyParams()
     {
-        $bodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
-        if (! empty($bodyParams)) {
-            $msg = 'Incomplete payload. Missing ' . implode(', ', $bodyParams);
-            $this->exitWithResponse($this->generateResponse(400, [], $msg));
-        }
-
-        foreach ($this->bodyParams as $param => $value) {
-            if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
-                $this->exitWithResponse($this->generateResponse(400, [], $param . ': is invalid.'));
+        try {
+            $bodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
+            if (! empty($bodyParams)) {
+                $msg = 'Incomplete payload. Missing body param ' . implode(', ', $bodyParams);
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
             }
+
+            foreach ($this->bodyParams as $param => $value) {
+                if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
+                    $msg1 = $param . ': is invalid.';
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg1));
+                }
+            }
+        } catch (Exception $e) {
+            $this->handleException($e, __METHOD__);
+        }
+    }
+
+    /**
+     * @param mixed $data
+     * @param string $type
+     *
+     * @return bool
+     */
+    private function isDataValid($data, string $type)
+    {
+        $isValid = false;
+        if (! empty($data)) {
+            try {
+                switch ($type) {
+                    case self::DATA_TYPE_STRING:
+                        $isValid = preg_match('/^[a-zA-Z0-9.,_-]+$/', $data);
+                        break;
+                    case self::DATA_TYPE_INT:
+                        $isValid = is_numeric($data);
+                        break;
+                    case self::DATA_TYPE_URL:
+                        $isValid = filter_var($data, FILTER_VALIDATE_URL);
+                        break;
+                }
+            } catch (Exception $e) {
+                $this->handleException($e, __METHOD__);
+            }
+        }
+        return $isValid;
+    }
+
+    protected function validateProfileSyncFeature()
+    {
+        if ($this->configurationRepository->getProfileSyncFlag($this->groupId, $this->shopId) === false) {
+            $msg = 'Profile sync feature is disable for context.';
+            $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_403, [], $msg));
         }
     }
 
@@ -237,15 +373,18 @@ abstract class AbstractApiController extends ModuleFrontController
      */
     protected function exitWithResponse(array $response)
     {
-        $response['httpCode'] = $httpCode = isset($response['httpCode']) ? (int) $response['httpCode'] : 200;
-        $httpStatusText = $this->getStatusText($httpCode);
+        $response['httpCode'] = isset($response['httpCode']) ? (int) $response['httpCode'] : self::HTTP_CODE_204;
+        $httpStatusText = $this->getStatusText($response['httpCode']);
+
+        if ($response['httpCode'] === self::HTTP_CODE_204) {
+            $response = [];
+        }
 
         header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
         header('Content-Type: application/json;charset=utf-8');
         header($httpStatusText);
 
         echo json_encode($response, JSON_UNESCAPED_SLASHES);
-
         exit;
     }
 
@@ -260,41 +399,12 @@ abstract class AbstractApiController extends ModuleFrontController
     {
         $response = ['httpCode' => $httpCode];
         if (! empty($data)) {
-            $response['items'] = $data;
+            $response['data'] = $data;
         }
         if (strlen($msg)) {
             $response['message'] = $msg;
         }
         return $response;
-    }
-
-    /**
-     * @param mixed $data
-     * @param string $type
-     *
-     * @return bool
-     */
-    private function isDataValid($data, string $type)
-    {
-        $isValid = false;
-
-        if (empty($data)) {
-            return $isValid;
-        }
-
-        switch ($type) {
-            case self::DATA_TYPE_STRING:
-                $isValid = preg_match('/^[a-zA-Z0-9.,_-]+$/', $data);
-                break;
-            case self::DATA_TYPE_INT:
-                $isValid = is_numeric($data);
-                break;
-            case self::DATA_TYPE_URL:
-                $isValid = filter_var($data, FILTER_VALIDATE_URL);
-                break;
-        }
-
-        return $isValid;
     }
 
     /**
@@ -306,55 +416,51 @@ abstract class AbstractApiController extends ModuleFrontController
     {
         $statusText = '';
         switch ($httpCode) {
-            case 200:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 200 OK';
+            case self::HTTP_CODE_200:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_200 . ' OK';
 
                 break;
-            case 201:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 201 Created';
+            case self::HTTP_CODE_204:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_204 . ' No Content';
 
                 break;
-            case 204:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 204 No Content';
+            case self::HTTP_CODE_400:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_400 . ' Bad Request';
 
                 break;
-            case 304:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 304 Not Modified';
+            case self::HTTP_CODE_401:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_401 . ' Unauthorized';
 
                 break;
-            case 400:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request';
+            case self::HTTP_CODE_403:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_403 . ' Forbidden';
 
                 break;
-            case 401:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 401 Unauthorized';
+            case self::HTTP_CODE_404:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_404 . ' Not Found';
 
                 break;
-            case 403:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 403 Forbidden';
+            case self::HTTP_CODE_405:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_405 . ' Method Not Allowed';
 
                 break;
-            case 404:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 404 Not Found';
-
-                break;
-            case 405:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 405 Method Not Allowed';
-
-                break;
-            case 500:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error';
-
-                break;
-            case 501:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 501 Not Implemented';
-
-                break;
-            case 503:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' 503 Service Unavailable';
+            case self::HTTP_CODE_500:
+                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_500 . ' Internal Server Error';
 
                 break;
         }
         return $statusText;
+    }
+
+    /**
+     * @param Exception $e
+     * @param string $classMethodName
+     */
+    protected function handleException(Exception $e, string $classMethodName)
+    {
+        $this->loggerHelper->logErrorToFile($classMethodName, $e->getMessage(), $e->getTraceAsString());
+        $this->exitWithResponse(
+            $this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $e->getMessage())
+        );
     }
 }

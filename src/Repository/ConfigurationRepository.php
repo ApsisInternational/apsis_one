@@ -2,11 +2,12 @@
 
 namespace Apsis\One\Repository;
 
+use Apsis\One\Context\PrestaShopContext;
+use Apsis\One\Helper\LoggerHelper;
 use Configuration;
 use PhpEncryption;
 use Exception;
-use Apsis\One\Context\PrestaShopContext;
-use Apsis\One\Helper\LoggerHelper;
+use PrestaShopException;
 
 class ConfigurationRepository
 {
@@ -18,16 +19,20 @@ class ConfigurationRepository
     const CONFIG_KEY_INSTALLATION_CONFIGS = self::CONFIG_PREFIX . 'INSTALLATION_CONFIGS';
     const CONFIG_KEY_API_TOKEN = self::CONFIG_PREFIX . 'API_TOKEN';
     const CONFIG_KEY_API_TOKEN_EXPIRY = self::CONFIG_PREFIX . 'API_TOKEN_EXPIRY';
+    const CONFIG_KEY_PROFILE_SYNC_SIZE = self::CONFIG_PREFIX . 'PROFILE_SYNC_SIZE';
+    const CONFIG_KEY_DB_CLEANUP_AFTER = self::CONFIG_PREFIX . 'DB_CLEANUP_AFTER';
 
     const INSTALLATION_CONFIG_CLIENT_ID = 'client_id';
     const INSTALLATION_CONFIG_CLIENT_SECRET = 'client_secret';
-    const INSTALLATION_CONFIG_ACCOUNT_ID = 'account_id';
     const INSTALLATION_CONFIG_SECTION_DISCRIMINATOR = 'section_discriminator';
     const INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR = 'keyspace_discriminator';
     const INSTALLATION_CONFIG_API_BASE_URL = 'api_base_url';
 
     const CONFIG_FLAG_YES = 1;
     const CONFIG_FLAG_NO = 0;
+
+    const DEFAULT_PROFILE_SYNC_SIZE = 5000;
+    const DEFAULT_DB_CLEANUP_AFTER = 30; //Days
 
     /**
      * @var PhpEncryption
@@ -540,18 +545,163 @@ class ConfigurationRepository
     }
 
     /**
+     * @param int $size
      * @param int $idShopGroup
      * @param int $idShop
      *
      * @return bool
      */
-    public function disableFeaturesAndDeleteConfig($idShopGroup, $idShop)
+    public function saveProfileSynSize(int $size = self::DEFAULT_PROFILE_SYNC_SIZE, $idShopGroup = null, $idShop = null)
     {
-        $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
-        return $this->saveApiToken('', $context['idShopGroup'], $context['idShop']) &&
-            $this->saveApiTokenExpiry('', $context['idShopGroup'], $context['idShop']) &&
-            $this->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
-            $this->saveProfileSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop);
+        try {
+            return Configuration::updateValue(
+                self::CONFIG_KEY_PROFILE_SYNC_SIZE,
+                $size,
+                true,
+                $idShopGroup,
+                $idShop
+            );
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return int
+     */
+    public function getProfileSynSize($idShopGroup = null, $idShop = null)
+    {
+        try {
+            $value = (int) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_SIZE, null, $idShopGroup, $idShop);
+            return ($value) ?: self::DEFAULT_PROFILE_SYNC_SIZE;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return self::DEFAULT_PROFILE_SYNC_SIZE;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteProfileSynSize()
+    {
+        try {
+            Configuration::deleteFromContext(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
+            return true;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteProfileSynSizeForAllContext()
+    {
+        try {
+            return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $size
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return bool
+     */
+    public function saveDbCleanUpAfter(int $size = self::DEFAULT_DB_CLEANUP_AFTER, $idShopGroup = null, $idShop = null)
+    {
+        try {
+            return Configuration::updateValue(
+                self::CONFIG_KEY_DB_CLEANUP_AFTER,
+                $size,
+                true,
+                $idShopGroup,
+                $idShop
+            );
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param int $idShop
+     *
+     * @return int
+     */
+    public function getDbCleanUpAfter($idShopGroup = null, $idShop = null)
+    {
+        try {
+            $value = (int) Configuration::get(self::CONFIG_KEY_DB_CLEANUP_AFTER, null, $idShopGroup, $idShop);;
+            return ($value) ?: self::DEFAULT_DB_CLEANUP_AFTER;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return self::DEFAULT_DB_CLEANUP_AFTER;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteDbCleanUpAfter()
+    {
+        try {
+            Configuration::deleteFromContext(self::CONFIG_KEY_DB_CLEANUP_AFTER);
+            return true;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function deleteDbCleanUpAfterForAllContext()
+    {
+        try {
+            return Configuration::deleteByName(self::CONFIG_KEY_DB_CLEANUP_AFTER);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param null $idShopGroup
+     * @param null $idShop
+     * @param bool $installation
+     *
+     * @return bool
+     *
+     * @throws PrestaShopException
+     */
+    public function disableFeaturesAndDeleteConfig($idShopGroup = null, $idShop = null, bool $installation = false)
+    {
+        if ($idShopGroup || $idShop) {
+            $this->getPrestaShopContext()->setContext($idShopGroup, $idShop);
+            if ($installation) {
+                $this->deleteInstallationConfigs();
+            }
+            return $this->deleteApiToken() && $this->deleteApiTokenExpiry() && $this->deleteEventSyncFlag() &&
+                $this->deleteProfileSyncFlag();
+        } else {
+            return $this->saveApiToken('', $idShopGroup, $idShop) &&
+                $this->saveApiTokenExpiry('', $idShopGroup, $idShop) &&
+                $this->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
+                $this->saveProfileSyncFlag(ConfigurationRepository::CONFIG_FLAG_NO, $idShopGroup, $idShop);
+        }
     }
 
     /**

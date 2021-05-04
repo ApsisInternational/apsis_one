@@ -11,6 +11,7 @@ use Apsis\One\Module\Install;
 use Apsis\One\Module\Uninstall;
 use Apsis\One\Module\Configuration;
 use Apsis\One\Helper\LoggerHelper;
+use Apsis\One\Context\PrestaShopContext;
 
 class Apsis_one extends Module
 {
@@ -54,10 +55,15 @@ class Apsis_one extends Module
      */
     public function install()
     {
-        /** @var Install $installModule */
-        $installModule = $this->getService('apsis_one.module.install');
-
-        return parent::install() && $installModule->init();
+        try {
+            /** @var Install $installModule */
+            $installModule = $this->getService('apsis_one.module.install');
+            return parent::install() && $installModule->init();
+            //See if we should enable module for all shops
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
     }
 
     /**
@@ -65,29 +71,67 @@ class Apsis_one extends Module
      */
     public function uninstall()
     {
-        /** @var Uninstall $uninstallModule */
-        $uninstallModule = $this->getService('apsis_one.module.uninstall');
-
-        return parent::uninstall() && $uninstallModule->init();
+        try {
+            /** @var Uninstall $uninstallModule */
+            $uninstallModule = $this->getService('apsis_one.module.uninstall');
+            return parent::uninstall() && $uninstallModule->init();
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
     }
 
     /**
-     * @param int $shopId
+     * @return bool
+     */
+    public function isModuleEnabledForCurrentShop()
+    {
+        try {
+            return (bool) parent::isEnabled($this->name);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return false;
+        }
+    }
+
+    /**
+     * @param int $idShopGroup
+     * @param null $idShop
      *
      * @return bool
      */
-    public function isModuleEnabledForGivenShop(int $shopId)
+    public function isModuleEnabledForContext($idShopGroup = null, $idShop = null)
     {
         $active = false;
+
         try {
-            $sql = 'SELECT `id_module` FROM `' . _DB_PREFIX_ . 'module_shop` WHERE `id_module` = ' .
-                (int) Module::getModuleIdByName($this->name) .' AND `id_shop` = ' . $shopId;
-            if (Db::getInstance()->getValue($sql)) {
+            /** @var PrestaShopContext $prestaShopContext */
+            $prestaShopContext = $this->getService('apsis_one.context.prestashop');
+
+            if ($idShop) { // Need to check if enabled for the shop itself
+                $shopList = [$idShop];
+            } elseif ($idShopGroup) { // Need to check if enabled for minimum one shop under the group
+                if (empty($list = $prestaShopContext->getShopListGroupedByGroup()) || empty($list[$idShopGroup])) {
+                    return $active;
+                }
+                $shopList = $list[$idShopGroup];
+            } else { //Need to check if module is enabled for least one shop
+                if (empty($shopList = $prestaShopContext->getAllActiveShopIdsAsList())) {
+                    return $active;
+                }
+            }
+
+            $in = implode(',', array_map('intval', $shopList));
+            $select = 'SELECT `id_module` FROM `' . _DB_PREFIX_ . 'module_shop`';
+            $where = 'WHERE `id_module` = ' . Module::getModuleIdByName($this->name) . ' AND `id_shop` IN (' . $in . ')';
+
+            if (Db::getInstance()->getValue($select . ' ' . $where)) {
                 $active = true;
             }
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
         }
+
         return $active;
     }
 
@@ -96,9 +140,14 @@ class Apsis_one extends Module
      */
     public function getContent()
     {
-        /** @var Configuration $configurationModule */
-        $configurationModule = $this->getService('apsis_one.module.configuration');
-        return $configurationModule->showConfigurations();
+        try {
+            /** @var Configuration $configurationModule */
+            $configurationModule = $this->getService('apsis_one.module.configuration');
+            return $configurationModule->showConfigurations();
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return '';
+        }
     }
 
     /**

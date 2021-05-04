@@ -6,6 +6,8 @@ use Apsis\One\Helper\LoggerHelper;
 use ContextCore;
 use Link;
 use Exception;
+use PrestaShopException;
+use Shop;
 
 class PrestaShopContext
 {
@@ -63,7 +65,7 @@ class PrestaShopContext
     {
         try {
             $result[] = ['context_ids' => '0,0', 'context_name' => 'All shops'];
-            foreach ($this->context->shop->getShops(true, null, true) as $shopId) {
+            foreach ($this->getAllActiveShopIdsAsList() as $shopId) {
                 $group = $this->context->shop->getGroupFromShop($shopId, false);
                 if (! isset($result[$group['id']])) {
                     $result[$group['id']] = [
@@ -75,7 +77,7 @@ class PrestaShopContext
                         if ($shop['active']) {
                             $result[] = [
                                 'context_ids' => $group['id'] . ',' . $shop['id_shop'],
-                                'context_name' => '---- SHOP: ' . $shop['name']
+                                'context_name' => 'SHOP: ' . $shop['name']
                             ];
                         }
                     }
@@ -85,6 +87,51 @@ class PrestaShopContext
         } catch (Exception $e) {
             $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return [];
+        }
+    }
+
+    public function getShopListGroupedByGroup()
+    {
+        try {
+            $result = [];
+            foreach ($this->getAllActiveShopIdsAsList() as $shopId) {
+                $groupId = $this->context->shop->getGroupFromShop($shopId, true);
+                $result[$groupId][] = $shopId;
+            }
+            return $result;
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return [];
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllActiveShopIdsAsList()
+    {
+        try {
+            return $this->context->shop->getShops(true, null, true);
+        } catch (Exception $e) {
+            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return [];
+        }
+    }
+
+    /**
+     * @param null $idShopGroup
+     * @param null $idShop
+     *
+     * @throws PrestaShopException
+     */
+    public function setContext($idShopGroup = null, $idShop = null)
+    {
+        if ($idShop) {
+            $this->context->shop->setContext(Shop::CONTEXT_SHOP, $idShop);
+        } elseif ($idShopGroup) {
+            $this->context->shop->setContext(Shop::CONTEXT_GROUP, $idShopGroup);
+        } else {
+            $this->context->shop->setContext(Shop::CONTEXT_ALL);
         }
     }
 }

@@ -37,3 +37,12 @@ services:
       - '@apsis_one.repository.configuration'
       - '@apsis_one.helper.logger'
       - '@apsis_one.helper.apiclient'
+
+  apsis_one.profile.schema:
+    class: 'Apsis\One\Model\Profile\Schema'
+
+  apsis_one.profile.container:
+    class: 'Apsis\One\Model\Profile\Data'
+    arguments:
+      - '@apsis_one.helper.logger'
+      - '@apsis_one.profile.schema'
