@@ -3,7 +3,7 @@
 use Apsis\One\Controller\AbstractApiController;
 use Apsis\One\Repository\ConfigurationRepository;
 
-class apsis_OneApiInstallationConfigModuleFrontController extends AbstractApiController
+class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiController
 {
     const QUERY_PARAM_RESET = 'reset';
 

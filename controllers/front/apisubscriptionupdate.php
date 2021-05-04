@@ -2,7 +2,7 @@
 
 use Apsis\One\Controller\AbstractApiController;
 
-class apsis_OneApiSubscriptionUpdateModuleFrontController extends AbstractApiController
+class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiController
 {
     const BODY_PARAM_PROFILE_KEY = 'PK';
 

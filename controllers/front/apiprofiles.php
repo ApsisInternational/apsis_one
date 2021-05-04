@@ -3,7 +3,7 @@
 use Apsis\One\Controller\AbstractApiController;
 use Apsis\One\Model\Profile\Schema;
 
-class apsis_OneApiProfilesModuleFrontController extends AbstractApiController
+class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
     const QUERY_PARAM_SCHEMA = 'schema';
     const QUERY_PARAM_AFTER_ID = 'after_id';

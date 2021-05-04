@@ -2,7 +2,7 @@
 
 use Apsis\One\Controller\AbstractApiController;
 
-class apsis_OneApiStoresModuleFrontController extends AbstractApiController
+class apsis_OneApistoresModuleFrontController extends AbstractApiController
 {
     /**
      * @var string
