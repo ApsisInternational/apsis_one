@@ -84,8 +84,8 @@ class Data
         if ($schemaType === Schema::SCHEMA_TYPE_ENTRY) {
             return $this->getValue(
                 self::ENTRY_ID_FIELD_NAME,
-                Schema::SCHEMA_KEY_TYPE,
-                Schema::SCHEMA_KEY_VALIDATE
+                $schema[Schema::SCHEMA_KEY_TYPE],
+                $schema[Schema::SCHEMA_KEY_VALIDATE]
             );
         }
 
@@ -95,8 +95,8 @@ class Data
             $items[] = [
                 $logicalName => $this->getValue(
                     $logicalName,
-                    Schema::SCHEMA_KEY_TYPE,
-                    Schema::SCHEMA_KEY_VALIDATE
+                    $schemaItem[Schema::SCHEMA_KEY_TYPE],
+                    $schemaItem[Schema::SCHEMA_KEY_VALIDATE]
                 )
             ];
         }
