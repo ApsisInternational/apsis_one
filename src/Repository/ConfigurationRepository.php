@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Repository;
 
-use Apsis\One\Context\PrestaShopContext;
+use Apsis\One\Context\PrestashopContext;
 use Apsis\One\Helper\LoggerHelper;
 use Configuration;
 use PhpEncryption;
@@ -45,17 +45,17 @@ class ConfigurationRepository
     private $loggerHelper;
 
     /**
-     * @var PrestaShopContext
+     * @var PrestashopContext
      */
     private $prestaShopContext;
 
     /**
      * ConfigurationRepository constructor.
      *
-     * @param PrestaShopContext $prestashopContext
+     * @param PrestashopContext $prestashopContext
      * @param LoggerHelper $loggerHelper
      */
-    public function __construct(PrestaShopContext $prestashopContext, LoggerHelper $loggerHelper)
+    public function __construct(PrestashopContext $prestashopContext, LoggerHelper $loggerHelper)
     {
         $this->prestaShopContext = $prestashopContext;
         $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);
@@ -754,7 +754,7 @@ class ConfigurationRepository
     }
 
     /**
-     * @return PrestaShopContext
+     * @return PrestashopContext
      */
     public function getPrestaShopContext()
     {

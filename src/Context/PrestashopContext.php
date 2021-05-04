@@ -9,7 +9,7 @@ use Exception;
 use PrestaShopException;
 use Shop;
 
-class PrestaShopContext
+class PrestashopContext
 {
     /**
      * @var ContextCore

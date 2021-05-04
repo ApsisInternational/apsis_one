@@ -11,7 +11,7 @@ use Apsis\One\Module\Install;
 use Apsis\One\Module\Uninstall;
 use Apsis\One\Module\Configuration;
 use Apsis\One\Helper\LoggerHelper;
-use Apsis\One\Context\PrestaShopContext;
+use Apsis\One\Context\PrestashopContext;
 
 class Apsis_one extends Module
 {
@@ -105,7 +105,7 @@ class Apsis_one extends Module
         $active = false;
 
         try {
-            /** @var PrestaShopContext $prestaShopContext */
+            /** @var PrestashopContext $prestaShopContext */
             $prestaShopContext = $this->getService('apsis_one.context.prestashop');
 
             if ($idShop) { // Need to check if enabled for the shop itself
