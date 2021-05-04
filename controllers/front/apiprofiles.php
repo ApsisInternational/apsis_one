@@ -2,6 +2,7 @@
 
 use Apsis\One\Controller\AbstractApiController;
 use Apsis\One\Model\Profile\Schema;
+use Apsis\One\Module\Configuration;
 
 class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
@@ -96,21 +97,16 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     {
         try {
             $profilesDataArr = $this->getProfilesDataArr();
+            $afterIdFromRequest = (int) Tools::getValue(self::QUERY_PARAM_AFTER_ID);
+            $afterIdFromDataArr = $profilesDataArr[self::QUERY_PARAM_AFTER_ID];
 
-            //@toDo create url using prestashop link class
-            $urlString = 'DOMAIN_NAME/module/apsis_one/apiprofiles';
-            $paramString = '?' . self::QUERY_PARAM_AFTER_ID . '=%d';
-
-            $self = empty($afterIdFromRequest = (int) Tools::getValue(self::QUERY_PARAM_AFTER_ID)) ?
-                $urlString : $urlString . sprintf($paramString, $afterIdFromRequest);
-
-            $next = empty($profilesDataArr[self::QUERY_PARAM_AFTER_ID]) ?
-                '' : $urlString . sprintf($paramString, $profilesDataArr[self::QUERY_PARAM_AFTER_ID]);
+            $paramSelf = empty($afterIdFromRequest) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromRequest];
+            $paramNext = empty($afterIdFromDataArr) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromDataArr];
 
             return [
                 'links' => [
-                    'self' => $self,
-                    'next' => $next
+                    'self' => $this->buildLink($paramSelf, false),
+                    'next' => $this->buildLink($paramNext, true)
                 ],
                 'count' => count($profilesDataArr[self::JSON_BODY_PARAM_ITEMS]),
                 'total' => $this->getTotalCount(),
@@ -122,13 +118,36 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
         return [];
     }
 
+    /**
+     * @param array $param
+     * @param bool $next
+     *
+     * @return string
+     */
+    private function buildLink(array $param, bool $next)
+    {
+        if ($next && empty($param)) {
+            return '';
+        }
+
+        return $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
+            $this->module->name,
+            Configuration::API_STORES_CONTROLLER_FILENAME,
+            $param,
+            null,
+            null,
+            $this->shopId ?: $this->configurationRepository->getDefaultShopId()
+        );
+    }
+
     private function getProfilesDataArr()
     {
         //@toDo fetch profile from service class
+        return [self::JSON_BODY_PARAM_ITEMS => [], self::QUERY_PARAM_AFTER_ID => 0];
+
+        /** START - dummy test data for testing
         $items = [];
         try {
-            //$afterId = Tools::getValue(self::QUERY_PARAM_AFTER_ID);
-            /** START - dummy test data for testing */
             $profiles = [
                 (object)[
                     'profileId' => 'a2720191-1cc6-11eb-9a2c-107d1a24f935',
@@ -156,19 +175,18 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 ]
             ];
 
-            /** @var Apsis\One\Model\Profile\Data $container */
+            //@var Apsis\One\Model\Profile\Data $container
             $container = $this->module->getService('apsis_one.profile.container');
             foreach ($profiles as $profile) {
                 $items[] = $container->setObject($profile)->getProfileData();
             }
 
-            /** END */
-
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
 
-        return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => 0];
+        return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => 2];
+         **/
     }
 
     /**
@@ -176,12 +194,14 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
      */
     private function getTotalCount()
     {
+        //@toDo fetch from db
+        return 0;
+        /**
         try {
-            //@toDo fetch from db
-            return 2;
+            return 0;
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
             return 0;
-        }
+        }**/
     }
 }

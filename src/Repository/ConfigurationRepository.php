@@ -714,11 +714,19 @@ class ConfigurationRepository
      * @param null $idShop
      * @param false $default
      *
-     * @return false|string
+     * @return string
      */
     public function get(string $key, $idLang = null, $idShopGroup = null, $idShop = null, $default = false)
     {
-        return Configuration::get($key, $idLang, $idShopGroup, $idShop, $default);
+        return (string) Configuration::get($key, $idLang, $idShopGroup, $idShop, $default);
+    }
+
+    /**
+     * @return int
+     */
+    public function getDefaultShopId()
+    {
+        return (int) $this->get('PS_SHOP_DEFAULT');
     }
 
     /**

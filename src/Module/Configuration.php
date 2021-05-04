@@ -201,7 +201,7 @@ class Configuration
                 ],
                 [
                     'type' => 'text',
-                    'label' => $this->module->l('Stores Endpoint [GET]'),
+                    'label' => $this->module->l('Shops Endpoint [GET]'),
                     'name' => self::READ_ONLY_FILED_API_STORES_ENDPOINT,
                     'readonly' => true,
                     'disabled' => true
