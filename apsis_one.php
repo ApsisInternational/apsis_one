@@ -6,33 +6,49 @@ if (!defined('_PS_VERSION_')) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer;
 use Apsis\One\Module\Install;
+use Apsis\One\Module\SetupInterface;
 use Apsis\One\Module\Uninstall;
 use Apsis\One\Module\Configuration;
-use Apsis\One\Helper\LoggerHelper;
-use Apsis\One\Context\PrestashopContext;
+use Apsis\One\Module\HookProcessor;
+use Apsis\One\Helper\ModuleHelper;
+use Apsis\One\Helper\HelperInterface;
 
-class Apsis_one extends Module
+class Apsis_one extends Module implements SetupInterface
 {
     /**
-     * @var ServiceContainer
+     * @var ModuleHelper
      */
-    private $serviceContainer;
+    public $helper;
 
     /**
-     * @var LoggerHelper
+     * @var HookProcessor
      */
-    private $loggerHelper;
+    public $hookProcessor;
 
     /**
      * Apsis_one constructor.
+     *
+     * @param ModuleHelper $helper
      */
-    public function __construct()
+    public function __construct(ModuleHelper $helper)
     {
-        $this->name = 'apsis_one';
+        $this->init($this);
+        $this->helper = $helper;
+
+        parent::__construct();
+    }
+
+    /**
+     * @param Apsis_one $module
+     *
+     * @return void
+     */
+    public function init(Apsis_one $module): void
+    {
+        $this->name = self::MODULE_NAME;
         $this->tab = 'advertising_marketing';
-        $this->version = '1.0.0';
+        $this->version = self::MODULE_VERSION;
         $this->author = 'APSIS';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = [
@@ -40,28 +56,24 @@ class Apsis_one extends Module
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
-
-        parent::__construct();
-
         $this->displayName = $this->l('APSIS One Integration');
         $this->description = $this->l('Grow faster with the all-in-One marketing platform.');
         $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
-
-        $this->loggerHelper = $this->getService('apsis_one.helper.logger');
     }
 
     /**
      * @return bool
      */
-    public function install()
+    public function install(): bool
     {
         try {
+            $this->helper->logMsg(__METHOD__);
+
             /** @var Install $installModule */
-            $installModule = $this->getService('apsis_one.module.install');
-            return parent::install() && $installModule->init();
-            //See if we should enable module for all shops
+            $installModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_INSTALL);
+            return parent::install() && $installModule->init($this);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }
@@ -69,97 +81,144 @@ class Apsis_one extends Module
     /**
      * @return bool
      */
-    public function uninstall()
+    public function uninstall(): bool
     {
         try {
+            $this->helper->logMsg(__METHOD__);
+
             /** @var Uninstall $uninstallModule */
-            $uninstallModule = $this->getService('apsis_one.module.uninstall');
-            return parent::uninstall() && $uninstallModule->init();
+            $uninstallModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_UNINSTALL);
+            return parent::uninstall() && $uninstallModule->init($this);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
-    }
-
-    /**
-     * @return bool
-     */
-    public function isModuleEnabledForCurrentShop()
-    {
-        try {
-            return (bool) parent::isEnabled($this->name);
-        } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @param int $idShopGroup
-     * @param null $idShop
-     *
-     * @return bool
-     */
-    public function isModuleEnabledForContext($idShopGroup = null, $idShop = null)
-    {
-        $active = false;
-
-        try {
-            /** @var PrestashopContext $prestaShopContext */
-            $prestaShopContext = $this->getService('apsis_one.context.prestashop');
-
-            if ($idShop) { // Need to check if enabled for the shop itself
-                $shopList = [$idShop];
-            } elseif ($idShopGroup) { // Need to check if enabled for minimum one shop under the group
-                if (empty($list = $prestaShopContext->getShopListGroupedByGroup()) || empty($list[$idShopGroup])) {
-                    return $active;
-                }
-                $shopList = $list[$idShopGroup];
-            } else { //Need to check if module is enabled for least one shop
-                if (empty($shopList = $prestaShopContext->getAllActiveShopIdsAsList())) {
-                    return $active;
-                }
-            }
-
-            $in = implode(',', array_map('intval', $shopList));
-            $select = 'SELECT `id_module` FROM `' . _DB_PREFIX_ . 'module_shop`';
-            $where = 'WHERE `id_module` = ' . Module::getModuleIdByName($this->name) . ' AND `id_shop` IN (' . $in . ')';
-
-            if (Db::getInstance()->getValue($select . ' ' . $where)) {
-                $active = true;
-            }
-        } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-        }
-
-        return $active;
     }
 
     /**
      * @return string
      */
-    public function getContent()
+    public function getContent(): string
     {
         try {
             /** @var Configuration $configurationModule */
-            $configurationModule = $this->getService('apsis_one.module.configuration');
-            return $configurationModule->showConfigurations();
+            $configurationModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_ADMIN_CONFIGURATION);
+            return $configurationModule->init($this);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return '';
         }
     }
 
     /**
-     * @param string $serviceName
-     *
-     * @return object|null
+     * @return HookProcessor|null
      */
-    public function getService(string $serviceName)
+    protected function getHookProcessor(): ?HookProcessor
     {
-        if ($this->serviceContainer === null) {
-            $this->serviceContainer = new ServiceContainer($this->name, $this->getLocalPath());
+        if ($this->hookProcessor === null) {
+            $this->hookProcessor = $this->helper->getService(HelperInterface::SERVICE_MODULE_HOOK_PROCESSOR);
+            $this->hookProcessor->init($this);
         }
-        return $this->serviceContainer->getService($serviceName);
+        return $this->hookProcessor;
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionObjectCustomerAddAfter(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionObjectCustomerUpdateAfter(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionObjectCustomerDeleteAfter(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionAuthentication(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookDisplayCustomerAccount(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionNewsletterRegistrationAfter(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionObjectProductCommentValidateAfter(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionWishlistAddProduct(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionValidateOrder(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return bool
+     */
+    public function hookActionCartUpdateQuantityBefore(array $hookArgs): bool
+    {
+        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
     }
 }

@@ -1,0 +1,22 @@
+services:
+  apsis_one.module:
+    class: 'Apsis_one'
+    factory: [ 'Module', 'getInstanceByName' ]
+    arguments:
+      - 'apsis_one'
+
+  apsis_one.module.configuration.configs:
+    class: 'Apsis\One\Module\Configuration\Configs'
+    arguments:
+      - '@apsis_one.module'
+
+  apsis_one.module.api.clientfactory:
+    class: 'Apsis\One\Api\ClientFactory'
+    arguments:
+      - '@apsis_one.module.configuration.configs'
+      - '@apsis_one.helper.apiclient'
+
+  apsis_one.module.hook-processor:
+    class: 'Apsis\One\Module\HookProcessor'
+    arguments:
+      - '@apsis_one.module.configuration.configs'

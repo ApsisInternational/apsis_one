@@ -1,0 +1,17 @@
+services:
+  apsis_one.abandoned-cart.schema:
+    class: 'Apsis\One\Model\AbandonedCart\Schema\Cart'
+
+  apsis_one.abandoned-cart-item.schema:
+    class: 'Apsis\One\Model\AbandonedCart\Schema\CartItem'
+
+  apsis_one.abandoned-cart.container:
+    class: 'Apsis\One\Model\AbandonedCart\DataProvider'
+    arguments:
+      - '@apsis_one.helper.module'
+
+  apsis_one.repository.abandoned-cart:
+    class: 'Apsis\One\Repository\AbandonedCartRepository'
+    arguments:
+      - '@apsis_one.module.configuration.configs'
+      - '@apsis_one.helper.logger'

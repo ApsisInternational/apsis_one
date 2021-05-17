@@ -1,48 +1,7 @@
-services:
-  apsis_one.module:
-    class: 'Apsis_one'
-    factory: [ 'Module', 'getInstanceByName' ]
-    arguments:
-      - 'apsis_one'
-
-  apsis_one.helper.logger:
-    class: 'Apsis\One\Helper\LoggerHelper'
-
-  apsis_one.helper.date:
-    class: 'Apsis\One\Helper\DateHelper'
-    arguments:
-      - '@apsis_one.helper.logger'
-
-  apsis_one.context.prestashop:
-    class: 'Apsis\One\Context\PrestashopContext'
-    arguments:
-      - '@apsis_one.helper.logger'
-
-  apsis_one.repository.configuration:
-    class: 'Apsis\One\Repository\ConfigurationRepository'
-    arguments:
-      - '@apsis_one.context.prestashop'
-      - '@apsis_one.helper.logger'
-
-  apsis_one.helper.apiclient:
-    class: 'Apsis\One\Helper\ApiClientHelper'
-    arguments:
-      - '@apsis_one.repository.configuration'
-      - '@apsis_one.helper.logger'
-      - '@apsis_one.helper.date'
-
-  apsis_one.repository.apiclient:
-    class: 'Apsis\One\Repository\ApiClientRepository'
-    arguments:
-      - '@apsis_one.repository.configuration'
-      - '@apsis_one.helper.logger'
-      - '@apsis_one.helper.apiclient'
-
-  apsis_one.profile.schema:
-    class: 'Apsis\One\Model\Profile\Schema'
-
-  apsis_one.profile.container:
-    class: 'Apsis\One\Model\Profile\Data'
-    arguments:
-      - '@apsis_one.helper.logger'
-      - '@apsis_one.profile.schema'
+imports:
+  - { resource: helper.yml }
+  - { resource: context.yml }
+  - { resource: profile.yml }
+  - { resource: event.yml }
+  - { resource: ac.yml }
+  - { resource: module.yml }

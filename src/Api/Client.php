@@ -2,7 +2,8 @@
 
 namespace Apsis\One\Api;
 
-use Exception;
+use Apsis\One\Module\SetupInterface;
+use stdClass;
 
 class Client extends AbstractHttpRest
 {
@@ -16,16 +17,16 @@ class Client extends AbstractHttpRest
      * @param string $clientId
      * @param string $clientSecret
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getAccessToken(string $clientId, string $clientSecret)
     {
-        $this->setUrl($this->hostName . '/oauth/token')
-            ->setVerb(AbstractHttpRest::VERB_POST)
+        $this->setUrl('/oauth/token')
+            ->setVerb(self::VERB_POST)
             ->buildBody([
                 'grant_type' => 'client_credentials',
-                'client_id' => $clientId,
-                'client_secret' => $clientSecret
+                SetupInterface::INSTALLATION_CONFIG_CLIENT_ID => $clientId,
+                SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET => $clientSecret
             ]);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -35,12 +36,12 @@ class Client extends AbstractHttpRest
      *
      * Get all registered keyspaces.
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getKeySpaces()
     {
-        $this->setUrl($this->hostName . '/audience/keyspaces')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/keyspaces')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -49,12 +50,12 @@ class Client extends AbstractHttpRest
      *
      * Get all available communication channels.
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getChannels()
     {
-        $this->setUrl($this->hostName . '/audience/channels')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/channels')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -63,12 +64,12 @@ class Client extends AbstractHttpRest
      *
      * Get all sections on the APSIS One account.
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getSections()
     {
-        $this->setUrl($this->hostName . '/audience/sections')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -80,12 +81,12 @@ class Client extends AbstractHttpRest
      *
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getAttributes(string $sectionDiscriminator)
     {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/attributes')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/attributes')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -96,12 +97,12 @@ class Client extends AbstractHttpRest
      *
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getConsentLists(string $sectionDiscriminator)
     {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/consent-lists')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/consent-lists')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -113,14 +114,13 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param string $consentListDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getTopics(string $sectionDiscriminator, string $consentListDiscriminator)
     {
-        $this->setUrl(
-            $this->hostName . '/audience/sections/' . $sectionDiscriminator . '/consent-lists/' .
-            $consentListDiscriminator . '/topics'
-        )->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/consent-lists/' .
+            $consentListDiscriminator . '/topics')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -131,12 +131,12 @@ class Client extends AbstractHttpRest
      *
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getTags(string $sectionDiscriminator)
     {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/tags')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/tags')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -147,12 +147,12 @@ class Client extends AbstractHttpRest
      *
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getEvents(string $sectionDiscriminator)
     {
-        $this->setUrl($this->hostName . '/audience/sections/' . $sectionDiscriminator . '/events')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/events')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -161,12 +161,12 @@ class Client extends AbstractHttpRest
      *
      * Get all segments.
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getSegments()
     {
-        $this->setUrl($this->hostName . '/audience/segments/')
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/segments/')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -177,12 +177,12 @@ class Client extends AbstractHttpRest
      *
      * @param string $segmentDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getSegment(string $segmentDiscriminator)
     {
-        $this->setUrl($this->hostName . '/audience/segments/' . $segmentDiscriminator)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/segments/' . $segmentDiscriminator)
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -194,12 +194,12 @@ class Client extends AbstractHttpRest
      * @param string $segmentDiscriminator
      * @param string $versionId
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getSegmentVersion(string $segmentDiscriminator, string $versionId)
     {
-        $this->setUrl($this->hostName . '/audience/segments/' . $segmentDiscriminator . '/versions/' . $versionId)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/segments/' . $segmentDiscriminator . '/versions/' . $versionId)
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -214,7 +214,7 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param array $tags
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function addTagsToProfile(
         string $keySpaceDiscriminator,
@@ -222,10 +222,9 @@ class Client extends AbstractHttpRest
         string $sectionDiscriminator,
         array $tags
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/tags';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_PATCH)
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/tags')
+            ->setVerb(self::VERB_PATCH)
             ->buildBody($tags);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -237,14 +236,13 @@ class Client extends AbstractHttpRest
      * @param string $profileKey
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getAllProfileTags(string $keySpaceDiscriminator, string $profileKey, string $sectionDiscriminator)
     {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/tags';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/tags')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -262,7 +260,7 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param array $attributes
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function addAttributesToProfile(
         string $keySpaceDiscriminator,
@@ -270,10 +268,9 @@ class Client extends AbstractHttpRest
         string $sectionDiscriminator,
         array $attributes
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/attributes';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_PATCH)
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/attributes')
+            ->setVerb(self::VERB_PATCH)
             ->buildBody($attributes);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -288,17 +285,16 @@ class Client extends AbstractHttpRest
      * @param string $profileKey
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getAllProfileAttributes(
         string $keySpaceDiscriminator,
         string $profileKey,
         string $sectionDiscriminator
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/attributes';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/attributes')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -310,7 +306,7 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param string $versionId
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function clearProfileAttribute(
         string $keySpaceDiscriminator,
@@ -318,10 +314,9 @@ class Client extends AbstractHttpRest
         string $sectionDiscriminator,
         string $versionId
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/attributes/' . $versionId;
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_DELETE);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/attributes/' . $versionId)
+            ->setVerb(self::VERB_DELETE);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -332,17 +327,16 @@ class Client extends AbstractHttpRest
      * @param string $profileKey
      * @param string $sectionDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getProfileEvents(
         string $keySpaceDiscriminator,
         string $profileKey,
         string $sectionDiscriminator
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/events';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/events')
+            ->setVerb(self::VERB_GET);
 
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -357,7 +351,7 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param array $events
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function addEventsToProfile(
         string $keySpaceDiscriminator,
@@ -365,10 +359,9 @@ class Client extends AbstractHttpRest
         string $sectionDiscriminator,
         array $events
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/events';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_POST)
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/events')
+            ->setVerb(self::VERB_POST)
             ->buildBody(['items' => $events]);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -382,7 +375,7 @@ class Client extends AbstractHttpRest
      * @param string $consentListDiscriminator
      * @param string $topicDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function subscribeProfileToTopic(
         string $keySpaceDiscriminator,
@@ -391,10 +384,9 @@ class Client extends AbstractHttpRest
         string $consentListDiscriminator,
         string $topicDiscriminator
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/sections/' . $sectionDiscriminator . '/subscriptions';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_POST)
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/sections/' . $sectionDiscriminator . '/subscriptions')
+            ->setVerb(self::VERB_POST)
             ->buildBody(
                 [
                     'consent_list_discriminator' => $consentListDiscriminator,
@@ -414,7 +406,7 @@ class Client extends AbstractHttpRest
      * @param array $segments
      * @param string $timeZone
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getProfileSegments(
         string $keySpaceDiscriminator,
@@ -422,10 +414,9 @@ class Client extends AbstractHttpRest
         array $segments,
         string $timeZone
     ) {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/evaluations';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_POST)
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
+            '/evaluations')
+            ->setVerb(self::VERB_POST)
             ->buildBody(['segments' => $segments, 'time_zone' => $timeZone]);
 
         return $this->processResponse($this->execute(), __METHOD__);
@@ -443,12 +434,12 @@ class Client extends AbstractHttpRest
      *
      * @param array $keySpacesToMerge
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function mergeProfile(array $keySpacesToMerge)
     {
-        $this->setUrl($this->hostName . '/audience/profiles/merges')
-            ->setVerb(AbstractHttpRest::VERB_PUT)
+        $this->setUrl('/audience/profiles/merges')
+            ->setVerb(self::VERB_PUT)
             ->buildBody(['profiles' => $keySpacesToMerge]);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -465,14 +456,12 @@ class Client extends AbstractHttpRest
      * @param string $keySpaceDiscriminator
      * @param string $profileKey
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function lockProfile(string $keySpaceDiscriminator, string $profileKey)
     {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey .
-            '/locks';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_PUT);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey . '/locks')
+            ->setVerb(self::VERB_PUT);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -485,13 +474,12 @@ class Client extends AbstractHttpRest
      * @param string $keySpaceDiscriminator
      * @param string $profileKey
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function deleteProfile(string $keySpaceDiscriminator, string $profileKey)
     {
-        $url = $this->hostName . '/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey;
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_DELETE);
+        $this->setUrl('/audience/keyspaces/' . $keySpaceDiscriminator . '/profiles/' . $profileKey)
+            ->setVerb(self::VERB_DELETE);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -505,7 +493,7 @@ class Client extends AbstractHttpRest
      * @param string $topicDiscriminator
      * @param string $type
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function createConsent(
         string $channelDiscriminator,
@@ -515,7 +503,6 @@ class Client extends AbstractHttpRest
         string $topicDiscriminator,
         string $type
     ) {
-        $url = $this->hostName . '/audience/channels/' . $channelDiscriminator . '/addresses/' . $address . '/consents';
         $body = [
             'section_discriminator' => $sectionDiscriminator,
             'type' => $type
@@ -526,8 +513,8 @@ class Client extends AbstractHttpRest
         if (strlen($topicDiscriminator)) {
             $body['topic_discriminator'] = $topicDiscriminator;
         }
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_POST)
+        $this->setUrl('/audience/channels/' . $channelDiscriminator . '/addresses/' . $address . '/consents')
+            ->setVerb(self::VERB_POST)
             ->buildBody($body);
         return $this->processResponse($this->execute(), __METHOD__);
     }
@@ -544,7 +531,7 @@ class Client extends AbstractHttpRest
      * @param string $sectionDiscriminator
      * @param string $consentListDiscriminator
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     public function getOptInConsents(
         string $channelDiscriminator,
@@ -552,11 +539,9 @@ class Client extends AbstractHttpRest
         string $sectionDiscriminator,
         string $consentListDiscriminator
     ) {
-        $url = $this->hostName . '/audience/channels/' . $channelDiscriminator . '/addresses/' . $address
-            . '/consents/sections/' . $sectionDiscriminator . '/consent-lists/' . $consentListDiscriminator
-            . '/evaluations';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_GET);
+        $this->setUrl('/audience/channels/' . $channelDiscriminator . '/addresses/' . $address . '/consents/sections/' .
+            $sectionDiscriminator . '/consent-lists/' . $consentListDiscriminator . '/evaluations')
+            ->setVerb(self::VERB_GET);
         return $this->processResponse($this->execute(), __METHOD__);
     }
 
@@ -569,14 +554,15 @@ class Client extends AbstractHttpRest
      * @param array $data
      * @param string $integrationName
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
-    public function insertOrUpdateProfiles(string $sectionDiscriminator, array $data, string $integrationName = 'prestashop')
-    {
-        $url = $this->hostName . '/audience/sections/' . $sectionDiscriminator . '/integrations/' . $integrationName
-            . '/updates';
-        $this->setUrl($url)
-            ->setVerb(AbstractHttpRest::VERB_POST)
+    public function insertOrUpdateProfiles(
+        string $sectionDiscriminator,
+        array $data,
+        string $integrationName = 'prestashop'
+    ) {
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/integrations/' . $integrationName . '/updates')
+            ->setVerb(self::VERB_POST)
             ->buildBody($data);
         return $this->processResponse($this->execute(), __METHOD__);
     }

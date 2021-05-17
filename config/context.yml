@@ -1,0 +1,10 @@
+services:
+  apsis_one.context.shop:
+    class: 'Apsis\One\Context\ShopContext'
+    arguments:
+      - '@apsis_one.helper.logger'
+
+  apsis_one.context.link:
+    class: 'Apsis\One\Context\LinkContext'
+    arguments:
+      - '@apsis_one.helper.logger'

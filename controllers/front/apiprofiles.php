@@ -1,45 +1,42 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
+use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Model\Profile\Schema;
-use Apsis\One\Module\Configuration;
+use Apsis\One\Module\SetupInterface;
+use Apsis\One\Context\LinkContext;
 
 class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
-    const QUERY_PARAM_SCHEMA = 'schema';
-    const QUERY_PARAM_AFTER_ID = 'after_id';
-    const JSON_BODY_PARAM_ITEMS = 'items';
-
     /**
-     * @var string
+     * @inheritdoc
      */
-    protected $validRequestMethod = AbstractApiController::HTTP_GET;
+    protected $validRequestMethod = self::VERB_GET;
 
     /**
-     * @var array
+     * @inheritdoc
      */
-    protected $validQueryParams = [
-        AbstractApiController::QUERY_PARAM_CONTEXT_IDS => AbstractApiController::DATA_TYPE_STRING
-    ];
+    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
 
     /**
-     * @var array
+     * @inheritdoc
      */
     protected $optionalQueryParams = [
-        self::QUERY_PARAM_SCHEMA => AbstractApiController::DATA_TYPE_INT,
-        self::QUERY_PARAM_AFTER_ID => AbstractApiController::DATA_TYPE_INT
+        self::QUERY_PARAM_SCHEMA => self::DATA_TYPE_INT,
+        self::QUERY_PARAM_AFTER_ID => self::DATA_TYPE_INT
     ];
 
     /**
-     * @var array
+     * @inheritdoc
      */
     protected $optionalQueryParamIgnoreRelations = [
-        self::QUERY_PARAM_SCHEMA => [
-            AbstractApiController::PARAM_TYPE_QUERY => [AbstractApiController::QUERY_PARAM_CONTEXT_IDS]
-        ]
+        self::QUERY_PARAM_SCHEMA => [self::PARAM_TYPE_QUERY => [self::QUERY_PARAM_CONTEXT_IDS]]
     ];
 
-    public function init()
+    /**
+     * @inheritdoc
+     */
+    public function init(): void
     {
         try {
             parent::init();
@@ -49,7 +46,10 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
         }
     }
 
-    protected function handleRequest()
+    /**
+     * @inheritdoc
+     */
+    protected function handleRequest(): void
     {
         try {
             //Send schema if requested
@@ -59,31 +59,35 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $this->validateProfileSyncFeature();
 
             //Send profiles
-            $this->getProfiles();
+            $this->sendResponse();
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
     }
 
-    private function checkForSchemaParam()
+    /**
+     * @return void
+     */
+    protected function checkForSchemaParam(): void
     {
         try {
             if (isset($this->queryParams[self::QUERY_PARAM_SCHEMA])) {
                 /** @var Schema $profileSchema */
-                $profileSchema = $this->module->getService('apsis_one.profile.schema');
-                $this->exitWithResponse(
-                    $this->generateResponse(AbstractApiController::HTTP_CODE_200, $profileSchema->getProfileSchema())
-                );
+                $profileSchema = $this->module->helper->getService(HelperInterface::SERVICE_PROFILE_SCHEMA);
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_200, $profileSchema->getDefinition()));
             }
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
     }
 
-    private function getProfiles()
+    /**
+     * @return void
+     */
+    protected function sendResponse(): void
     {
         try {
-            $response = $this->generateResponse(AbstractApiController::HTTP_CODE_200, $this->createResponseBody());
+            $response = $this->generateResponse(self::HTTP_CODE_200, $this->createResponseBody());
             $this->exitWithResponse($response);
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
@@ -93,7 +97,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     /**
      * @return array
      */
-    private function createResponseBody()
+    protected function createResponseBody(): array
     {
         try {
             $profilesDataArr = $this->getProfilesDataArr();
@@ -104,13 +108,13 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $paramNext = empty($afterIdFromDataArr) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromDataArr];
 
             return [
-                'links' => [
-                    'self' => $this->buildLink($paramSelf, false),
-                    'next' => $this->buildLink($paramNext, true)
+                self::BODY_PARAM_LINKS => [
+                    self::BODY_PARAM_LINKS_SELF => $this->buildLink($paramSelf, false),
+                    self::BODY_PARAM_LINKS_NEXT => $this->buildLink($paramNext, true)
                 ],
-                'count' => count($profilesDataArr[self::JSON_BODY_PARAM_ITEMS]),
-                'total' => $this->getTotalCount(),
-                'items' => $profilesDataArr[self::JSON_BODY_PARAM_ITEMS]
+                self::BODY_PARAM_COUNT => count($profilesDataArr[self::JSON_BODY_PARAM_ITEMS]),
+                self::BODY_PARAM_TOTAL => $this->getTotalCount(),
+                self::JSON_BODY_PARAM_ITEMS => $profilesDataArr[self::JSON_BODY_PARAM_ITEMS]
             ];
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
@@ -124,25 +128,29 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
      *
      * @return string
      */
-    private function buildLink(array $param, bool $next)
+    protected function buildLink(array $param, bool $next): string
     {
         if ($next && empty($param)) {
             return '';
         }
 
-        return $this->configurationRepository->getPrestaShopContext()->getLink()->getModuleLink(
-            $this->module->name,
-            Configuration::API_STORES_CONTROLLER_FILENAME,
+        /** @var LinkContext $linkContext */
+        $linkContext = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_LINK);
+        return $linkContext->getModuleLink(
+            SetupInterface::API_STORES_CONTROLLER_FILENAME,
             $param,
             null,
             null,
-            $this->shopId ?: $this->configurationRepository->getDefaultShopId()
+            $this->shopId ?: $this->configs->getDefaultShopId()
         );
     }
 
-    private function getProfilesDataArr()
+    /**
+     * @return array
+     */
+    protected function getProfilesDataArr(): array
     {
-        //@toDo fetch profile from service class
+        // TODO: get profiles from profile entity
         return [self::JSON_BODY_PARAM_ITEMS => [], self::QUERY_PARAM_AFTER_ID => 0];
 
         /** START - dummy test data for testing
@@ -176,9 +184,10 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             ];
 
             //@var Apsis\One\Model\Profile\Data $container
-            $container = $this->module->getService('apsis_one.profile.container');
+            $schema = $this->module->helper->getService('apsis_one.profile.schema');
+            $container = $this->module->helper->getService('apsis_one.profile.container');
             foreach ($profiles as $profile) {
-                $items[] = $container->setObject($profile)->getProfileData();
+                $items[] = $container->setObject($profile, $schema)->getData();
             }
 
         } catch (Exception $e) {
@@ -192,9 +201,9 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     /**
      * @return int
      */
-    private function getTotalCount()
+    protected function getTotalCount(): int
     {
-        //@toDo fetch from db
+        // TODO: fetch from db
         return 0;
         /**
         try {

@@ -2,113 +2,106 @@
 
 namespace Apsis\One\Helper;
 
-use Apsis\One\Repository\ConfigurationRepository;
-use Apsis\One\Repository\ApiClientRepository;
+use Apsis\One\Module\Configuration\Configs;
+use Apsis\One\Module\SetupInterface;
+use Apsis\One\Api\ClientFactory;
 use Exception;
 use stdClass;
 
-class ApiClientHelper
+class ApiClientHelper extends LoggerHelper
 {
     /**
-     * @var ConfigurationRepository
+     * @var Configs
      */
-    protected $configurationRepository;
-
-    /**
-     * @var LoggerHelper
-     */
-    protected $loggerHelper;
+    private $configs;
 
     /**
      * @var DateHelper
      */
-    protected $dateHelper;
+    private $helper;
 
     /**
      * ApiClientHelper constructor.
      *
-     * @param ConfigurationRepository $configurationRepository
-     * @param LoggerHelper $loggerHelper
-     * @param DateHelper $dateHelper
+     * @param Configs $configs
+     * @param HelperInterface $helper
      */
-    public function __construct(
-        ConfigurationRepository $configurationRepository,
-        LoggerHelper $loggerHelper,
-        DateHelper $dateHelper
-    ) {
-        $this->configurationRepository = $configurationRepository;
-        $this->loggerHelper = $loggerHelper;
-        $this->dateHelper = $dateHelper;
+    public function __construct(Configs $configs, HelperInterface $helper)
+    {
+        parent::__construct();
+        $this->configs = $configs;
+        $this->helper = $helper;
     }
 
     /**
-     * @param ApiClientRepository $apiClientRepository
-     * @param int $idShopGroup
-     * @param int $idShop
+     * @param ClientFactory $clientFactory
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
      *
      * @return string
      */
-    public function getToken(ApiClientRepository $apiClientRepository, $idShopGroup = null, $idShop = null)
+    public function getToken(ClientFactory $clientFactory, ?int $idShopGroup = null, ?int $idShop = null): string
     {
         try{
-            if(empty($configs = $this->configurationRepository->getInstallationConfigs($idShopGroup, $idShop)) ||
-                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID]) ||
-                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET]) ||
-                empty($configs[ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL])
+            if(empty($configs = $this->configs->getInstallationConfigs($idShopGroup, $idShop)) ||
+                empty($configs[SetupInterface::INSTALLATION_CONFIG_CLIENT_ID]) ||
+                empty($configs[SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET]) ||
+                empty($configs[SetupInterface::INSTALLATION_CONFIG_API_BASE_URL])
             ) {
-                return false;
+                return '';
             }
 
             if ($this->isTokenExpired($idShopGroup, $idShop)) {
-                return $this->getTokenFromApi($apiClientRepository, $configs, $idShopGroup, $idShop);
+                return $this->getTokenFromApi($clientFactory, $configs, $idShopGroup, $idShop);
             } else {
-                return ($token = $this->configurationRepository->getApiToken($idShopGroup, $idShop)) ? $token :
-                    $this->getTokenFromApi($apiClientRepository, $configs, $idShopGroup, $idShop);
+                return ($token = $this->configs->getApiToken($idShopGroup, $idShop)) ? $token :
+                    $this->getTokenFromApi($clientFactory, $configs, $idShopGroup, $idShop);
             }
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            return '';
         }
     }
 
     /**
-     * @param int $idShopGroup
-     * @param int $idShop
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
      *
      * @return bool
      */
-    private function isTokenExpired($idShopGroup = null, $idShop = null)
+    protected function isTokenExpired(?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $expiryTime = $this->configurationRepository->getApiTokenExpiry($idShopGroup, $idShop);
+            $expiryTime = $this->configs->getApiTokenExpiry($idShopGroup, $idShop);
             if (empty($expiryTime)) {
                 return true;
             }
-            $nowTime = $this->dateHelper->getDateTimeFromTimeAndTimeZone()->format('Y-m-d H:i:s');
+            $nowTime = $this->helper->getDateTimeFromTimeAndTimeZone()->format('Y-m-d H:i:s');
             return ($nowTime > $expiryTime);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return true;
         }
     }
 
     /**
-     * @param ApiClientRepository $apiClientRepository
+     * @param ClientFactory $clientFactory
      * @param array $configs
-     * @param int $idShopGroup
-     * @param int $idShop
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
      *
      * @return string
      */
-    private function getTokenFromApi(
-        ApiClientRepository $apiClientRepository,
+    protected function getTokenFromApi(
+        ClientFactory $clientFactory,
         array $configs,
-        $idShopGroup = null,
-        $idShop = null
-    ) {
+        ?int $idShopGroup = null,
+        ?int $idShop = null
+    ): string
+    {
         try {
-            $apiClient = $apiClientRepository->getApiClientInstance(
-                $configs[ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL]
+            $apiClient = $clientFactory->getApiClientInstance(
+                $configs[SetupInterface::INSTALLATION_CONFIG_API_BASE_URL]
             );
 
             if (empty($apiClient)) {
@@ -116,8 +109,8 @@ class ApiClientHelper
             }
 
             $response = $apiClient->getAccessToken(
-                $configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID],
-                $configs[ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET]
+                $configs[SetupInterface::INSTALLATION_CONFIG_CLIENT_ID],
+                $configs[SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET]
             );
 
             if ($response && isset($response->access_token)) {
@@ -125,35 +118,37 @@ class ApiClientHelper
                     (string) $response->access_token : '';
             }
             if ($response && isset($response->status) && in_array($response->status, [400, 401, 403])) {
-                $this->configurationRepository->disableFeaturesAndDeleteConfig($idShopGroup, $idShop) ?
-                    $this->loggerHelper->logErrorToFile(__METHOD__, 'Disabled features, see api error') :
-                    $this->loggerHelper->logErrorToFile(__METHOD__, 'Unable to disable features');
+                $this->configs->disableFeaturesAndDeleteConfig($idShopGroup, $idShop) ?
+                    $this->logErrorMessage(__METHOD__, 'Disabled features, see api error') :
+                    $this->logErrorMessage(__METHOD__, 'Unable to disable features');
 
             }
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
         }
         return '';
     }
 
     /**
      * @param stdClass $request
-     * @param int $idShopGroup
-     * @param int $idShop
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
      *
      * @return bool
      */
-    private function saveTokenAndExpiry(stdClass $request, $idShopGroup = null, $idShop = null)
+    protected function saveTokenAndExpiry(stdClass $request, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $time = $this->dateHelper->getDateTimeFromTimeAndTimeZone()
-                ->add($this->dateHelper->getDateIntervalFromIntervalSpec(sprintf('PT%sS', $request->expires_in)))
+            $this->logMsg(__METHOD__);
+
+            $time = $this->helper->getDateTimeFromTimeAndTimeZone()
+                ->add($this->helper->getDateIntervalFromIntervalSpec(sprintf('PT%sS', $request->expires_in)))
                 ->format('Y-m-d H:i:s');
 
-            return $this->configurationRepository->saveApiTokenExpiry($time, $idShopGroup, $idShop) &&
-                $this->configurationRepository->saveApiToken($request->access_token, $idShopGroup, $idShop);
+            return $this->configs->saveApiTokenExpiry($time, $idShopGroup, $idShop) &&
+                $this->configs->saveApiToken($request->access_token, $idShopGroup, $idShop);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }

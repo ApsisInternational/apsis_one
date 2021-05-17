@@ -2,45 +2,32 @@
 
 namespace Apsis\One\Module;
 
-use Apsis\One\Helper\LoggerHelper;
-use Apsis\One\Repository\ConfigurationRepository;
+use Apsis_one;
+use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Context\ShopContext;
 use Exception;
 
-class Install
+class Install extends AbstractSetup
 {
     /**
-     * @var ConfigurationRepository
-     */
-    protected $configurationRepository;
-
-    /**
-     * @var LoggerHelper
-     */
-    protected $loggerHelper;
-
-    /**
-     * Install constructor.
+     * @param Apsis_one $module
      *
-     * @param ConfigurationRepository $configurationRepository
-     * @param LoggerHelper $loggerHelper
-     */
-    public function __construct(
-        ConfigurationRepository $configurationRepository,
-        LoggerHelper $loggerHelper
-    ) {
-        $this->configurationRepository = $configurationRepository;
-        $this->loggerHelper = $loggerHelper;
-    }
-
-    /**
      * @return bool
      */
-    public function init()
+    public function init(Apsis_one $module): bool
     {
         try {
-            return $this->installConfiguration();
+            $this->module = $module;
+
+            /** @var ShopContext $shopContext */
+            $shopContext = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_SHOP);
+            if ($shopContext->isMultiShopFeatureActive()) {
+                $shopContext->setContext();
+            }
+
+            return $this->installConfiguration() && $this->installHooks();
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }
@@ -48,8 +35,22 @@ class Install
     /**
      * @return bool
      */
-    private function installConfiguration()
+    protected function installConfiguration(): bool
     {
-        return $this->configurationRepository->saveGlobalKey();
+        return $this->configs->saveGlobalKey();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function installHooks(): bool
+    {
+        $status = true;
+        foreach ($this->module->helper->getAllAvailableHooks() as $hook) {
+            if (! $this->module->registerHook($hook)) {
+                $status = false;
+            }
+        }
+        return $status;
     }
 }

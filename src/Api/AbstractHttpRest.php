@@ -2,55 +2,40 @@
 
 namespace Apsis\One\Api;
 
-use Apsis\One\Helper\LoggerHelper;
+use Apsis\One\Controller\ApiControllerInterface;
+use Apsis\One\Helper\HelperInterface;
 use Exception;
 use stdClass;
 
 /**
  * Rest class to make cURL requests.
  */
-abstract class AbstractHttpRest
+abstract class AbstractHttpRest implements ApiControllerInterface
 {
-    const HTTP_CODE_CONFLICT = 409;
-
     /**
-     * http verbs
+     * @var string
      */
-    const VERB_GET = 'GET';
-    const VERB_POST = 'POST';
-    const VERB_PUT = 'PUT';
-    const VERB_DELETE = 'DELETE';
-    const VERB_PATCH = 'PATCH';
-
-    /**
-     * @var array
-     */
-    private $errorCodesToRetry = [500, 501, 503, 408, 429];
+    protected $hostName;
 
     /**
      * @var string
      */
-    protected $hostName = '';
+    protected $url;
 
     /**
      * @var string
      */
-    private $url;
+    protected $verb;
 
     /**
      * @var string
      */
-    private $verb;
+    protected $requestBody;
 
     /**
      * @var string
      */
-    private $requestBody;
-
-    /**
-     * @var string
-     */
-    private $token;
+    protected $token;
 
     /**
      * @var null|stdClass
@@ -58,14 +43,14 @@ abstract class AbstractHttpRest
     protected $responseBody;
 
     /**
-     * @var string|array
+     * @var null|array
      */
     protected $responseInfo;
 
     /**
-     * @var LoggerHelper
+     * @var HelperInterface
      */
-    protected $logHelper;
+    protected $helper;
 
     /**
      * @var string
@@ -75,44 +60,52 @@ abstract class AbstractHttpRest
     /**
      * Rest constructor.
      *
-     * @param LoggerHelper $logHelper
+     * @param HelperInterface $helper
      * @param string $host
      * @param string $token
      * @param bool $isTokenNeeded
      *
      * @throws Exception
      */
-    public function __construct(LoggerHelper $logHelper, string $host, string $token = '', bool $isTokenNeeded = true)
+    public function __construct(HelperInterface $helper, string $host, string $token = '', bool $isTokenNeeded = true)
     {
         if (empty($host)) {
-            throw new Exception('Host cannot be empty', 500);
+            throw new Exception('Host cannot be empty', self::HTTP_CODE_500);
         }
 
         if ($isTokenNeeded && empty($token)) {
-            throw new Exception('Token cannot be empty', 500);
+            throw new Exception('Token cannot be empty', self::HTTP_CODE_500);
         }
 
         if (function_exists('curl_init') === false) {
-            throw new Exception('cURL is not enabled', 500);
+            throw new Exception('cURL is not enabled', self::HTTP_CODE_500);
         }
 
-        $this->logHelper = $logHelper;
+        $this->helper = $helper;
         $this->hostName = $host;
         $this->token = $token;
     }
 
     /**
-     * @return null|stdClass
+     * @inheritdoc
      */
-    protected function execute()
+    public function init(): void
     {
         $this->responseBody = null;
         $this->responseInfo = null;
         $this->curlError = '';
+    }
+
+    /**
+     * @return null|stdClass
+     */
+    protected function execute(): ?stdClass
+    {
+        $this->init();
 
         $ch = curl_init();
         if ($ch === false) {
-            $this->logHelper->logErrorToFile(__METHOD__, 'Unable to initiate cURL resource');
+            $this->helper->logErrorMessage(__METHOD__, 'Unable to initiate cURL resource');
             return $this->responseBody;
         }
 
@@ -135,12 +128,12 @@ abstract class AbstractHttpRest
                     break;
                 default:
                     $error = __METHOD__ . ' : Current verb (' . $this->verb . ') is an invalid REST verb.';
-                    $this->logHelper->logDebugToFile($error);
+                    $this->helper->logErrorMessage(__METHOD__, $error);
                     curl_close($ch);
             }
         } catch (Exception $e) {
             curl_close($ch);
-            $this->logHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
         }
         return $this->responseBody;
     }
@@ -149,8 +142,12 @@ abstract class AbstractHttpRest
      * Execute curl get request.
      *
      * @param resource $ch
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executeGet($ch)
+    protected function executeGet($ch): void
     {
         $headers = [
             'Accept: application/json'
@@ -161,11 +158,15 @@ abstract class AbstractHttpRest
     /**
      * @param resource $ch
      * @param array $headers
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executePostPutPatch($ch, array $headers)
+    protected function executePostPutPatch($ch, array $headers): void
     {
-        if (! is_string($this->requestBody)) {
-            $this->buildBody();
+        if (! is_string($this->requestBody) || empty($this->requestBody)) {
+            throw new Exception('Invalid request body', self::HTTP_CODE_500);
         }
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, $this->requestBody);
@@ -176,8 +177,12 @@ abstract class AbstractHttpRest
      * Execute post request.
      *
      * @param resource $ch
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executePost($ch)
+    protected function executePost($ch): void
     {
         $headers = [
             'Accept: application/json',
@@ -190,8 +195,12 @@ abstract class AbstractHttpRest
      * Execute patch request.
      *
      * @param resource $ch
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executePatch($ch)
+    protected function executePatch($ch): void
     {
         $headers = [
             'Accept: application/problem+json',
@@ -204,8 +213,12 @@ abstract class AbstractHttpRest
      * Execute put request.
      *
      * @param resource $ch
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executePut($ch)
+    protected function executePut($ch): void
     {
         $headers = [
             'Accept: application/json',
@@ -218,8 +231,12 @@ abstract class AbstractHttpRest
      * Execute delete request.
      *
      * @param resource $ch
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function executeDelete($ch)
+    protected function executeDelete($ch): void
     {
         $headers = [
             'Accept: application/problem+json'
@@ -232,8 +249,12 @@ abstract class AbstractHttpRest
      *
      * @param resource $ch
      * @param array headers
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function doExecute(&$ch, array $headers)
+    protected function doExecute(&$ch, array $headers): void
     {
         $this->setCurlOpts($ch, $headers);
         $this->responseBody = json_decode(curl_exec($ch));
@@ -245,11 +266,11 @@ abstract class AbstractHttpRest
     /**
      * Post data.
      *
-     * @param null $data
+     * @param array $data
      *
      * @return $this
      */
-    protected function buildBody($data = null)
+    protected function buildBody(array $data): AbstractHttpRest
     {
         $this->requestBody = (string) json_encode($data);
         return $this;
@@ -260,14 +281,22 @@ abstract class AbstractHttpRest
      *
      * @param resource $ch
      * @param array $headers
+     *
+     * @return void
+     *
+     * @throws Exception
      */
-    private function setCurlOpts(&$ch, array $headers)
+    protected function setCurlOpts(&$ch, array $headers): void
     {
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        if (! is_string($this->url) || empty($this->url)) {
+            throw new Exception('Invalid request URL', self::HTTP_CODE_500);
+        }
+
+        curl_setopt($ch, CURLOPT_TIMEOUT, self::CURL_REQUEST_TIMOUT);
         curl_setopt($ch, CURLOPT_URL, $this->url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_ENCODING, "");
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, self::CURL_REQUEST_MAX_REDIRECTS);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->verb);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -279,11 +308,9 @@ abstract class AbstractHttpRest
     }
 
     /**
-     * Get response info.
-     *
-     * @return string|array
+     * @return array
      */
-    protected function getResponseInfo()
+    protected function getResponseInfo(): ?array
     {
         return $this->responseInfo;
     }
@@ -295,9 +322,9 @@ abstract class AbstractHttpRest
      *
      * @return $this
      */
-    public function setUrl($url)
+    protected function setUrl(string $url): AbstractHttpRest
     {
-        $this->url = $url;
+        $this->url = $this->hostName . $url;
         return $this;
     }
 
@@ -308,7 +335,7 @@ abstract class AbstractHttpRest
      *
      * @return $this
      */
-    public function setVerb($verb)
+    protected function setVerb(string $verb): AbstractHttpRest
     {
         $this->verb = $verb;
         return $this;
@@ -318,23 +345,23 @@ abstract class AbstractHttpRest
      * @param mixed $response
      * @param string $method
      *
-     * @return mixed
+     * @return bool|int|stdClass|string|null
      */
     protected function processResponse($response, string $method)
     {
         if (strlen($this->curlError)) {
-            $this->logHelper->logErrorToFile(__METHOD__, ': CURL ERROR: ' . $this->curlError);
+            $this->helper->logErrorMessage(__METHOD__, ': CURL ERROR: ' . $this->curlError);
             return false;
         }
 
         if (isset($response->status) && isset($response->detail)) {
             //For Profile merge request
-            if ($response->status === self::HTTP_CODE_CONFLICT) {
-                return self::HTTP_CODE_CONFLICT;
+            if ($response->status === self::HTTP_CODE_409) {
+                return self::HTTP_CODE_409;
             }
 
             //Log error
-            $this->logHelper->logErrorToFile($method, implode(" - ", (array) $response));
+            $this->helper->logErrorMessage($method, implode(" - ", (array) $response));
 
             //For getAccessToken api call
             if (strpos($method, '::getAccessToken') !== false) {
@@ -342,7 +369,7 @@ abstract class AbstractHttpRest
             }
 
             //All other error response handling
-            return (in_array($response->status, $this->errorCodesToRetry)) ? false : (string) $response->detail;
+            return (in_array($response->status, self::ERROR_CODES_TO_RETRY)) ? false : (string) $response->detail;
         }
 
         return $response;

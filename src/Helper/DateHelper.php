@@ -7,33 +7,15 @@ use DateTimeZone;
 use Exception;
 use DateInterval;
 
-class DateHelper
+class DateHelper extends LoggerHelper
 {
-    const TIMESTAMP = 'U';
-    const ISO_8601 = 'c';
-
     /**
-     * @var LoggerHelper
-     */
-    protected $loggerHelper;
-
-    /**
-     * DateHelper constructor.
-     *
-     * @param LoggerHelper $loggerHelper
-     */
-    public function __construct(LoggerHelper $loggerHelper)
-    {
-        $this->loggerHelper = $loggerHelper;
-    }
-
-    /**
-     * @param string $date
+     * @param string|null $date
      * @param string $format
      *
      * @return string
      */
-    public function formatDateForPlatformCompatibility($date = null, $format = self::TIMESTAMP)
+    public function formatDateForPlatformCompatibility(?string $date = null, string $format = self::TIMESTAMP): string
     {
         try {
             if (empty($date)) {
@@ -42,18 +24,18 @@ class DateHelper
 
             return $this->getDateTimeFromTime($date)->format($format);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return '';
         }
     }
 
     /**
-     * @param string $date
+     * @param string|null $date
      * @param string $format
      *
      * @return string
      */
-    public function addSecond($date = null, $format = self::TIMESTAMP)
+    public function addSecond(?string $date = null, string $format = self::TIMESTAMP): string
     {
         try {
             if (empty($date)) {
@@ -64,7 +46,7 @@ class DateHelper
                 ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
                 ->format($format);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return '';
         }
     }
@@ -75,14 +57,14 @@ class DateHelper
      *
      * @return string
      */
-    public function getFormattedDateTimeWithAddedInterval(string $inputDateTime, int $day = 1)
+    public function getFormattedDateTimeWithAddedInterval(string $inputDateTime, int $day = 1): string
     {
         try {
             return $this->getDateTimeFromTimeAndTimeZone($inputDateTime)
                 ->add($this->getDateIntervalFromIntervalSpec(sprintf('P%sD', $day)))
                 ->format(self::ISO_8601);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return '';
         }
     }
@@ -92,13 +74,13 @@ class DateHelper
      *
      * @return bool
      */
-    public function isExpired(string $inputDateTime)
+    public function isExpired(string $inputDateTime): bool
     {
         try {
             $nowDateTime = $this->getDateTimeFromTimeAndTimeZone()->format(self::ISO_8601);
             return ($nowDateTime > $inputDateTime);
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }
@@ -111,7 +93,7 @@ class DateHelper
      *
      * @throws Exception
      */
-    public function getDateTimeFromTimeAndTimeZone($time = 'now', $timezone = 'UTC')
+    public function getDateTimeFromTimeAndTimeZone(string $time = 'now', string $timezone = 'UTC'): DateTime
     {
         return new DateTime($time, new DateTimeZone($timezone));
     }
@@ -123,7 +105,7 @@ class DateHelper
      *
      * @throws Exception
      */
-    public function getDateTimeFromTime($time = 'now')
+    public function getDateTimeFromTime(string $time = 'now'): DateTime
     {
         return new DateTime($time);
     }
@@ -135,7 +117,7 @@ class DateHelper
      *
      * @throws Exception
      */
-    public function getDateIntervalFromIntervalSpec(string $intervalSpec)
+    public function getDateIntervalFromIntervalSpec(string $intervalSpec): DateInterval
     {
         return new DateInterval($intervalSpec);
     }

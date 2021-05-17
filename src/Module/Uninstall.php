@@ -2,45 +2,23 @@
 
 namespace Apsis\One\Module;
 
-use Apsis\One\Helper\LoggerHelper;
-use Apsis\One\Repository\ConfigurationRepository;
+use Apsis_one;
 use Exception;
 
-class Uninstall
+class Uninstall extends AbstractSetup
 {
     /**
-     * @var ConfigurationRepository
-     */
-    protected $configurationRepository;
-
-    /**
-     * @var LoggerHelper
-     */
-    protected $loggerHelper;
-
-    /**
-     * Uninstall constructor.
+     * @param Apsis_one $module
      *
-     * @param ConfigurationRepository $configurationRepository
-     * @param LoggerHelper $loggerHelper
-     */
-    public function __construct(
-        ConfigurationRepository $configurationRepository,
-        LoggerHelper $loggerHelper
-    ) {
-        $this->configurationRepository = $configurationRepository;
-        $this->loggerHelper = $loggerHelper;
-    }
-
-    /**
      * @return bool
      */
-    public function init()
+    public function init(Apsis_one $module): bool
     {
         try {
-            return $this->uninstallConfiguration();
+            $this->module = $module;
+            return $this->uninstallConfiguration() && $this->uninstallHooks();
         } catch (Exception $e) {
-            $this->loggerHelper->logErrorToFile(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
             return false;
         }
     }
@@ -48,16 +26,30 @@ class Uninstall
     /**
      * @return bool
      */
-    private function uninstallConfiguration()
+    protected function uninstallConfiguration(): bool
     {
-        return $this->configurationRepository->deleteGlobalKey() &&
-            $this->configurationRepository->deleteProfileSyncFlagFromAllContext() &&
-            $this->configurationRepository->deleteEventSyncFlagFromAllContext() &&
-            $this->configurationRepository->deleteTrackingCodeFromAllContext() &&
-            $this->configurationRepository->deleteInstallationConfigsFromAllContext() &&
-            $this->configurationRepository->deleteApiTokenForAllContext() &&
-            $this->configurationRepository->deleteApiTokenExpiryForAllContext() &&
-            $this->configurationRepository->deleteDbCleanUpAfterForAllContext() &&
-            $this->configurationRepository->deleteProfileSynSizeForAllContext();
+        return $this->configs->deleteGlobalKey() &&
+            $this->configs->deleteProfileSyncFlagFromAllContext() &&
+            $this->configs->deleteEventSyncFlagFromAllContext() &&
+            $this->configs->deleteTrackingCodeFromAllContext() &&
+            $this->configs->deleteInstallationConfigsFromAllContext() &&
+            $this->configs->deleteApiTokenForAllContext() &&
+            $this->configs->deleteApiTokenExpiryForAllContext() &&
+            $this->configs->deleteDbCleanUpAfterForAllContext() &&
+            $this->configs->deleteProfileSynSizeForAllContext();
+    }
+
+    /**
+     * @return bool
+     */
+    protected function uninstallHooks(): bool
+    {
+        $status = true;
+        foreach ($this->module->helper->getAllAvailableHooks() as $hook) {
+            if (! $this->module->unregisterHook($hook)) {
+                $status = false;
+            }
+        }
+        return $status;
     }
 }

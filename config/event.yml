@@ -1,0 +1,53 @@
+services:
+  apsis_one.event.cart-abandoned.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\CartAbandoned'
+
+  apsis_one.event.cart-abandoned-product.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\CartAbandonedProduct'
+
+  apsis_one.event.cart-order-placed.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\OrderPlaced'
+
+  apsis_one.event.cart-order-placed-product.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\OrderPlacedProduct'
+
+  apsis_one.event.product-carted.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\ProductCarted'
+
+  apsis_one.event.product-reviewed.schema:
+    class: 'Apsis\One\Model\Event\Schema\Common\ProductReviewed'
+
+  apsis_one.event.customer-is-subscriber.schema:
+    class: 'Apsis\One\Model\Event\Schema\Customer\CustomerIsSubscriber'
+
+  apsis_one.event.customer-login.schema:
+    class: 'Apsis\One\Model\Event\Schema\Customer\CustomerLogin'
+
+  apsis_one.event.product-wished.schema:
+    class: 'Apsis\One\Model\Event\Schema\Customer\ProductWished'
+
+  apsis_one.event.guest-is-customer.schema:
+    class: 'Apsis\One\Model\Event\Schema\Guest\GuestIsCustomer'
+
+  apsis_one.event.guest-is-subscriber.schema:
+    class: 'Apsis\One\Model\Event\Schema\Guest\GuestIsSubscriber'
+
+  apsis_one.event.subscriber-is-customer.schema:
+    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberIsCustomer'
+
+  apsis_one.event.subscriber-is-guest.schema:
+    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberIsGuest'
+
+  apsis_one.event.subscriber-unsubscribe.schema:
+    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberUnsubscribe'
+
+  apsis_one.event.container:
+    class: 'Apsis\One\Model\Event\DataProvider'
+    arguments:
+      - '@apsis_one.helper.module'
+
+  apsis_one.repository.event:
+    class: 'Apsis\One\Repository\EventRepository'
+    arguments:
+      - '@apsis_one.module.configuration.configs'
+      - '@apsis_one.helper.logger'

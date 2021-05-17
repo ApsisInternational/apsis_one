@@ -1,15 +1,20 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
+use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Context\ShopContext;
 
 class apsis_OneApistoresModuleFrontController extends AbstractApiController
 {
     /**
-     * @var string
+     * @inheritdoc
      */
-    protected $validRequestMethod = AbstractApiController::HTTP_GET;
+    protected $validRequestMethod = self::VERB_GET;
 
-    public function init()
+    /**
+     * @inheritdoc
+     */
+    public function init(): void
     {
         try {
             parent::init();
@@ -19,11 +24,15 @@ class apsis_OneApistoresModuleFrontController extends AbstractApiController
         }
     }
 
-    protected function handleRequest()
+    /**
+     * @inheritdoc
+     */
+    protected function handleRequest(): void
     {
         try {
-            $shopsList = $this->configurationRepository->getPrestaShopContext()->getAllContextList();
-            $this->exitWithResponse($this->generateResponse(200, ['shops' => $shopsList]));
+            /** @var ShopContext $shopContext */
+            $shopContext = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_SHOP);
+            $this->exitWithResponse($this->generateResponse(200, ['shops' => $shopContext->getAllContextList()]));
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }

@@ -2,8 +2,9 @@
 
 namespace Apsis\One\Controller;
 
-use Apsis\One\Helper\LoggerHelper;
-use Apsis\One\Repository\ConfigurationRepository;
+use Apsis\One\Model\SchemaInterface;
+use Apsis\One\Module\Configuration\Configs;
+use Apsis\One\Helper\HelperInterface;
 use Apsis_one;
 use ModuleFrontController;
 use WebserviceRequestCore;
@@ -11,50 +12,17 @@ use Validate;
 use Tools;
 use Exception;
 
-abstract class AbstractApiController extends ModuleFrontController
+abstract class AbstractApiController extends ModuleFrontController implements ApiControllerInterface
 {
-    const PARAM_TYPE_QUERY = 'query';
-    const PARAM_TYPE_BODY = 'body';
-
-    /** QUERY PARAMS */
-    const QUERY_PARAM_CONTEXT_IDS = 'context_ids';
-
-    /** DATA TYPES */
-    const DATA_TYPE_STRING = 'string';
-    const DATA_TYPE_INT = 'int';
-    const DATA_TYPE_URL = 'url';
-
-    /** HTTP METHODS */
-    const HTTP_GET = 'GET';
-    const HTTP_POST = 'POST';
-    const HTTP_PATCH = 'PATCH';
-
-    /** HTTP Codes  */
-    const HTTP_CODE_200 = 200;
-    const HTTP_CODE_204 = 204;
-    const HTTP_CODE_400 = 400;
-    const HTTP_CODE_401 = 401;
-    const HTTP_CODE_403 = 403;
-    const HTTP_CODE_404 = 404;
-    const HTTP_CODE_405 = 405;
-    const HTTP_CODE_500 = 500;
-
-    const REQUEST_BODY_FOR_HTTP_METHOD = [self::HTTP_POST, self::HTTP_PATCH];
-
     /**
      * @var Apsis_one
      */
     public $module;
 
     /**
-     * @var ConfigurationRepository
+     * @var Configs
      */
-    protected $configurationRepository;
-
-    /**
-     * @var LoggerHelper
-     */
-    protected $loggerHelper;
+    protected $configs;
 
     /**
      * @var string
@@ -92,17 +60,17 @@ abstract class AbstractApiController extends ModuleFrontController
     protected $queryParams = [];
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $groupId = null;
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $shopId = null;
 
     /**
-     * AbstractApiController constructor.
+     * @inheritdoc
      */
     public function __construct()
     {
@@ -110,16 +78,21 @@ abstract class AbstractApiController extends ModuleFrontController
             parent::__construct();
 
             $this->controller_type = 'module';
-            $this->configurationRepository = $this->module->getService('apsis_one.repository.configuration');
-            $this->loggerHelper = $this->module->getService('apsis_one.helper.logger');
+            $this->configs = $this->module->helper->getService(HelperInterface::SERVICE_MODULE_CONFIGS);
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
     }
 
-    abstract protected function handleRequest();
+    /**
+     * @return void
+     */
+    abstract protected function handleRequest(): void;
 
-    public function init()
+    /**
+     * @inheritdoc
+     */
+    public function init() : void
     {
         try {
             //Check if http method is allowed or not
@@ -147,11 +120,16 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function validateHttpMethod()
+    /**
+     * @return void
+     */
+    protected function validateHttpMethod(): void
     {
         try {
             if ($this->validRequestMethod !== $_SERVER['REQUEST_METHOD']) {
                 $msg = $_SERVER['REQUEST_METHOD'] . ': method not allowed to this endpoint.';
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_405, [], $msg));
             }
         } catch (Exception $e) {
@@ -159,14 +137,19 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function authorize()
+    /**
+     * @return void
+     */
+    protected function authorize(): void
     {
         try {
             $headers = WebserviceRequestCore::getallheaders();
             if (empty($headers['Authorization']) ||
-                $headers['Authorization'] !== $this->configurationRepository->getGlobalKey()
+                $headers['Authorization'] !== $this->configs->getGlobalKey()
             ) {
                 $msg = 'Invalid key for authorization header.';
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
             }
         } catch (Exception $e) {
@@ -174,12 +157,18 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function validateModuleStatus()
+    /**
+     * @return void
+     */
+    protected function validateModuleStatus(): void
     {
         try {
-            if ($this->module->isModuleEnabledForContext($this->groupId, $this->shopId) === false) {
+            if ($this->module->helper->isModuleEnabledForContext($this->groupId, $this->shopId) === false) {
+                $msg = 'Module is disabled.';
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse(
-                    $this->generateResponse(self::HTTP_CODE_403, [], 'Module is disabled.')
+                    $this->generateResponse(self::HTTP_CODE_403, [], $msg)
                 );
             }
         } catch (Exception $e) {
@@ -187,7 +176,10 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function validateAndSetCompulsoryQueryParams()
+    /**
+     * @return void
+     */
+    protected function validateAndSetCompulsoryQueryParams(): void
     {
         try {
             foreach ($this->validQueryParams as $queryParam => $dataType) {
@@ -197,6 +189,8 @@ abstract class AbstractApiController extends ModuleFrontController
 
                 if (! Tools::getIsset($queryParam)) {
                     $msg = "Missing query param: " . $queryParam;
+                    $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
                 }
 
@@ -213,7 +207,7 @@ abstract class AbstractApiController extends ModuleFrontController
      *
      * @return bool
      */
-    private function isOkToIgnoreParam(string $compulsoryParam, string $paramType)
+    protected function isOkToIgnoreParam(string $compulsoryParam, string $paramType): bool
     {
         try {
             foreach ($this->optionalQueryParamIgnoreRelations as $param => $typeList) {
@@ -232,7 +226,10 @@ abstract class AbstractApiController extends ModuleFrontController
         return false;
     }
 
-    private function validateAndSetOptionalQueryParams()
+    /**
+     * @return void
+     */
+    protected function validateAndSetOptionalQueryParams(): void
     {
         try {
             foreach ($this->optionalQueryParams as $queryParam => $dataType) {
@@ -248,13 +245,17 @@ abstract class AbstractApiController extends ModuleFrontController
     /**
      * @param string $queryParam
      * @param string $dataType
+     *
+     * @return void
      */
-    private function setQueryParam(string $queryParam, string $dataType)
+    protected function setQueryParam(string $queryParam, string $dataType): void
     {
         try {
             $value = Tools::getValue($queryParam, false);
             if (! $this->isDataValid($value, $dataType)) {
                 $msg = "Invalid value for query param: " . $queryParam;
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
             }
             $this->queryParams[$queryParam] = Tools::safeOutput($value);
@@ -267,7 +268,12 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function setContextIds(string $contextIdsString)
+    /**
+     * @param string $contextIdsString
+     *
+     * @return void
+     */
+    protected function setContextIds(string $contextIdsString): void
     {
         try {
             $contextIds = explode(',', $contextIdsString);
@@ -276,6 +282,8 @@ abstract class AbstractApiController extends ModuleFrontController
                 $this->shopId = (int) $contextIds[1];
             } else {
                 $msg = 'Invalid context ids string.';
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
             }
         } catch (Exception $e) {
@@ -283,7 +291,10 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function setBodyParams()
+    /**
+     * @return void
+     */
+    protected function setBodyParams(): void
     {
         try {
             if ($this->isOkToIgnoreParam(self::PARAM_TYPE_BODY, self::PARAM_TYPE_BODY)) {
@@ -292,6 +303,8 @@ abstract class AbstractApiController extends ModuleFrontController
                 $body = file_get_contents('php://input');
                 if (empty($body) || ! Validate::isJson($body)) {
                     $msg = 'Invalid payload.';
+                    $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
                 }
 
@@ -311,19 +324,26 @@ abstract class AbstractApiController extends ModuleFrontController
         }
     }
 
-    private function validateBodyParams()
+    /**
+     * @return void
+     */
+    protected function validateBodyParams(): void
     {
         try {
             $bodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
             if (! empty($bodyParams)) {
                 $msg = 'Incomplete payload. Missing body param ' . implode(', ', $bodyParams);
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
             }
 
             foreach ($this->bodyParams as $param => $value) {
                 if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
-                    $msg1 = $param . ': is invalid.';
-                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg1));
+                    $msg = $param . ': is invalid.';
+                    $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
                 }
             }
         } catch (Exception $e) {
@@ -337,19 +357,19 @@ abstract class AbstractApiController extends ModuleFrontController
      *
      * @return bool
      */
-    private function isDataValid($data, string $type)
+    protected function isDataValid($data, string $type): bool
     {
         $isValid = false;
         if (! empty($data)) {
             try {
                 switch ($type) {
                     case self::DATA_TYPE_STRING:
-                        $isValid = preg_match('/^[a-zA-Z0-9.,_-]+$/', $data);
+                        $isValid = preg_match(SchemaInterface::VALID_GENERIC_NAME_PATTERN, $data);
                         break;
                     case self::DATA_TYPE_INT:
                         $isValid = is_numeric($data);
                         break;
-                    case self::DATA_TYPE_URL:
+                    case SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL:
                         $isValid = filter_var($data, FILTER_VALIDATE_URL);
                         break;
                 }
@@ -360,18 +380,25 @@ abstract class AbstractApiController extends ModuleFrontController
         return $isValid;
     }
 
-    protected function validateProfileSyncFeature()
+    /**
+     * @return void
+     */
+    protected function validateProfileSyncFeature(): void
     {
-        if ($this->configurationRepository->getProfileSyncFlag($this->groupId, $this->shopId) === false) {
+        if ($this->configs->getProfileSyncFlag($this->groupId, $this->shopId) === false) {
             $msg = 'Profile sync feature is disable for context.';
-            $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_403, [], $msg));
+            $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
+            $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_403, [], $msg));
         }
     }
 
     /**
      * @param array $response
+     *
+     * @return void
      */
-    protected function exitWithResponse(array $response)
+    protected function exitWithResponse(array $response): void
     {
         $response['httpCode'] = isset($response['httpCode']) ? (int) $response['httpCode'] : self::HTTP_CODE_204;
         $httpStatusText = $this->getStatusText($response['httpCode']);
@@ -395,7 +422,7 @@ abstract class AbstractApiController extends ModuleFrontController
      *
      * @return array
      */
-    protected function generateResponse(int $httpCode, array $data = [], string $msg = '')
+    protected function generateResponse(int $httpCode, array $data = [], string $msg = ''): array
     {
         $response = ['httpCode' => $httpCode];
         if (! empty($data)) {
@@ -412,7 +439,7 @@ abstract class AbstractApiController extends ModuleFrontController
      *
      * @return string
      */
-    private function getStatusText(int $httpCode)
+    protected function getStatusText(int $httpCode): string
     {
         $statusText = '';
         switch ($httpCode) {
@@ -455,10 +482,12 @@ abstract class AbstractApiController extends ModuleFrontController
     /**
      * @param Exception $e
      * @param string $classMethodName
+     *
+     * @return void
      */
-    protected function handleException(Exception $e, string $classMethodName)
+    protected function handleException(Exception $e, string $classMethodName): void
     {
-        $this->loggerHelper->logErrorToFile($classMethodName, $e->getMessage(), $e->getTraceAsString());
+        $this->module->helper->logErrorMessage($classMethodName, $e->getMessage(), $e->getTraceAsString());
         $this->exitWithResponse(
             $this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $e->getMessage())
         );

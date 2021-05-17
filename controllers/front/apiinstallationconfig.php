@@ -1,50 +1,48 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
-use Apsis\One\Repository\ConfigurationRepository;
+use Apsis\One\Model\SchemaInterface;
+use Apsis\One\Module\SetupInterface;
 
 class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiController
 {
-    const QUERY_PARAM_RESET = 'reset';
-
     /**
-     * @var string
+     * @inheritdoc
      */
-    protected $validRequestMethod = AbstractApiController::HTTP_POST;
+    protected $validRequestMethod = self::VERB_POST;
 
     /**
-     * @var array
+     * @inheritdoc
      */
     protected $validBodyParams = [
-        ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_ID => AbstractApiController::DATA_TYPE_STRING,
-        ConfigurationRepository::INSTALLATION_CONFIG_CLIENT_SECRET => AbstractApiController::DATA_TYPE_STRING,
-        ConfigurationRepository::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR => AbstractApiController::DATA_TYPE_STRING,
-        ConfigurationRepository::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR => AbstractApiController::DATA_TYPE_STRING,
-        ConfigurationRepository::INSTALLATION_CONFIG_API_BASE_URL  => AbstractApiController::DATA_TYPE_URL
+        SetupInterface::INSTALLATION_CONFIG_CLIENT_ID => self::DATA_TYPE_STRING,
+        SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET => self::DATA_TYPE_STRING,
+        SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR => self::DATA_TYPE_STRING,
+        SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR => self::DATA_TYPE_STRING,
+        SetupInterface::INSTALLATION_CONFIG_API_BASE_URL  => SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL
     ];
 
     /**
-     * @var array
+     * @inheritdoc
      */
-    protected $validQueryParams = [
-        AbstractApiController::QUERY_PARAM_CONTEXT_IDS => AbstractApiController::DATA_TYPE_STRING
-    ];
+    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
 
     /**
-     * @var array
+     * @inheritdoc
      */
-    protected $optionalQueryParams = [
-        self::QUERY_PARAM_RESET => AbstractApiController::DATA_TYPE_INT
-    ];
+    protected $optionalQueryParams = [self::QUERY_PARAM_RESET => self::DATA_TYPE_INT];
 
     /**
-     * @var array
+     * @inheritdoc
      */
     protected $optionalQueryParamIgnoreRelations = [
-        self::QUERY_PARAM_RESET => [AbstractApiController::PARAM_TYPE_BODY => [AbstractApiController::PARAM_TYPE_BODY]]
+        self::QUERY_PARAM_RESET => [self::PARAM_TYPE_BODY => [self::PARAM_TYPE_BODY]]
     ];
 
-    public function init()
+    /**
+     * @inheritdoc
+     */
+    public function init(): void
     {
         try {
             parent::init();
@@ -54,7 +52,10 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
         }
     }
 
-    protected function handleRequest()
+    /**
+     * @inheritdoc
+     */
+    protected function handleRequest(): void
     {
         try {
             $this->checkForResetParam();
@@ -64,34 +65,42 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
         }
     }
 
-    private function saveInstallationConfigs()
+    /**
+     * @return void
+     */
+    protected function saveInstallationConfigs(): void
     {
         try {
-            if ($this->configurationRepository->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId)) {
-                $this->configurationRepository
-                    ->saveProfileSyncFlag(ConfigurationRepository::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
-                $this->configurationRepository
-                    ->saveEventSyncFlag(ConfigurationRepository::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
-                $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_204));
+            if ($this->configs->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId)) {
+                $this->configs
+                    ->saveProfileSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
+                $this->configs
+                    ->saveEventSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
             } else {
                 $msg = 'Unable to save some configurations.';
-                $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $msg));
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
             }
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
     }
 
-    private function checkForResetParam()
+    /**
+     * @return void
+     */
+    protected function checkForResetParam(): void
     {
         try {
             if (isset($this->queryParams[self::QUERY_PARAM_RESET])) {
-                //@todo also reset events and profiles
-                if ($this->configurationRepository->disableFeaturesAndDeleteConfig($this->groupId, $this->shopId, true)) {
-                    $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_204));
+                // TODO: also reset events and profiles
+                if ($this->configs->disableFeaturesAndDeleteConfig($this->groupId, $this->shopId, true)) {
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
                 } else {
                     $msg = 'Unable to reset some configurations.';
-                    $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $msg));
+                    $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                    $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
                 }
             }
         } catch (Exception $e) {

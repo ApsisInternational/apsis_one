@@ -4,26 +4,25 @@ use Apsis\One\Controller\AbstractApiController;
 
 class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiController
 {
-    const BODY_PARAM_PROFILE_KEY = 'PK';
+    /**
+     * @inheritdoc
+     */
+    protected $validRequestMethod = self::VERB_PATCH;
 
     /**
-     * @var string
+     * @inheritdoc
      */
-    protected $validRequestMethod = AbstractApiController::HTTP_PATCH;
+    protected $validBodyParams = [self::BODY_PARAM_PROFILE_KEY => self::DATA_TYPE_STRING];
 
     /**
-     * @var array
+     * @inheritdoc
      */
-    protected $validBodyParams = [self::BODY_PARAM_PROFILE_KEY => AbstractApiController::DATA_TYPE_STRING];
+    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
 
     /**
-     * @var array
+     * @inheritdoc
      */
-    protected $validQueryParams = [
-        AbstractApiController::QUERY_PARAM_CONTEXT_IDS => AbstractApiController::DATA_TYPE_STRING
-    ];
-
-    public function init()
+    public function init(): void
     {
         try {
             parent::init();
@@ -33,38 +32,45 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
         }
     }
 
-    protected function handleRequest()
+    /**
+     * @inheritdoc
+     */
+    protected function handleRequest(): void
     {
         try {
             $this->validateProfileSyncFeature();
 
-            if ($profile = $this->getProfile() === false) {
+            if ($profile = $this->getProfile() === null) {
                 $msg = 'Profile not found.';
-                $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_404, [], $msg));
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_404, [], $msg));
             }
 
             if ($this->updateSubscription($profile) === false) {
                 $msg = 'Unable to update subscription for Profile.';
-                $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $msg));
+                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
             }
 
-            $this->exitWithResponse($this->generateResponse(AbstractApiController::HTTP_CODE_204));
+            $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
         }
     }
 
     /**
-     * @return bool|object
+     * @return stdClass|null
      */
-    private function getProfile()
+    protected function getProfile(): ?stdClass
     {
         try {
-            //@toDo fetch profile
+            // TODO: fetch profile from profile entity
             return new stdClass();
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);
-            return false;
+            return null;
         }
     }
 
@@ -73,10 +79,10 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
      *
      * @return bool
      */
-    private function updateSubscription($profile)
+    protected function updateSubscription($profile): bool
     {
         try {
-            //@toDo update subscription
+            // TODO: update subscription in profile entity and ps subscription entity
             return true;
         } catch (Exception $e) {
             $this->handleException($e, __METHOD__);

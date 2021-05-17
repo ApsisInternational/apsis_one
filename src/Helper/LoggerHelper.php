@@ -2,89 +2,49 @@
 
 namespace Apsis\One\Helper;
 
-use PrestaShopLogger;
+use AbstractLogger;
+use Apsis\One\Module\SetupInterface;
 use FileLogger;
 
-class LoggerHelper
+class LoggerHelper extends FileLogger implements HelperInterface
 {
-    const LOG_FILE_NAME = _PS_ROOT_DIR_ . '/var/logs/apsis.log';
-
-    /**
-     * @var FileLogger
-     */
-    protected $fileLogger;
-
     /**
      * LoggerHelper constructor.
      */
     public function __construct()
     {
-        $logger = new FileLogger();
-        $logger->setFilename(self::LOG_FILE_NAME);
-        $this->fileLogger = $logger;
+        parent::__construct();
+        $this->setFilename(_PS_ROOT_DIR_ . '/var/logs/' . _PS_ENV_ . '_apsis.log');
     }
 
     /**
-     * @param string $message
-     * @param int $severity
+     * @inheritdoc
      */
-    public function addLogToDatabase(string $message, int $severity = 1)
+    public function addLogEntryToFile(string $message, int $level = AbstractLogger::INFO): void
     {
-        PrestaShopLogger::addLog($message, $severity);
+        $formatted_message = '*' . $this->level_value[$level] . '* ' . "\tv" . SetupInterface::MODULE_VERSION . "\t" .
+            date('Y/m/d - H:i:s') . ': ' . $message . "\r\n";
+
+        file_put_contents($this->getFilename(), $formatted_message, FILE_APPEND);
     }
 
     /**
-     * Log a debug message.
-     *
-     * @param string message
+     * @inheritdoc
      */
-    public function logDebugToFile(string $message)
+    public function logMsg($message, int $level = AbstractLogger::INFO): void
     {
-        $this->fileLogger->logDebug($message);
+        if (! is_string($message) ) {
+            $message = print_r($message, true);
+        }
+
+        $this->addLogEntryToFile($message, $level);
     }
 
     /**
-     * Log an info message.
-     *
-     * @param string message
+     * @inheritdoc
      */
-    public function logInfoToFile(string $message)
+    public function logErrorMessage(string $classMethodName, string $text, string $trace = ''): void
     {
-        $this->fileLogger->logInfo($message);
-    }
-
-    /**
-     * Log a warning message.
-     *
-     * @param string message
-     */
-    public function logWarningToFile(string $message)
-    {
-        $this->fileLogger->logWarning($message);
-    }
-
-    /**
-     * Log an error message.
-     *
-     * @param string $classMethodName
-     * @param string $text
-     * @param string $trace
-     */
-    public function logErrorToFile(string $classMethodName, string $text, string $trace = '')
-    {
-        $this->fileLogger->logError($this->getStringForLog($classMethodName, $text, $trace));
-    }
-
-    /**
-     * @param string $functionName
-     * @param string $text
-     * @param string $trace
-     *
-     * @return string
-     */
-    private function getStringForLog(string $functionName, string $text, string $trace)
-    {
-        $string = ' - Class & Method: ' . $functionName . ' - Text: ' . $text;
-        return strlen($trace) ? $string . PHP_EOL . $trace : $string;
+        $this->logMsg(['Method' => $classMethodName, 'Message' => $text, 'Trace' => $trace], AbstractLogger::ERROR);
     }
 }

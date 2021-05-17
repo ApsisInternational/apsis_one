@@ -1,0 +1,14 @@
+services:
+  apsis_one.profile.schema:
+    class: 'Apsis\One\Model\Profile\Schema'
+
+  apsis_one.profile.container:
+    class: 'Apsis\One\Model\Profile\DataProvider'
+    arguments:
+      - '@apsis_one.helper.module'
+
+  apsis_one.repository.profile:
+    class: 'Apsis\One\Repository\ProfileRepository'
+    arguments:
+      - '@apsis_one.module.configuration.configs'
+      - '@apsis_one.helper.logger'
