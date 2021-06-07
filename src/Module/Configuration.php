@@ -31,7 +31,7 @@ class Configuration extends AbstractSetup
 
             return $output . $this->displayConfigurationForm();
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return $output;
         }
     }
@@ -42,20 +42,20 @@ class Configuration extends AbstractSetup
     protected function saveConfigurationValues(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
-            $profileSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
-            $eventSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
+            $profileSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_FLAG);
+            $eventSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_EVENT_SYNC_FLAG);
             $trackingScript = (string) Tools::getValue(self::CONFIG_KEY_TRACKING_CODE);
-            $profileSyncSize = (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
-            $dbCleanUpAfter = (int) Tools::getValue(self::CONFIG_KEY_DB_CLEANUP_AFTER);
+            $profileSyncSize = (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_SIZE, self::DEFAULT_SYNC_SIZE);
+            $dbCleanUpAfter = (int) Tools::getValue(self::CONFIG_KEY_DB_CLEANUP_AFTER, self::DEFAULT_DB_CLEANUP_AFTER);
             return $this->configs->saveProfileSyncFlag($profileSyncEnabled) &&
                 $this->configs->saveEventSyncFlag($eventSyncEnabled) &&
                 $this->configs->saveTrackingCode($trackingScript) &&
                 $this->configs->saveProfileSynSize($profileSyncSize) &&
                 $this->configs->saveDbCleanUpAfter($dbCleanUpAfter);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -82,14 +82,14 @@ class Configuration extends AbstractSetup
 
             $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] =
                 empty($this->configs->getInstallationConfigs()) ? 'NOT CONNECTED' : 'CONNECTED';
-            $helper->fields_value[self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG] =
+            $helper->fields_value[self::CONFIG_KEY_PROFILE_SYNC_FLAG] =
                 Tools::getValue(
-                    self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG,
+                    self::CONFIG_KEY_PROFILE_SYNC_FLAG,
                     (int) $this->configs->getProfileSyncFlag()
                 );
-            $helper->fields_value[self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG] =
+            $helper->fields_value[self::CONFIG_KEY_EVENT_SYNC_FLAG] =
                 Tools::getValue(
-                    self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG,
+                    self::CONFIG_KEY_EVENT_SYNC_FLAG,
                     (int) $this->configs->getEventSyncFlag()
                 );
             $helper->fields_value[self::CONFIG_KEY_TRACKING_CODE] =
@@ -104,7 +104,7 @@ class Configuration extends AbstractSetup
 
             return $helper->generateForm($formArray);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -148,7 +148,7 @@ class Configuration extends AbstractSetup
             ];
             return $helper;
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return null;
         }
     }
@@ -188,7 +188,7 @@ class Configuration extends AbstractSetup
                     [
                         'type' => 'switch',
                         'label' => $this->module->l('Profile Sync Enabled'),
-                        'name' => self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG,
+                        'name' => self::CONFIG_KEY_PROFILE_SYNC_FLAG,
                         'required' => true,
                         'values' => [
                             [
@@ -212,7 +212,7 @@ class Configuration extends AbstractSetup
                     [
                         'type' => 'switch',
                         'label' => $this->module->l('Event Sync Enabled'),
-                        'name' => self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG,
+                        'name' => self::CONFIG_KEY_EVENT_SYNC_FLAG,
                         'required' => true,
                         'values' => [
                             [
@@ -262,7 +262,7 @@ class Configuration extends AbstractSetup
             ];
             return $fieldsForm;
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }

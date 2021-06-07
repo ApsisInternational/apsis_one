@@ -45,7 +45,7 @@ class LinkContext extends AbstractContext
             return (string) $this->getContextObject()
                 ->getModuleLink(SetupInterface::MODULE_NAME, $controller, $params, $ssl, $idLang, $idShop);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -62,7 +62,7 @@ class LinkContext extends AbstractContext
         try {
             return $this->getContextObject()->getBaseLink($idShop, $ssl, $relativeProtocol);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }

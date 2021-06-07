@@ -27,7 +27,7 @@ class Install extends AbstractSetup
 
             return $this->installConfiguration() && $this->installHooks();
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }

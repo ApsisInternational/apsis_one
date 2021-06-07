@@ -55,17 +55,23 @@ interface ApiControllerInterface
     const VERB_DELETE = 'DELETE';
     const VERB_PATCH = 'PATCH';
 
-    /** HTTPS CODES REQUIRES BODY  */
+    /** HTTP CODES REQUIRES BODY  */
     const REQUEST_BODY_FOR_HTTP_METHOD = [self::VERB_POST, self::VERB_PATCH];
 
     /** HTTP REQUEST CODES TO RETRY  */
-    const ERROR_CODES_TO_RETRY = [
+    const HTTP_ERROR_CODES_TO_RETRY = [
         self::HTTP_CODE_500,
         self::HTTP_CODE_501,
         self::HTTP_CODE_503,
         self::HTTP_CODE_408,
         self::HTTP_CODE_429
     ];
+
+    /** HTTP CODES TO DISABLE FEATURES */
+    const HTTP_CODES_DISABLE_MODULE = [self::HTTP_CODE_400, self::HTTP_CODE_401, self::HTTP_CODE_403];
+
+    /** HTTP CODES TO FORCE GENERATE TOKEN */
+    const HTTP_CODES_FORCE_GENERATE_TOKEN = [self::HTTP_CODE_401, self::HTTP_CODE_403];
 
     /**
      * @return void

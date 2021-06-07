@@ -42,14 +42,14 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
 
             if ($profile = $this->getProfile() === null) {
                 $msg = 'Profile not found.';
-                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_404, [], $msg));
             }
 
             if ($this->updateSubscription($profile) === false) {
                 $msg = 'Unable to update subscription for Profile.';
-                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
             }

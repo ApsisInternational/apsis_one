@@ -73,7 +73,7 @@ class ShopContext extends AbstractContext
             }
             return array_values($result);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }
@@ -91,7 +91,7 @@ class ShopContext extends AbstractContext
             }
             return $result;
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }
@@ -104,7 +104,7 @@ class ShopContext extends AbstractContext
         try {
             return $this->getContextObject()->getShops(true, null, true);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }
@@ -136,7 +136,7 @@ class ShopContext extends AbstractContext
         try {
             return (bool) $this->getContextObject()->isFeatureActive();
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }

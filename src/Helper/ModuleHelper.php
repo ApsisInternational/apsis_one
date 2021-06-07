@@ -48,7 +48,7 @@ class ModuleHelper extends LoggerHelper
         try {
             return (bool) Module::isEnabled(SetupInterface::MODULE_NAME);
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -89,7 +89,7 @@ class ModuleHelper extends LoggerHelper
                 $active = true;
             }
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
         }
 
         return $active;

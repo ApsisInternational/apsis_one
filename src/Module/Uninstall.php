@@ -18,7 +18,7 @@ class Uninstall extends AbstractSetup
             $this->module = $module;
             return $this->uninstallConfiguration() && $this->uninstallHooks();
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -33,10 +33,10 @@ class Uninstall extends AbstractSetup
             $this->configs->deleteEventSyncFlagFromAllContext() &&
             $this->configs->deleteTrackingCodeFromAllContext() &&
             $this->configs->deleteInstallationConfigsFromAllContext() &&
-            $this->configs->deleteApiTokenForAllContext() &&
-            $this->configs->deleteApiTokenExpiryForAllContext() &&
-            $this->configs->deleteDbCleanUpAfterForAllContext() &&
-            $this->configs->deleteProfileSynSizeForAllContext();
+            $this->configs->deleteApiTokenFromAllContext() &&
+            $this->configs->deleteApiTokenExpiryFromAllContext() &&
+            $this->configs->deleteDbCleanUpAfterFromAllContext() &&
+            $this->configs->deleteProfileSynSizeFromAllContext();
     }
 
     /**

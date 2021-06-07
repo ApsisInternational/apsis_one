@@ -2,14 +2,11 @@
 
 namespace Apsis\One\Module\Configuration;
 
-use Apsis\One\Helper\HelperInterface;
 use Apsis_one;
-use Apsis\One\Context\ShopContext;
 use Apsis\One\Module\SetupInterface;
 use Configuration;
 use PhpEncryption;
 use Exception;
-use PrestaShopException;
 
 class Configs implements SetupInterface
 {
@@ -22,11 +19,6 @@ class Configs implements SetupInterface
      * @var Apsis_one
      */
     protected $module;
-
-    /**
-     * @var ShopContext
-     */
-    protected $context;
 
     /**
      * Configs constructor.
@@ -47,7 +39,6 @@ class Configs implements SetupInterface
     {
         $this->module = $module;
         $this->phpEncryption = new PhpEncryption(_NEW_COOKIE_KEY_);
-        $this->context = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_SHOP);
     }
 
     /**
@@ -56,14 +47,14 @@ class Configs implements SetupInterface
     public function saveGlobalKey(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::updateGlobalValue(
                 self::CONFIG_KEY_GLOBAL_KEY,
                 $this->phpEncryption->encrypt($this->getRandomString(32))
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -76,7 +67,7 @@ class Configs implements SetupInterface
         try {
             return (string) $this->phpEncryption->decrypt(Configuration::getGlobalValue(self::CONFIG_KEY_GLOBAL_KEY));
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -87,11 +78,11 @@ class Configs implements SetupInterface
     public function deleteGlobalKey(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_GLOBAL_KEY);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -106,17 +97,17 @@ class Configs implements SetupInterface
     public function saveProfileSyncFlag(int $flag, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $this->logValueChange(__METHOD__, $this->getProfileSyncFlag($idShopGroup, $idShop), $flag);
+            $this->logValueChange(__METHOD__, $this->getProfileSyncFlag($idShopGroup, $idShop), (boolean) $flag);
 
             return Configuration::updateValue(
-                self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG,
+                self::CONFIG_KEY_PROFILE_SYNC_FLAG,
                 $flag,
                 false,
                 $idShopGroup,
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -130,25 +121,9 @@ class Configs implements SetupInterface
     public function getProfileSyncFlag(?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            return (boolean) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG, null, $idShopGroup, $idShop);
+            return (boolean) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_FLAG, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteProfileSyncFlag(): bool
-    {
-        try {
-            $this->logValueChange(__METHOD__, $this->getProfileSyncFlag());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -159,11 +134,11 @@ class Configs implements SetupInterface
     public function deleteProfileSyncFlagFromAllContext(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
-            return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_ENABLED_FLAG);
+            return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_FLAG);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -178,17 +153,17 @@ class Configs implements SetupInterface
     public function saveEventSyncFlag(int $flag, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $this->logValueChange(__METHOD__, $this->getEventSyncFlag($idShopGroup, $idShop), $flag);
+            $this->logValueChange(__METHOD__, $this->getEventSyncFlag($idShopGroup, $idShop), (boolean) $flag);
 
             return Configuration::updateValue(
-                self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG,
+                self::CONFIG_KEY_EVENT_SYNC_FLAG,
                 $flag,
                 false,
                 $idShopGroup,
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -202,25 +177,9 @@ class Configs implements SetupInterface
     public function getEventSyncFlag(?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            return (boolean) Configuration::get(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG, null, $idShopGroup, $idShop);
+            return (boolean) Configuration::get(self::CONFIG_KEY_EVENT_SYNC_FLAG, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteEventSyncFlag(): bool
-    {
-        try {
-            $this->logValueChange(__METHOD__, $this->getEventSyncFlag());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -231,11 +190,11 @@ class Configs implements SetupInterface
     public function deleteEventSyncFlagFromAllContext(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
-            return Configuration::deleteByName(self::CONFIG_KEY_EVENT_SYNC_ENABLED_FLAG);
+            return Configuration::deleteByName(self::CONFIG_KEY_EVENT_SYNC_FLAG);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -260,7 +219,7 @@ class Configs implements SetupInterface
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -276,24 +235,8 @@ class Configs implements SetupInterface
         try {
             return (string) Configuration::get(self::CONFIG_KEY_TRACKING_CODE, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteTrackingCode(): bool
-    {
-        try {
-            $this->logValueChange(__METHOD__, $this->getTrackingCode());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_TRACKING_CODE);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
         }
     }
 
@@ -303,11 +246,11 @@ class Configs implements SetupInterface
     public function deleteTrackingCodeFromAllContext(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_TRACKING_CODE);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -328,7 +271,7 @@ class Configs implements SetupInterface
                 $configs[self::INSTALLATION_CONFIG_CLIENT_SECRET] =
                     $this->phpEncryption->encrypt($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET]);
 
-                $forLog[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'REMOVED FOR LOG';
+                $forLog[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'An encrypted value';
             }
 
             if (($value = json_encode($configs)) === false) {
@@ -346,7 +289,7 @@ class Configs implements SetupInterface
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -371,7 +314,7 @@ class Configs implements SetupInterface
 
             return $configs;
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }
@@ -392,29 +335,9 @@ class Configs implements SetupInterface
             }
 
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
         }
         return '';
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteInstallationConfigs(): bool
-    {
-        try {
-            $forLog = $this->getInstallationConfigs();
-            if (! empty($forLog[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
-                $forLog[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'REMOVED FOR LOG';
-            }
-            $this->logValueChange(__METHOD__, $forLog);
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_INSTALLATION_CONFIGS);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
     }
 
     /**
@@ -423,11 +346,11 @@ class Configs implements SetupInterface
     public function deleteInstallationConfigsFromAllContext(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_INSTALLATION_CONFIGS);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -442,9 +365,9 @@ class Configs implements SetupInterface
     public function saveApiToken(string $token, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
-            $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
+            $context = $this->getContextForUpdateConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
             return Configuration::updateValue(
                 self::CONFIG_KEY_API_TOKEN,
                 ($token) ? $this->phpEncryption->encrypt($token) : $token,
@@ -453,7 +376,7 @@ class Configs implements SetupInterface
                 $context['idShop']
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -472,7 +395,7 @@ class Configs implements SetupInterface
                 return $this->phpEncryption->decrypt($value);
             }
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
         }
         return '';
     }
@@ -480,30 +403,14 @@ class Configs implements SetupInterface
     /**
      * @return bool
      */
-    public function deleteApiToken(): bool
+    public function deleteApiTokenFromAllContext(): bool
     {
         try {
-            $this->module->helper->logMsg(__METHOD__);
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_API_TOKEN);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteApiTokenForAllContext(): bool
-    {
-        try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_API_TOKEN);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -520,7 +427,7 @@ class Configs implements SetupInterface
         try {
             $this->logValueChange(__METHOD__, $this->getApiTokenExpiry($idShopGroup, $idShop), $tokenExpiry);
 
-            $context = $this->getContextForSavingConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
+            $context = $this->getContextForUpdateConfig(self::CONFIG_KEY_INSTALLATION_CONFIGS, $idShopGroup, $idShop);
             return Configuration::updateValue(
                 self::CONFIG_KEY_API_TOKEN_EXPIRY,
                 $tokenExpiry,
@@ -529,7 +436,7 @@ class Configs implements SetupInterface
                 $context['idShop']
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -545,7 +452,7 @@ class Configs implements SetupInterface
         try {
             return (string) Configuration::get(self::CONFIG_KEY_API_TOKEN_EXPIRY, null, $idShopGroup, $idShop);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -553,30 +460,14 @@ class Configs implements SetupInterface
     /**
      * @return bool
      */
-    public function deleteApiTokenExpiry(): bool
+    public function deleteApiTokenExpiryFromAllContext(): bool
     {
         try {
-            $this->logValueChange(__METHOD__, $this->getApiTokenExpiry());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_API_TOKEN_EXPIRY);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteApiTokenExpiryForAllContext(): bool
-    {
-        try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_API_TOKEN_EXPIRY);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -588,11 +479,7 @@ class Configs implements SetupInterface
      *
      * @return bool
      */
-    public function saveProfileSynSize(
-        int $size = self::DEFAULT_PROFILE_SYNC_SIZE,
-        ?int $idShopGroup = null,
-        ?int $idShop = null
-    ): bool
+    public function saveProfileSynSize(int $size, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
             $this->logValueChange(__METHOD__, $this->getProfileSynSize($idShopGroup, $idShop), $size);
@@ -605,7 +492,7 @@ class Configs implements SetupInterface
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -620,40 +507,24 @@ class Configs implements SetupInterface
     {
         try {
             $value = (int) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_SIZE, null, $idShopGroup, $idShop);
-            return ($value) ?: self::DEFAULT_PROFILE_SYNC_SIZE;
+            return ($value) ?: self::DEFAULT_SYNC_SIZE;
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return self::DEFAULT_PROFILE_SYNC_SIZE;
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return self::DEFAULT_SYNC_SIZE;
         }
     }
 
     /**
      * @return bool
      */
-    public function deleteProfileSynSize(): bool
+    public function deleteProfileSynSizeFromAllContext(): bool
     {
         try {
-            $this->logValueChange(__METHOD__, $this->getProfileSynSize());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteProfileSynSizeForAllContext(): bool
-    {
-        try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -665,11 +536,7 @@ class Configs implements SetupInterface
      *
      * @return bool
      */
-    public function saveDbCleanUpAfter(
-        int $size = self::DEFAULT_DB_CLEANUP_AFTER,
-        ?int $idShopGroup = null,
-        ?int $idShop = null
-    ): bool
+    public function saveDbCleanUpAfter(int $size, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
             $this->logValueChange(__METHOD__, $this->getDbCleanUpAfter($idShopGroup, $idShop), $size);
@@ -682,7 +549,7 @@ class Configs implements SetupInterface
                 $idShop
             );
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -696,10 +563,10 @@ class Configs implements SetupInterface
     public function getDbCleanUpAfter(?int $idShopGroup = null, ?int $idShop = null): int
     {
         try {
-            $value = (int) Configuration::get(self::CONFIG_KEY_DB_CLEANUP_AFTER, null, $idShopGroup, $idShop);;
+            $value = (int) Configuration::get(self::CONFIG_KEY_DB_CLEANUP_AFTER, null, $idShopGroup, $idShop);
             return ($value) ?: self::DEFAULT_DB_CLEANUP_AFTER;
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return self::DEFAULT_DB_CLEANUP_AFTER;
         }
     }
@@ -707,66 +574,15 @@ class Configs implements SetupInterface
     /**
      * @return bool
      */
-    public function deleteDbCleanUpAfter(): bool
+    public function deleteDbCleanUpAfterFromAllContext(): bool
     {
         try {
-            $this->logValueChange(__METHOD__, $this->getDbCleanUpAfter());
-
-            Configuration::deleteFromContext(self::CONFIG_KEY_DB_CLEANUP_AFTER);
-            return true;
-        } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
-            return false;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteDbCleanUpAfterForAllContext(): bool
-    {
-        try {
-            $this->module->helper->logMsg(__METHOD__);
+            $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_DB_CLEANUP_AFTER);
         } catch (Exception $e) {
-            $this->module->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
-        }
-    }
-
-    /**
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
-     * @param bool $installation
-     *
-     * @return bool
-     *
-     * @throws PrestaShopException
-     */
-    public function disableFeaturesAndDeleteConfig(
-        ?int $idShopGroup = null,
-        ?int $idShop = null,
-        bool $installation = false
-    ): bool
-    {
-        $this->module->helper->logMsg(__METHOD__);
-
-        if ($idShopGroup || $idShop) {
-            $this->context->setContext($idShopGroup, $idShop);
-            if ($installation) {
-                $this->deleteInstallationConfigs();
-            }
-            return $this->deleteApiToken() && $this->deleteApiTokenExpiry() && $this->deleteEventSyncFlag() &&
-                $this->deleteProfileSyncFlag();
-        } else {
-            if ($installation) {
-                $this->saveInstallationConfigs([], $idShopGroup, $idShop);
-            }
-            return $this->saveApiToken('', $idShopGroup, $idShop) &&
-                $this->saveApiTokenExpiry('', $idShopGroup, $idShop) &&
-                $this->saveEventSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
-                $this->saveProfileSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop);
         }
     }
 
@@ -805,7 +621,7 @@ class Configs implements SetupInterface
      *
      * @return array
      */
-    public function getContextForSavingConfig(string $key, ?int $idShopGroup = null, ?int $idShop = null): array
+    public function getContextForUpdateConfig(string $key, ?int $idShopGroup = null, ?int $idShop = null): array
     {
         if ($idShop && Configuration::hasKey($key, null, null, $idShop)) {
             return ['idShopGroup' => 0, 'idShop' => $idShop];
@@ -814,6 +630,125 @@ class Configs implements SetupInterface
         } else {
             return ['idShopGroup' => 0, 'idShop' => 0];
         }
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return bool
+     */
+    public function disableSyncsClearConfigs(?int $idShopGroup = null, ?int $idShop = null): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        return $this->disableSyncs($idShopGroup, $idShop) &&
+            $this->clearTokenConfigs($idShopGroup, $idShop) &&
+            $this->saveInstallationConfigs([], $idShopGroup, $idShop);
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return bool
+     */
+    public function disableSyncsClearTokenConfigs(?int $idShopGroup = null, ?int $idShop = null): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        return $this->disableSyncs($idShopGroup, $idShop) &&
+            $this->clearTokenConfigs($idShopGroup, $idShop);
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return bool
+     */
+    public function clearTokenConfigs(?int $idShopGroup = null, ?int $idShop = null): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        return $this->saveApiToken('', $idShopGroup, $idShop) &&
+            $this->saveApiTokenExpiry('', $idShopGroup, $idShop);
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return bool
+     */
+    public function disableSyncs(?int $idShopGroup = null, ?int $idShop = null): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        return $this->saveEventSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
+            $this->saveProfileSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop);
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return array
+     */
+    public function getClientCredentials(?int $idShopGroup = null, ?int $idShop = null): array
+    {
+        try {
+            $clientConfigs = [];
+            foreach (SetupInterface::CLIENT_CONFIGS as $config) {
+                $clientConfigs[$config] = $this->getInstallationConfigByKey($config, $idShopGroup, $idShop);
+            }
+
+            $isMissing = $this->isAnyClientConfigMissing($clientConfigs, $idShopGroup, $idShop);
+            if ($isMissing) {
+                $info = [
+                    'Message' => 'Incomplete client credentials.',
+                    'idShopGroup' => $idShopGroup,
+                    'idShop' => $idShop
+                ];
+                $this->module->helper->logDebugMsg(__METHOD__, $info);
+
+                $this->disableSyncs($idShopGroup, $idShop);
+
+                return [];
+            }
+
+            return $clientConfigs;
+        } catch (Exception $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return [];
+        }
+    }
+
+    /**
+     * @param array $configs
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return bool
+     */
+    protected function isAnyClientConfigMissing(array $configs, ?int $idShopGroup = null, ?int $idShop = null): bool
+    {
+        foreach (SetupInterface::CLIENT_CONFIGS as $config) {
+
+            if (! isset($configs[$config]) || empty($configs[$config])) {
+
+                $info = [
+                    'Message' => 'Missing client credentials',
+                    'idShopGroup' => $idShopGroup,
+                    'idShop' => $idShop
+                ];
+                $this->module->helper->logDebugMsg(__METHOD__, $info);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -836,7 +771,6 @@ class Configs implements SetupInterface
 
     /**
      * @param string $method
-     *
      * @param mixed $oldValue
      * @param mixed $newValue
      *
@@ -844,7 +778,7 @@ class Configs implements SetupInterface
      */
     protected function logValueChange(string $method, $oldValue, $newValue = null): void
     {
-        $this->module->helper->logMsg(__METHOD__);
-        $this->module->helper->logMsg(['Method' => $method, 'Previous Value' => $oldValue, 'New Value' => $newValue]);
+        $info = ['Method' => $method, 'Previous Value' => $oldValue, 'New Value' => $newValue];
+        $this->module->helper->logDebugMsg(__METHOD__, $info);
     }
 }

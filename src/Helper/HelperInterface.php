@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Helper;
 
-use AbstractLogger;
+use Exception;
 
 interface HelperInterface
 {
@@ -63,7 +63,6 @@ interface HelperInterface
     const SERVICE_HELPER_DATA = 'apsis_one.helper.data';
     const SERVICE_HELPER_DATE = 'apsis_one.helper.date';
     const SERVICE_HELPER_MODULE = 'apsis_one.helper.module';
-    const SERVICE_HELPER_API_CLIENT = 'apsis_one.helper.apiclient';
 
     /** PROFILE */
     const SERVICE_PROFILE_SCHEMA = 'apsis_one.profile.schema';
@@ -97,29 +96,25 @@ interface HelperInterface
     /**
      * @param string $message
      *
-     * @param int $level
-     *
      * @return void
      */
-    public function addLogEntryToFile(string $message, int $level = AbstractLogger::INFO): void;
+    public function logInfoMsg(string $message): void;
 
     /**
-     * @param string|array $message
-     *
-     * @param int $level
+     * @param string $message
+     * @param array $info
      *
      * @return void
      */
-    public function logMsg($message, int $level = AbstractLogger::INFO): void;
+    public function logDebugMsg(string $message, array $info): void;
 
     /**
      * Log an error message.
      *
-     * @param string $classMethodName
-     * @param string $text
-     * @param string $trace
+     * @param string $message
+     * @param Exception $e
      *
      * @return void
      */
-    public function logErrorMessage(string $classMethodName, string $text, string $trace = ''): void;
+    public function logErrorMsg(string $message, Exception $e): void;
 }

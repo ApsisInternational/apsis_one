@@ -14,7 +14,7 @@ services:
     class: 'Apsis\One\Api\ClientFactory'
     arguments:
       - '@apsis_one.module.configuration.configs'
-      - '@apsis_one.helper.apiclient'
+      - '@apsis_one.helper.date'
 
   apsis_one.module.hook-processor:
     class: 'Apsis\One\Module\HookProcessor'

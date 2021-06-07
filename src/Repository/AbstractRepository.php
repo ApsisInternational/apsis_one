@@ -18,7 +18,7 @@ abstract class AbstractRepository implements RepositoryInterface
     protected $helper;
 
     /**
-     * ApiClientHelper constructor.
+     * AbstractRepository constructor.
      *
      * @param Configs $configs
      * @param HelperInterface $helper

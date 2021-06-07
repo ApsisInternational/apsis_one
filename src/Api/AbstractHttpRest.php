@@ -4,6 +4,7 @@ namespace Apsis\One\Api;
 
 use Apsis\One\Controller\ApiControllerInterface;
 use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Module\SetupInterface;
 use Exception;
 use stdClass;
 
@@ -25,6 +26,21 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     /**
      * @var string
      */
+    protected $token;
+
+    /**
+     * @var string
+     */
+    protected $clientId;
+
+    /**
+     * @var string
+     */
+    protected $clientSecret;
+
+    /**
+     * @var string
+     */
     protected $verb;
 
     /**
@@ -33,17 +49,12 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     protected $requestBody;
 
     /**
-     * @var string
-     */
-    protected $token;
-
-    /**
      * @var null|stdClass
      */
     protected $responseBody;
 
     /**
-     * @var null|array
+     * @var array
      */
     protected $responseInfo;
 
@@ -62,28 +73,21 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @param HelperInterface $helper
      * @param string $host
-     * @param string $token
-     * @param bool $isTokenNeeded
      *
      * @throws Exception
      */
-    public function __construct(HelperInterface $helper, string $host, string $token = '', bool $isTokenNeeded = true)
+    public function __construct(HelperInterface $helper, string $host)
     {
         if (empty($host)) {
             throw new Exception('Host cannot be empty', self::HTTP_CODE_500);
         }
 
-        if ($isTokenNeeded && empty($token)) {
-            throw new Exception('Token cannot be empty', self::HTTP_CODE_500);
-        }
-
         if (function_exists('curl_init') === false) {
-            throw new Exception('cURL is not enabled', self::HTTP_CODE_500);
+            throw new Exception('CURL is not enabled', self::HTTP_CODE_500);
         }
 
         $this->helper = $helper;
         $this->hostName = $host;
-        $this->token = $token;
     }
 
     /**
@@ -92,7 +96,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     public function init(): void
     {
         $this->responseBody = null;
-        $this->responseInfo = null;
+        $this->responseInfo = [];
         $this->curlError = '';
     }
 
@@ -103,10 +107,15 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     {
         $this->init();
 
+        if (strpos($this->url, '/oauth/token') === false && empty($this->token)) {
+            $this->curlError = 'Token cannot be empty for endpoint URL: ' . $this->url;
+            return $this->processResponse($this->responseBody, __METHOD__);
+        }
+
         $ch = curl_init();
         if ($ch === false) {
-            $this->helper->logErrorMessage(__METHOD__, 'Unable to initiate cURL resource');
-            return $this->responseBody;
+            $this->curlError = 'Unable to initiate cURL resource';
+            return $this->processResponse($this->responseBody, __METHOD__);
         }
 
         try {
@@ -127,13 +136,14 @@ abstract class AbstractHttpRest implements ApiControllerInterface
                     $this->executeDelete($ch);
                     break;
                 default:
-                    $error = __METHOD__ . ' : Current verb (' . $this->verb . ') is an invalid REST verb.';
-                    $this->helper->logErrorMessage(__METHOD__, $error);
+                    $this->curlError = 'Current verb (' . $this->verb . ') is an invalid REST verb.';
+                    $this->helper->logDebugMsg(__METHOD__, ['Message' => 'invalid REST verb', 'Verb' => $this->verb]);
                     curl_close($ch);
             }
         } catch (Exception $e) {
             curl_close($ch);
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->curlError = $e->getMessage();
+            $this->helper->logErrorMsg(__METHOD__, $e);
         }
         return $this->responseBody;
     }
@@ -258,22 +268,11 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     {
         $this->setCurlOpts($ch, $headers);
         $this->responseBody = json_decode(curl_exec($ch));
-        $this->responseInfo = curl_getinfo($ch);
         $this->curlError = curl_error($ch);
+        if (empty($this->curlError)) {
+            $this->responseInfo = curl_getinfo($ch);
+        }
         curl_close($ch);
-    }
-
-    /**
-     * Post data.
-     *
-     * @param array $data
-     *
-     * @return $this
-     */
-    protected function buildBody(array $data): AbstractHttpRest
-    {
-        $this->requestBody = (string) json_encode($data);
-        return $this;
     }
 
     /**
@@ -299,8 +298,6 @@ abstract class AbstractHttpRest implements ApiControllerInterface
         curl_setopt($ch, CURLOPT_MAXREDIRS, self::CURL_REQUEST_MAX_REDIRECTS);
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $this->verb);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         if (isset($this->token)) {
             $headers[] = 'Authorization: Bearer ' . $this->token;
         }
@@ -308,11 +305,52 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     }
 
     /**
-     * @return array
+     * Post data.
+     *
+     * @param array|null $data
+     *
+     * @return $this
      */
-    protected function getResponseInfo(): ?array
+    protected function buildBody(?array $data = null): AbstractHttpRest
     {
-        return $this->responseInfo;
+        $this->requestBody = (string) json_encode($data);
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    protected function buildBodyForGetAccessTokenCall(): AbstractHttpRest
+    {
+        return $this->buildBody([
+            'grant_type' => 'client_credentials',
+            SetupInterface::INSTALLATION_CONFIG_CLIENT_ID => $this->clientId,
+            SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET => $this->clientSecret
+        ]);
+    }
+
+    /**
+     * @param string $token
+     *
+     * @return $this
+     */
+    public function setToken(string $token): AbstractHttpRest
+    {
+        $this->token = $token;
+        return $this;
+    }
+
+    /**
+     * @param string $clientId
+     * @param string $clientSecret
+     *
+     * @return $this
+     */
+    public function setClientCredentials(string $clientId, string $clientSecret): AbstractHttpRest
+    {
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
+        return $this;
     }
 
     /**
@@ -345,31 +383,42 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      * @param mixed $response
      * @param string $method
      *
-     * @return bool|int|stdClass|string|null
+     * @return mixed
      */
     protected function processResponse($response, string $method)
     {
         if (strlen($this->curlError)) {
-            $this->helper->logErrorMessage(__METHOD__, ': CURL ERROR: ' . $this->curlError);
+            $this->helper->logDebugMsg(__METHOD__, ['CURL ERROR' => $this->curlError]);
             return false;
         }
 
+        if ((bool) getenv('APSIS_DEVELOPER') && ! empty($this->responseInfo)) {
+            $info = [
+                'Method' => $method,
+                'Request time in seconds' => $this->responseInfo['total_time'],
+                'Endpoint URL' => $this->responseInfo['url'],
+                'Http code' => $this->responseInfo['http_code']
+            ];
+            $this->helper->logDebugMsg('CURL Transfer', $info);
+        }
+
         if (isset($response->status) && isset($response->detail)) {
-            //For Profile merge request
-            if ($response->status === self::HTTP_CODE_409) {
+            if (strpos($method, '::getAccessToken') !== false) {
+                // Return as it is
+                return $response;
+            } elseif (in_array($response->status, self::HTTP_CODES_FORCE_GENERATE_TOKEN)) {
+                // Client factory will automatically generate new one. If not then will disable automatically.
+                return false;
+            } elseif ($response->status === self::HTTP_CODE_409) {
+                //For Profile merge request
                 return self::HTTP_CODE_409;
             }
 
             //Log error
-            $this->helper->logErrorMessage($method, implode(" - ", (array) $response));
-
-            //For getAccessToken api call
-            if (strpos($method, '::getAccessToken') !== false) {
-                return $response;
-            }
+            $this->helper->logDebugMsg($method, (array) $response);
 
             //All other error response handling
-            return (in_array($response->status, self::ERROR_CODES_TO_RETRY)) ? false : (string) $response->detail;
+            return (in_array($response->status, self::HTTP_ERROR_CODES_TO_RETRY)) ? false : (string) $response->detail;
         }
 
         return $response;

@@ -10,9 +10,3 @@ services:
 
   apsis_one.helper.date:
     class: 'Apsis\One\Helper\DateHelper'
-
-  apsis_one.helper.apiclient:
-    class: 'Apsis\One\Helper\ApiClientHelper'
-    arguments:
-      - '@apsis_one.module.configuration.configs'
-      - '@apsis_one.helper.date'

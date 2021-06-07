@@ -24,7 +24,7 @@ class DateHelper extends LoggerHelper
 
             return $this->getDateTimeFromTime($date)->format($format);
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -46,7 +46,7 @@ class DateHelper extends LoggerHelper
                 ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
                 ->format($format);
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -64,7 +64,7 @@ class DateHelper extends LoggerHelper
                 ->add($this->getDateIntervalFromIntervalSpec(sprintf('P%sD', $day)))
                 ->format(self::ISO_8601);
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }
@@ -80,7 +80,7 @@ class DateHelper extends LoggerHelper
             $nowDateTime = $this->getDateTimeFromTimeAndTimeZone()->format(self::ISO_8601);
             return ($nowDateTime > $inputDateTime);
         } catch (Exception $e) {
-            $this->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }

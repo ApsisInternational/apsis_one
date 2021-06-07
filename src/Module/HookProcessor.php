@@ -24,7 +24,7 @@ class HookProcessor extends AbstractSetup
      */
     public function processHook(string $hookName, array $hookArgs): bool
     {
-        $this->module->helper->logMsg($hookName);
+        $this->module->helper->logInfoMsg($hookName);
         return true;
     }
 }

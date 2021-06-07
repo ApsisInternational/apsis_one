@@ -67,13 +67,13 @@ class Apsis_one extends Module implements SetupInterface
     public function install(): bool
     {
         try {
-            $this->helper->logMsg(__METHOD__);
+            $this->helper->logInfoMsg(__METHOD__);
 
             /** @var Install $installModule */
             $installModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_INSTALL);
             return parent::install() && $installModule->init($this);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -84,13 +84,13 @@ class Apsis_one extends Module implements SetupInterface
     public function uninstall(): bool
     {
         try {
-            $this->helper->logMsg(__METHOD__);
+            $this->helper->logInfoMsg(__METHOD__);
 
             /** @var Uninstall $uninstallModule */
             $uninstallModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_UNINSTALL);
             return parent::uninstall() && $uninstallModule->init($this);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
     }
@@ -105,7 +105,7 @@ class Apsis_one extends Module implements SetupInterface
             $configurationModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_ADMIN_CONFIGURATION);
             return $configurationModule->init($this);
         } catch (Exception $e) {
-            $this->helper->logErrorMessage(__METHOD__, $e->getMessage(), $e->getTraceAsString());
+            $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
     }

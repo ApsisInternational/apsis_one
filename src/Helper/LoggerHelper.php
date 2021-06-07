@@ -5,6 +5,7 @@ namespace Apsis\One\Helper;
 use AbstractLogger;
 use Apsis\One\Module\SetupInterface;
 use FileLogger;
+use Exception;
 
 class LoggerHelper extends FileLogger implements HelperInterface
 {
@@ -20,31 +21,63 @@ class LoggerHelper extends FileLogger implements HelperInterface
     /**
      * @inheritdoc
      */
-    public function addLogEntryToFile(string $message, int $level = AbstractLogger::INFO): void
+    public function logInfoMsg(string $message): void
     {
-        $formatted_message = '*' . $this->level_value[$level] . '* ' . "\tv" . SetupInterface::MODULE_VERSION . "\t" .
+        $this->addLogEntryToFile($this->addModuleVersionToMessage($message, AbstractLogger::INFO));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function logDebugMsg(string $message, array $info): void
+    {
+        array_unshift($info, ['Message' => $message]);
+        $this->addLogEntryToFile($this->getStringForLog($info, AbstractLogger::DEBUG));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function logErrorMsg(string $message, Exception $e): void
+    {
+        $info = [
+            'Method' => $message,
+            'Exception' => $e->getMessage(),
+            'Trace' => str_replace(PHP_EOL, PHP_EOL . "        ", PHP_EOL . $e->getTraceAsString())
+        ];
+        $this->addLogEntryToFile($this->getStringForLog($info, AbstractLogger::ERROR));
+    }
+
+    /**
+     * @param array $info
+     * @param int $level
+     *
+     * @return string
+     */
+    private function getStringForLog(array $info, int $level): string
+    {
+        return stripcslashes($this->addModuleVersionToMessage(json_encode($info, JSON_PRETTY_PRINT), $level));
+    }
+
+    /**
+     * @param string $message
+     * @param int $level
+     *
+     * @return string
+     */
+    private function addModuleVersionToMessage(string $message, int $level): string
+    {
+        return '*' . $this->level_value[$level] . '* ' . "\tv" . SetupInterface::MODULE_VERSION . "\t" .
             date('Y/m/d - H:i:s') . ': ' . $message . "\r\n";
-
-        file_put_contents($this->getFilename(), $formatted_message, FILE_APPEND);
     }
 
     /**
-     * @inheritdoc
+     * @param string $message
+     *
+     * @return void
      */
-    public function logMsg($message, int $level = AbstractLogger::INFO): void
+    private function addLogEntryToFile(string $message): void
     {
-        if (! is_string($message) ) {
-            $message = print_r($message, true);
-        }
-
-        $this->addLogEntryToFile($message, $level);
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function logErrorMessage(string $classMethodName, string $text, string $trace = ''): void
-    {
-        $this->logMsg(['Method' => $classMethodName, 'Message' => $text, 'Trace' => $trace], AbstractLogger::ERROR);
+        file_put_contents($this->getFilename(), $message, FILE_APPEND);
     }
 }

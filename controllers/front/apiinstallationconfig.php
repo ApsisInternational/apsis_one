@@ -71,15 +71,14 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
     protected function saveInstallationConfigs(): void
     {
         try {
-            if ($this->configs->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId)) {
-                $this->configs
-                    ->saveProfileSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
-                $this->configs
-                    ->saveEventSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
+            $status = $this->configs->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId);
+            if ($status) {
+                $this->configs->saveProfileSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
+                $this->configs->saveEventSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
             } else {
                 $msg = 'Unable to save some configurations.';
-                $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
             }
         } catch (Exception $e) {
@@ -95,11 +94,11 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
         try {
             if (isset($this->queryParams[self::QUERY_PARAM_RESET])) {
                 // TODO: also reset events and profiles
-                if ($this->configs->disableFeaturesAndDeleteConfig($this->groupId, $this->shopId, true)) {
+                if ($this->configs->disableSyncsClearConfigs($this->groupId, $this->shopId)) {
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
                 } else {
                     $msg = 'Unable to reset some configurations.';
-                    $this->module->helper->logErrorMessage(__METHOD__, $msg);
+                    $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
                 }
             }
