@@ -1,0 +1,10 @@
+services:
+  apsis_one.command.sync:
+    class: 'Apsis\One\Command\Sync'
+    tags:
+      - { name: 'console.command' }
+
+  apsis_one.command.db:
+    class: 'Apsis\One\Command\Db'
+    tags:
+      - { name: 'console.command' }

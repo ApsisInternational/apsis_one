@@ -5,3 +5,4 @@ imports:
   - { resource: event.yml }
   - { resource: ac.yml }
   - { resource: module.yml }
+  - { resource: command.yml }

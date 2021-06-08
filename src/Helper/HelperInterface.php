@@ -93,6 +93,10 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 
+    /** COMMANDS */
+    const SERVICE_COMMAND_SYNC = 'apsis_one.command.sync';
+    const SERVICE_COMMAND_DB = 'apsis_one.command.db';
+
     /**
      * @param string $message
      *
