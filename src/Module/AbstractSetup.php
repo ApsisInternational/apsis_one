@@ -26,4 +26,14 @@ abstract class AbstractSetup implements SetupInterface
     {
         $this->configs = $configs;
     }
+
+    /**
+     * @param string $tableName
+     *
+     * @return string
+     */
+    protected function addPrefix(string $tableName): string
+    {
+        return _DB_PREFIX_ . $tableName;
+    }
 }

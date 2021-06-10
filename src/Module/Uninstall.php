@@ -67,8 +67,8 @@ class Uninstall extends AbstractSetup
 
         $db = Db::getInstance();
 
-        return $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_PROFILE . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_EVENT . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_ABANDONED_CART . '`');
+        return $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_PROFILE) . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_EVENT) . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_ABANDONED_CART) . '`');
     }
 }

@@ -83,7 +83,7 @@ class Install extends AbstractSetup
         $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_PROFILE);
 
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . self::MODULE_TABLE_PROFILE . '` (
+        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_PROFILE) . '` (
             `id_profile` int(10) unsigned NOT NULL AUTO_INCREMENT,
             `id_integration` varchar(255) NOT NULL,
             `id_shop` int(11) unsigned NOT NULL,
@@ -124,7 +124,7 @@ class Install extends AbstractSetup
         $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_EVENT);
 
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . self::MODULE_TABLE_EVENT . '` (
+        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_EVENT) . '` (
             `id_event` int(10) unsigned NOT NULL AUTO_INCREMENT,
             `id_shop` int(11) unsigned NOT NULL,
             `email` varchar(255) NOT NULL,
@@ -164,7 +164,7 @@ class Install extends AbstractSetup
         $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_ABANDONED_CART);
 
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . self::MODULE_TABLE_ABANDONED_CART . '` (
+        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_ABANDONED_CART) . '` (
             `id_abandonedcart` int(10) unsigned NOT NULL AUTO_INCREMENT,
             `id_shop` int(11) unsigned NOT NULL,
             `id_cart` int(10) unsigned NOT NULL,
