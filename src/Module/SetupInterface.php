@@ -49,8 +49,12 @@ interface SetupInterface
     const DEFAULT_DB_CLEANUP_AFTER = 30; //Days
 
     /** MODULE */
+    const MODULE_TABLE_PREFIX = _DB_PREFIX_ . 'apsis_one_';
     const MODULE_NAME = 'apsis_one';
     const MODULE_VERSION  = '1.0.0';
+    const MODULE_TABLE_PROFILE = self::MODULE_TABLE_PREFIX . 'profile';
+    const MODULE_TABLE_EVENT = self::MODULE_TABLE_PREFIX . 'event';
+    const MODULE_TABLE_ABANDONED_CART = self::MODULE_TABLE_PREFIX . 'abandonedcart';
 
     /**
      * @param Apsis_one $module

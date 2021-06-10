@@ -3,6 +3,7 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
+use Db;
 use Exception;
 
 class Uninstall extends AbstractSetup
@@ -16,7 +17,7 @@ class Uninstall extends AbstractSetup
     {
         try {
             $this->module = $module;
-            return $this->uninstallConfiguration() && $this->uninstallHooks();
+            return $this->uninstallConfigurations() && $this->uninstallHooks() && $this->removeTables();
         } catch (Exception $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -26,8 +27,10 @@ class Uninstall extends AbstractSetup
     /**
      * @return bool
      */
-    protected function uninstallConfiguration(): bool
+    protected function uninstallConfigurations(): bool
     {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
         return $this->configs->deleteGlobalKey() &&
             $this->configs->deleteProfileSyncFlagFromAllContext() &&
             $this->configs->deleteEventSyncFlagFromAllContext() &&
@@ -44,6 +47,8 @@ class Uninstall extends AbstractSetup
      */
     protected function uninstallHooks(): bool
     {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
         $status = true;
         foreach ($this->module->helper->getAllAvailableHooks() as $hook) {
             if (! $this->module->unregisterHook($hook)) {
@@ -51,5 +56,19 @@ class Uninstall extends AbstractSetup
             }
         }
         return $status;
+    }
+
+    /**
+     * @return bool
+     */
+    protected function removeTables(): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        $db = Db::getInstance();
+
+        return $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_PROFILE . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_EVENT . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . self::MODULE_TABLE_ABANDONED_CART . '`');
     }
 }
