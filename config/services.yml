@@ -1,0 +1,140 @@
+services:
+  _defaults:
+    public: true
+
+  apsis_one.form.choice_provider.profile_sync_status_provider:
+    class: 'Apsis\One\Form\ChoiceProvider\ProfileSyncStatusProvider'
+
+  apsis_one.grid.definition.factory.profile_grid_definition_factory:
+    class: 'Apsis\One\Grid\Definition\Factory\ProfileGridDefinitionFactory'
+    parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
+    arguments:
+      - "@=service('router').generate('admin_common_reset_search', {'controller': 'profiles', 'action': 'index'})"
+      - "@=service('router').generate('admin_apsis_profiles_index')"
+      - '@apsis_one.form.choice_provider.profile_sync_status_provider'
+    public: true
+
+  apsis_one.grid.query.profile_query_builder:
+    class: 'Apsis\One\Grid\Query\ProfileQueryBuilder'
+    parent: 'prestashop.core.grid.abstract_query_builder'
+    arguments:
+      - '@prestashop.core.query.doctrine_search_criteria_applicator'
+      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+    public: true
+
+  apsis_one.grid.data.factory.profile_data_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\Data\Factory\DoctrineGridDataFactory'
+    arguments:
+      - '@apsis_one.grid.query.profile_query_builder'
+      - '@prestashop.core.hook.dispatcher'
+      - '@prestashop.core.grid.query.doctrine_query_parser'
+      - 'apsis_profile'
+
+  apsis_one.grid.data.factory.profile_data_factory_decorator:
+    class: 'Apsis\One\Grid\Data\Factory\CommonGridDataFactoryDecorator'
+    arguments:
+      - '@apsis_one.grid.data.factory.profile_data_factory'
+      - '@apsis_one.form.choice_provider.profile_sync_status_provider'
+
+  apsis_one.grid.profile_grid_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\GridFactory'
+    arguments:
+      - '@apsis_one.grid.definition.factory.profile_grid_definition_factory'
+      - '@apsis_one.grid.data.factory.profile_data_factory_decorator'
+      - '@prestashop.core.grid.filter.form_factory'
+      - '@prestashop.core.hook.dispatcher'
+
+  apsis_one.form.choice_provider.event_sync_status_provider:
+    class: 'Apsis\One\Form\ChoiceProvider\EventSyncStatusProvider'
+
+  apsis_one.grid.definition.factory.event_grid_definition_factory:
+    class: 'Apsis\One\Grid\Definition\Factory\EventGridDefinitionFactory'
+    parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
+    arguments:
+      - "@=service('router').generate('admin_common_reset_search', {'controller': 'event', 'action': 'index'})"
+      - "@=service('router').generate('admin_apsis_events_index')"
+      - '@apsis_one.form.choice_provider.event_sync_status_provider'
+    public: true
+
+  apsis_one.grid.query.event_query_builder:
+    class: 'Apsis\One\Grid\Query\EventQueryBuilder'
+    parent: 'prestashop.core.grid.abstract_query_builder'
+    arguments:
+      - '@prestashop.core.query.doctrine_search_criteria_applicator'
+      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+    public: true
+
+  apsis_one.grid.data.factory.event_data_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\Data\Factory\DoctrineGridDataFactory'
+    arguments:
+      - '@apsis_one.grid.query.event_query_builder'
+      - '@prestashop.core.hook.dispatcher'
+      - '@prestashop.core.grid.query.doctrine_query_parser'
+      - 'apsis_event'
+
+  apsis_one.grid.data.factory.event_data_factory_decorator:
+    class: 'Apsis\One\Grid\Data\Factory\CommonGridDataFactoryDecorator'
+    arguments:
+      - '@apsis_one.grid.data.factory.event_data_factory'
+      - '@apsis_one.form.choice_provider.event_sync_status_provider'
+
+  apsis_one.grid.event_grid_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\GridFactory'
+    arguments:
+      - '@apsis_one.grid.definition.factory.event_grid_definition_factory'
+      - '@apsis_one.grid.data.factory.event_data_factory_decorator'
+      - '@prestashop.core.grid.filter.form_factory'
+      - '@prestashop.core.hook.dispatcher'
+
+  apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory:
+    class: 'Apsis\One\Grid\Definition\Factory\AbandonedCartGridDefinitionFactory'
+    parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
+    arguments:
+      - "@=service('router').generate('admin_common_reset_search', {'controller': 'abandonedcart', 'action': 'index'})"
+      - "@=service('router').generate('admin_apsis_abandonedcart_index')"
+    public: true
+
+  apsis_one.grid.query.abandonedcart_query_builder:
+    class: 'Apsis\One\Grid\Query\AbandonedCartQueryBuilder'
+    parent: 'prestashop.core.grid.abstract_query_builder'
+    arguments:
+      - '@prestashop.core.query.doctrine_search_criteria_applicator'
+      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+    public: true
+
+  apsis_one.grid.data.factory.abandonedcart_data_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\Data\Factory\DoctrineGridDataFactory'
+    arguments:
+      - '@apsis_one.grid.query.abandonedcart_query_builder'
+      - '@prestashop.core.hook.dispatcher'
+      - '@prestashop.core.grid.query.doctrine_query_parser'
+      - 'apsis_abandoned_cart'
+
+  apsis_one.grid.abandonedcart_grid_factory:
+    class: 'PrestaShop\PrestaShop\Core\Grid\GridFactory'
+    arguments:
+      - '@apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory'
+      - '@apsis_one.grid.data.factory.abandonedcart_data_factory'
+      - '@prestashop.core.grid.filter.form_factory'
+      - '@prestashop.core.hook.dispatcher'
+
+  Apsis\One\Controller\Admin\ProfilesController:
+    class: 'Apsis\One\Controller\Admin\ProfilesController'
+    arguments:
+      - '@apsis_one.grid.profile_grid_factory'
+      - '@prestashop.core.grid.filter.form_factory'
+      - 'admin_apsis_profiles_index'
+
+  Apsis\One\Controller\Admin\EventController:
+    class: 'Apsis\One\Controller\Admin\EventController'
+    arguments:
+      - '@apsis_one.grid.event_grid_factory'
+      - '@prestashop.core.grid.filter.form_factory'
+      - 'admin_apsis_event_index'
+
+  Apsis\One\Controller\Admin\AbandonedCartController:
+    class: 'Apsis\One\Controller\Admin\AbandonedCartController'
+    arguments:
+      - '@apsis_one.grid.abandonedcart_grid_factory'
+      - '@prestashop.core.grid.filter.form_factory'
+      - 'admin_apsis_abandonedcart_index'

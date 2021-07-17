@@ -6,6 +6,7 @@ use Apsis\One\Controller\ApiControllerInterface;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Module\SetupInterface;
 use Exception;
+use Throwable;
 use stdClass;
 
 /**
@@ -74,7 +75,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      * @param HelperInterface $helper
      * @param string $host
      *
-     * @throws Exception
+     * @throws Throwable
      */
     public function __construct(HelperInterface $helper, string $host)
     {
@@ -91,7 +92,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function init(): void
     {
@@ -140,7 +141,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
                     $this->helper->logDebugMsg(__METHOD__, ['Message' => 'invalid REST verb', 'Verb' => $this->verb]);
                     curl_close($ch);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             curl_close($ch);
             $this->curlError = $e->getMessage();
             $this->helper->logErrorMsg(__METHOD__, $e);
@@ -155,7 +156,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executeGet($ch): void
     {
@@ -171,7 +172,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executePostPutPatch($ch, array $headers): void
     {
@@ -190,7 +191,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executePost($ch): void
     {
@@ -208,7 +209,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executePatch($ch): void
     {
@@ -226,7 +227,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executePut($ch): void
     {
@@ -244,7 +245,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function executeDelete($ch): void
     {
@@ -262,7 +263,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function doExecute(&$ch, array $headers): void
     {
@@ -283,7 +284,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      *
      * @return void
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function setCurlOpts(&$ch, array $headers): void
     {

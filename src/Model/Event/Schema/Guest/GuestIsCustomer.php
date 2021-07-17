@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class GuestIsCustomer extends AbstractSchema
 {
     /**
-     * GuestIsCustomer constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

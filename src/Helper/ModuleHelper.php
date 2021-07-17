@@ -4,18 +4,17 @@ namespace Apsis\One\Helper;
 
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Module\SetupInterface;
+use Context;
 use Module;
 use Db;
 use PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer;
-use Exception;
+use PrestaShop\PrestaShop\Adapter\ContainerFinder;
+use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Throwable;
 
 class ModuleHelper extends LoggerHelper
 {
-    /**
-     * @var ServiceContainer
-     */
-    protected $serviceContainer;
-
     /** @var array ALL AVAILABLE HOOKS */
     protected $availableHooks = [];
 
@@ -47,7 +46,7 @@ class ModuleHelper extends LoggerHelper
     {
         try {
             return (bool) Module::isEnabled(SetupInterface::MODULE_NAME);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -88,7 +87,7 @@ class ModuleHelper extends LoggerHelper
             if (Db::getInstance()->getValue($select . ' ' . $where)) {
                 $active = true;
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
 
@@ -97,17 +96,68 @@ class ModuleHelper extends LoggerHelper
 
     /**
      * @param string $serviceName
+     * @param string $container
      *
      * @return object|null
      */
-    public function getService(string $serviceName)
+    public function getService(string $serviceName, string $container = self::FROM_CONTAINER_MS)
     {
-        if ($this->serviceContainer === null) {
-            $this->serviceContainer = new ServiceContainer(
-                SetupInterface::MODULE_NAME,
-                _PS_MODULE_DIR_ . SetupInterface::MODULE_NAME . '/'
-            );
+        try {
+            // First option
+            if ($container === self::FROM_CONTAINER_MS) {
+                return $this->getModuleSpecificContainer()->getService($serviceName);
+            }
+
+            // Second option
+            if ($container === self::FROM_CONTAINER_FD) {
+                return $this->getFromContainerFinderAdapter()->get($serviceName);
+            }
+
+            // Third option
+            if ($container === self::FROM_CONTAINER_SA) {
+                return $this->getFromSymfonyContainerAdapter()->get($serviceName);
+            }
+        } catch (Throwable $e) {
+            // If true than all options are exhausted, log it
+            if ($container === self::FROM_CONTAINER_SA) {
+                $this->logDebugMsg(__METHOD__, ['info' => "All container options exhausted."]);
+                $this->logErrorMsg(__METHOD__, $e);
+                return null;
+            }
+
+            //Go through all options
+            return $this->getService($serviceName, self::CONTAINER_RELATIONS[$container]);
         }
-        return $this->serviceContainer->getService($serviceName);
+
+        return null;
+    }
+
+    /**
+     * @return ServiceContainer
+     */
+    private function getModuleSpecificContainer(): ServiceContainer
+    {
+        return new ServiceContainer(
+            SetupInterface::MODULE_NAME,
+            _PS_MODULE_DIR_ . SetupInterface::MODULE_NAME . '/'
+        );
+    }
+
+    /**
+     * @return ContainerInterface
+     *
+     * @throws Throwable
+     */
+    private function getFromContainerFinderAdapter(): ContainerInterface
+    {
+        return (new ContainerFinder(Context::getContext()))->getContainer();
+    }
+
+    /**
+     * @return ContainerInterface
+     */
+    private function getFromSymfonyContainerAdapter(): ContainerInterface
+    {
+        return SymfonyContainer::getInstance();
     }
 }

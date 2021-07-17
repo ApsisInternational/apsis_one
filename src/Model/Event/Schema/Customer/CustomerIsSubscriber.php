@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class CustomerIsSubscriber extends AbstractSchema
 {
     /**
-     * CustomerIsSubscriber constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

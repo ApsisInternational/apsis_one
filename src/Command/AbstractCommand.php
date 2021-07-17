@@ -46,7 +46,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
     abstract protected function processCommand(InputInterface $input, OutputInterface $output): ?int;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function configure()
     {
@@ -57,7 +57,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {

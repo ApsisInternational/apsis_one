@@ -4,7 +4,7 @@ namespace Apsis\One\Context;
 
 use Apsis\One\Module\SetupInterface;
 use Link;
-use Exception;
+use Throwable;
 
 class LinkContext extends AbstractContext
 {
@@ -44,7 +44,7 @@ class LinkContext extends AbstractContext
         try {
             return (string) $this->getContextObject()
                 ->getModuleLink(SetupInterface::MODULE_NAME, $controller, $params, $ssl, $idLang, $idShop);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -61,7 +61,7 @@ class LinkContext extends AbstractContext
     {
         try {
             return $this->getContextObject()->getBaseLink($idShop, $ssl, $relativeProtocol);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }

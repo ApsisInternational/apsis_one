@@ -7,61 +7,35 @@ use Apsis\One\Module\SetupInterface;
 class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiController
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    protected $validRequestMethod = self::VERB_POST;
-
-    /**
-     * @inheritdoc
-     */
-    protected $validBodyParams = [
-        SetupInterface::INSTALLATION_CONFIG_CLIENT_ID => self::DATA_TYPE_STRING,
-        SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET => self::DATA_TYPE_STRING,
-        SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR => self::DATA_TYPE_STRING,
-        SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR => self::DATA_TYPE_STRING,
-        SetupInterface::INSTALLATION_CONFIG_API_BASE_URL  => SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL
-    ];
-
-    /**
-     * @inheritdoc
-     */
-    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
-
-    /**
-     * @inheritdoc
-     */
-    protected $optionalQueryParams = [self::QUERY_PARAM_RESET => self::DATA_TYPE_INT];
-
-    /**
-     * @inheritdoc
-     */
-    protected $optionalQueryParamIgnoreRelations = [
-        self::QUERY_PARAM_RESET => [self::PARAM_TYPE_BODY => [self::PARAM_TYPE_BODY]]
-    ];
-
-    /**
-     * @inheritdoc
-     */
-    public function init(): void
+    protected function initClassProperties(): void
     {
-        try {
-            parent::init();
-            $this->handleRequest();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
-        }
+        $this->validRequestMethod = self::VERB_POST;
+        $this->validBodyParams = [
+            SetupInterface::INSTALLATION_CONFIG_CLIENT_ID => self::DATA_TYPE_STRING,
+            SetupInterface::INSTALLATION_CONFIG_CLIENT_SECRET => self::DATA_TYPE_STRING,
+            SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR => self::DATA_TYPE_STRING,
+            SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR => self::DATA_TYPE_STRING,
+            SetupInterface::INSTALLATION_CONFIG_API_BASE_URL  => SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL
+        ];
+        $this->validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
+        $this->optionalQueryParams = [self::QUERY_PARAM_RESET => self::DATA_TYPE_INT];
+        $this->optionalQueryParamIgnoreRelations = [
+            self::QUERY_PARAM_RESET => [self::PARAM_TYPE_BODY => [self::PARAM_TYPE_BODY]]
+        ];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function handleRequest(): void
     {
         try {
             $this->checkForResetParam();
             $this->saveInstallationConfigs();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -81,8 +55,8 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -102,8 +76,8 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
                 }
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 }

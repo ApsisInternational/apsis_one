@@ -2,15 +2,21 @@
 
 namespace Apsis\One\Model\Event\Schema\Subscriber;
 
-use Apsis\One\Model\Event\Schema\Customer\CustomerLogin;
+use Apsis\One\Model\AbstractSchema;
 
-class SubscriberIsCustomer extends CustomerLogin
+class SubscriberIsCustomer extends AbstractSchema
 {
     /**
-     * SubscriberIsCustomer constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {
-        parent::__construct(self::EVENT_SUBSCRIBER_IS_CUSTOMER_DISCRIMINATOR);
+        $this->definition = [
+            self::EVENT_SUBSCRIBER_IS_CUSTOMER_DISCRIMINATOR => array_merge(
+                self::SCHEMA_FIELD_CUSTOMER_ID,
+                self::SCHEMA_FIELD_GROUP_CONTEXT
+            )
+        ];
+        $this->definitionTypes = [self::EVENT_SUBSCRIBER_IS_CUSTOMER_DISCRIMINATOR];
     }
 }

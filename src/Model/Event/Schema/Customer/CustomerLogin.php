@@ -7,18 +7,16 @@ use Apsis\One\Model\AbstractSchema;
 class CustomerLogin extends AbstractSchema
 {
     /**
-     * CustomerLogin constructor.
-     *
-     * @param string $discriminator
+     * {@inheritdoc}
      */
-    public function __construct(string $discriminator = self::EVENT_SUBSCRIBER_IS_GUEST_DISCRIMINATOR)
+    public function __construct()
     {
         $this->definition = [
-            $discriminator => array_merge(
+            self::EVENT_CUSTOMER_LOGIN_DISCRIMINATOR => array_merge(
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GROUP_CONTEXT
             )
         ];
-        $this->definitionTypes = [$discriminator];
+        $this->definitionTypes = [self::EVENT_CUSTOMER_LOGIN_DISCRIMINATOR];
     }
 }

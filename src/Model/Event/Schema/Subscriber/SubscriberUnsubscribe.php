@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class SubscriberUnsubscribe extends AbstractSchema
 {
     /**
-     * SubscriberUnsubscribe constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Context;
 
-use Exception;
+use Throwable;
 use PrestaShopException;
 use Shop;
 
@@ -72,7 +72,7 @@ class ShopContext extends AbstractContext
                 }
             }
             return array_values($result);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
@@ -90,7 +90,7 @@ class ShopContext extends AbstractContext
                 $result[$groupId][] = $shopId;
             }
             return $result;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
@@ -103,7 +103,7 @@ class ShopContext extends AbstractContext
     {
         try {
             return $this->getContextObject()->getShops(true, null, true);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
@@ -135,7 +135,7 @@ class ShopContext extends AbstractContext
     {
         try {
             return (bool) $this->getContextObject()->isFeatureActive();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }

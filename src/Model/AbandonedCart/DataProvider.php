@@ -2,8 +2,8 @@
 
 namespace Apsis\One\Model\AbandonedCart;
 
-use Apsis\One\Model\Event\DataProvider as EventDataProvider;
+use Apsis\One\Model\AbstractDataProvider;
 
-class DataProvider extends EventDataProvider
+class DataProvider extends AbstractDataProvider
 {
 }

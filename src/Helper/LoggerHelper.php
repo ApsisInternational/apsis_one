@@ -5,7 +5,7 @@ namespace Apsis\One\Helper;
 use AbstractLogger;
 use Apsis\One\Module\SetupInterface;
 use FileLogger;
-use Exception;
+use Throwable;
 
 class LoggerHelper extends FileLogger implements HelperInterface
 {
@@ -19,7 +19,7 @@ class LoggerHelper extends FileLogger implements HelperInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function logInfoMsg(string $message): void
     {
@@ -27,7 +27,7 @@ class LoggerHelper extends FileLogger implements HelperInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function logDebugMsg(string $message, array $info): void
     {
@@ -36,9 +36,9 @@ class LoggerHelper extends FileLogger implements HelperInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function logErrorMsg(string $message, Exception $e): void
+    public function logErrorMsg(string $message, Throwable $e): void
     {
         $info = [
             'Method' => $message,

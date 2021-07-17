@@ -36,7 +36,7 @@ class Sync extends AbstractCommand
     protected $processorMsg = self:: MSG_PROCESSOR_SYNC;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function processCommand(InputInterface $input, OutputInterface $output): ?int
     {

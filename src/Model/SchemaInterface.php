@@ -531,6 +531,11 @@ interface SchemaInterface
     ];
 
     /**
+     * Class constructor.
+     */
+    public function __construct();
+
+    /**
      * @return array
      */
     public function getDefinition(): array;

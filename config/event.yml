@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    public: true
+
   apsis_one.event.cart-abandoned.schema:
     class: 'Apsis\One\Model\Event\Schema\Common\CartAbandoned'
 
@@ -45,9 +48,3 @@ services:
     class: 'Apsis\One\Model\Event\DataProvider'
     arguments:
       - '@apsis_one.helper.module'
-
-  apsis_one.repository.event:
-    class: 'Apsis\One\Repository\EventRepository'
-    arguments:
-      - '@apsis_one.module.configuration.configs'
-      - '@apsis_one.helper.logger'

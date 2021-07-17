@@ -1,0 +1,95 @@
+admin_apsis_profiles_index:
+  path: /apsis_profiles/list
+  methods: [GET, POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfilesController::indexAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController
+
+admin_apsis_profiles_search:
+  path: /
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfilesController::searchAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController
+
+admin_apsis_profiles_reset:
+  path: /apsis_profiles/reset
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfilesController::resetAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController
+
+admin_apsis_profiles_delete:
+  path: /apsis_profiles/delete
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfilesController::deleteAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController
+
+admin_apsis_events_index:
+  path: /apsis_events/list
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::indexAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController
+
+admin_apsis_event_search:
+  path: /
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::searchAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController
+
+admin_apsis_event_reset:
+  path: /apsis_events/reset
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::resetAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController
+
+admin_apsis_event_delete:
+  path: /apsis_events/delete
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::deleteAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController
+
+admin_apsis_abandonedcart_index:
+  path: /apsis_abandonedcart/list
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::indexAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController
+
+admin_apsis_abandonedcart_search:
+  path: /
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::searchAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController
+
+admin_apsis_abandonedcart_reset:
+  path: /apsis_abandonedcart/reset
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::resetAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController
+
+admin_apsis_abandonedcart_delete:
+  path: /apsis_abandonedcart/delete
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::deleteAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController

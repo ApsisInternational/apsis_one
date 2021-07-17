@@ -6,7 +6,7 @@ use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Helper\DateHelper;
 use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Module\SetupInterface;
-use Exception;
+use Throwable;
 use stdClass;
 
 class ClientFactory
@@ -62,7 +62,7 @@ class ClientFactory
 
             return $this->createInstance($configs, $idShopGroup, $idShop);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
 
             return null;
@@ -76,7 +76,7 @@ class ClientFactory
      *
      * @return Client|null
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function createInstance(array $configs, ?int $idShopGroup = null, ?int $idShop = null): ?Client
     {
@@ -159,7 +159,7 @@ class ClientFactory
                 $this->configs->disableSyncsClearTokenConfigs($idShopGroup, $idShop);
             }
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
         }
 
@@ -185,7 +185,7 @@ class ClientFactory
 
             return ($nowTime > $expiryTime);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
 
             return true;
@@ -210,7 +210,7 @@ class ClientFactory
             $this->configs->saveApiToken($request->access_token, $idShopGroup, $idShop);
             $this->configs->saveApiTokenExpiry($time, $idShopGroup, $idShop);
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
         }
     }

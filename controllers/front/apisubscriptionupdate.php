@@ -5,35 +5,17 @@ use Apsis\One\Controller\AbstractApiController;
 class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiController
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    protected $validRequestMethod = self::VERB_PATCH;
-
-    /**
-     * @inheritdoc
-     */
-    protected $validBodyParams = [self::BODY_PARAM_PROFILE_KEY => self::DATA_TYPE_STRING];
-
-    /**
-     * @inheritdoc
-     */
-    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
-
-    /**
-     * @inheritdoc
-     */
-    public function init(): void
+    protected function initClassProperties(): void
     {
-        try {
-            parent::init();
-            $this->handleRequest();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
-        }
+        $this->validRequestMethod = self::VERB_PATCH;
+        $this->validBodyParams = [self::BODY_PARAM_PROFILE_KEY => self::DATA_TYPE_STRING];
+        $this->validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function handleRequest(): void
     {
@@ -55,8 +37,8 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
             }
 
             $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -68,8 +50,8 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
         try {
             // TODO: fetch profile from profile entity
             return new stdClass();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
             return null;
         }
     }
@@ -84,8 +66,8 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
         try {
             // TODO: update subscription in profile entity and ps subscription entity
             return true;
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
             return false;
         }
     }

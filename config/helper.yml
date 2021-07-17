@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    public: true
+
   apsis_one.helper.logger:
     class: 'Apsis\One\Helper\LoggerHelper'
 

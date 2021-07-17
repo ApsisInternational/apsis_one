@@ -10,7 +10,7 @@ use ModuleFrontController;
 use WebserviceRequest;
 use Validate;
 use Tools;
-use Exception;
+use Throwable;
 
 abstract class AbstractApiController extends ModuleFrontController implements ApiControllerInterface
 {
@@ -70,19 +70,25 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected $shopId = null;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function __construct()
     {
         try {
             parent::__construct();
+            static::initClassProperties();
 
             $this->controller_type = 'module';
             $this->configs = $this->module->helper->getService(HelperInterface::SERVICE_MODULE_CONFIGS);
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
+
+    /**
+     * @return void
+     */
+    abstract protected function initClassProperties(): void;
 
     /**
      * @return void
@@ -90,9 +96,9 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     abstract protected function handleRequest(): void;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    public function init() : void
+    public function init(): void
     {
         try {
             //Check if http method is allowed or not
@@ -115,8 +121,10 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                 $this->setBodyParams();
                 $this->validateBodyParams();
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+
+            static::handleRequest();
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -132,8 +140,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_405, [], $msg));
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -152,8 +160,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -171,8 +179,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                     $this->generateResponse(self::HTTP_CODE_403, [], $msg)
                 );
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -196,8 +204,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
                 $this->setQueryParam($queryParam, $dataType);
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -219,8 +227,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                     return true;
                 }
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
 
         return false;
@@ -237,8 +245,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                     $this->setQueryParam($queryParam, $dataType);
                 }
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -263,8 +271,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             if ($queryParam === self::QUERY_PARAM_CONTEXT_IDS) {
                 $this->setContextIds($this->queryParams[$queryParam]);
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -286,8 +294,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -319,8 +327,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
                 $this->bodyParams = $params;
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -346,8 +354,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
                 }
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -373,8 +381,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                         $isValid = filter_var($data, FILTER_VALIDATE_URL);
                         break;
                 }
-            } catch (Exception $e) {
-                $this->handleException($e, __METHOD__);
+            } catch (Throwable $e) {
+                $this->handleExcErr($e, __METHOD__);
             }
         }
         return $isValid;
@@ -480,12 +488,12 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     }
 
     /**
-     * @param Exception $e
+     * @param Throwable $e
      * @param string $classMethodName
      *
      * @return void
      */
-    protected function handleException(Exception $e, string $classMethodName): void
+    protected function handleExcErr(Throwable $e, string $classMethodName): void
     {
         $this->module->helper->logErrorMsg($classMethodName, $e);
         $this->exitWithResponse(

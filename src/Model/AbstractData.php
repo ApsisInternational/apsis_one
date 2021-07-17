@@ -5,6 +5,7 @@ namespace Apsis\One\Model;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Helper\ModuleHelper;
 use Exception;
+use Throwable;
 
 // TODO: validations
 abstract class AbstractData implements DataInterface
@@ -25,9 +26,7 @@ abstract class AbstractData implements DataInterface
     protected $data = [];
 
     /**
-     * AbstractData constructor.
-     *
-     * @param HelperInterface $helper
+     * {@inheritdoc}
      */
     public function __construct(HelperInterface $helper)
     {
@@ -35,7 +34,7 @@ abstract class AbstractData implements DataInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function setObject($object, SchemaInterface $schema): DataInterface
     {
@@ -50,7 +49,7 @@ abstract class AbstractData implements DataInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getData(): array
     {
@@ -64,7 +63,7 @@ abstract class AbstractData implements DataInterface
      *
      * @return mixed
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function getValue(string $logicalName, string $type, string $validate)
     {
@@ -79,7 +78,7 @@ abstract class AbstractData implements DataInterface
      *
      * @return array|string
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function getDataByDefinitionType(string $definitionType, array $definition)
     {
@@ -125,7 +124,7 @@ abstract class AbstractData implements DataInterface
      *
      * @return mixed
      *
-     * @throws Exception
+     * @throws Throwable
      */
     protected function validateAndFormat($value, string $type, string $validate)
     {

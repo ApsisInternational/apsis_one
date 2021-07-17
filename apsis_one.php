@@ -13,6 +13,8 @@ use Apsis\One\Module\Configuration;
 use Apsis\One\Module\HookProcessor;
 use Apsis\One\Helper\ModuleHelper;
 use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Grid\Definition\Factory\GridDefinitionFactoryInterface;
 
 class Apsis_one extends Module implements SetupInterface
 {
@@ -33,9 +35,8 @@ class Apsis_one extends Module implements SetupInterface
      */
     public function __construct(ModuleHelper $helper)
     {
-        $this->init($this);
         $this->helper = $helper;
-
+        $this->init($this);
         parent::__construct();
     }
 
@@ -48,6 +49,7 @@ class Apsis_one extends Module implements SetupInterface
     {
         $this->name = self::MODULE_NAME;
         $this->tab = 'advertising_marketing';
+        $this->tabs = $this->getTabsArr();
         $this->version = self::MODULE_VERSION;
         $this->author = 'APSIS';
         $this->need_instance = 1;
@@ -56,9 +58,9 @@ class Apsis_one extends Module implements SetupInterface
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
-        $this->displayName = $this->l('APSIS One Integration');
-        $this->description = $this->l('Grow faster with the all-in-One marketing platform.');
-        $this->confirmUninstall = $this->l('Are you sure you want to uninstall?');
+        $this->displayName = 'APSIS One Integration';
+        $this->description = 'Grow faster with the all-in-One marketing platform.';
+        $this->confirmUninstall = 'Are you sure you want to uninstall?';
     }
 
     /**
@@ -72,7 +74,7 @@ class Apsis_one extends Module implements SetupInterface
             /** @var Install $installModule */
             $installModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_INSTALL);
             return parent::install() && $installModule->init($this);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -89,7 +91,7 @@ class Apsis_one extends Module implements SetupInterface
             /** @var Uninstall $uninstallModule */
             $uninstallModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_UNINSTALL);
             return parent::uninstall() && $uninstallModule->init($this);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -104,10 +106,33 @@ class Apsis_one extends Module implements SetupInterface
             /** @var Configuration $configurationModule */
             $configurationModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_ADMIN_CONFIGURATION);
             return $configurationModule->init($this);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
-            return '';
+            return 'An error occurred, please check APSIS log file.';
         }
+    }
+
+    /**
+     * @return array
+     */
+    protected function getTabsArr(): array
+    {
+        $tabs = [];
+        try {
+            foreach (EI::TABLES as $table) {
+                $tabs[] = [
+                    'route_name' => GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$table],
+                    'class_name' => self::LEGACY_CONTROLLER_CLASSES[$table],
+                    'visible' => true,
+                    'name' => EI::T_LABEL_MAPPINGS[$table],
+                    'parent_class_name' => 'AdminParentCustomer',
+                    'wording' => self::MODULE_DISPLAY_NAME
+                ];
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+        return $tabs;
     }
 
     /**

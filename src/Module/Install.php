@@ -5,8 +5,9 @@ namespace Apsis\One\Module;
 use Apsis_one;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Context\ShopContext;
+use Apsis\One\Entity\EntityInterface as EI;
 use Db;
-use Exception;
+use Throwable;
 
 class Install extends AbstractSetup
 {
@@ -27,7 +28,7 @@ class Install extends AbstractSetup
             }
 
             return $this->installConfigurations() && $this->installHooks() && $this->createTables();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -80,33 +81,29 @@ class Install extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_PROFILE);
-
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_PROFILE) . '` (
-            `id_profile` int(10) unsigned NOT NULL AUTO_INCREMENT,
-            `id_integration` varchar(255) NOT NULL,
-            `id_shop` int(11) unsigned NOT NULL,
-            `email` varchar(255) NOT NULL,
-            `id_customer` int(10) unsigned DEFAULT NULL,
-            `id_subscription` int(10) unsigned DEFAULT NULL,
-            `is_customer` tinyint(1) NOT NULL DEFAULT \'0\',
-            `is_guest` tinyint(1) NOT NULL DEFAULT \'0\',
-            `is_subscriber` tinyint(1) NOT NULL DEFAULT \'0\',
-            `sync_status` smallint(6) NOT NULL DEFAULT \'0\',
-            `error_message` varchar(255) NOT NULL DEFAULT \'\',
-            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id_profile`),
-            KEY `APSIS_PROFILE_ID` (`id_profile`),
-            KEY `APSIS_PROFILE_SHOP_ID` (`id_shop`),
-            KEY `APSIS_PROFILE_CUSTOMER_ID` (`id_customer`),
-            KEY `APSIS_PROFILE_SUBSCRIBER_ID` (`id_subscription`),
-            KEY `APSIS_PROFILE_IS_SUBSCRIBER` (`is_subscriber`),
-            KEY `APSIS_PROFILE_IS_CUSTOMER` (`is_customer`),
-            KEY `APSIS_PROFILE_IS_GUEST` (`is_guest`),
-            KEY `APSIS_PROFILE_EMAIL` (`email`),
-            KEY `APSIS_PROFILE_SYNC_STATUS` (`sync_status`),
-            KEY `APSIS_PROFILE_UPDATED_AT` (`updated_at`)
+        CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '` (
+            `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `' . EI::C_ID_INTEGRATION . '` varchar(36) NOT NULL,
+            `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
+            `' . EI::C_EMAIL . '` varchar(255) NOT NULL,
+            `' . EI::C_ID_ENTITY_PS . '` int(10) unsigned NOT NULL,
+            `' . EI::C_IS_CUSTOMER . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
+            `' . EI::C_IS_GUEST . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
+            `' . EI::C_IS_SUBSCRIBER . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
+            `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'0\',
+            `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
+            `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`' . EI::C_ID_PROFILE . '`),
+            UNIQUE KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_INTEGRATION) . '` (`' . EI::C_ID_INTEGRATION . '`),
+            UNIQUE KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_EMAIL) . '` (`' . EI::C_EMAIL . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_ENTITY_PS) . '` (`' . EI::C_ID_ENTITY_PS . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_IS_CUSTOMER) . '` (`' . EI::C_IS_CUSTOMER . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_IS_GUEST) . '` (`' . EI::C_IS_GUEST . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_IS_SUBSCRIBER) . '` (`' . EI::C_IS_SUBSCRIBER . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_SYNC_STATUS) . '` (`' . EI::C_SYNC_STATUS . '`),
+            KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
         ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
 
         return $db->execute($sql);
@@ -121,32 +118,27 @@ class Install extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_EVENT);
-
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_EVENT) . '` (
-            `id_event` int(10) unsigned NOT NULL AUTO_INCREMENT,
-            `id_shop` int(11) unsigned NOT NULL,
-            `email` varchar(255) NOT NULL,
-            `id_profile` int(10) unsigned NOT NULL,
-            `id_customer` int(10) unsigned DEFAULT NULL,
-            `event_type` smallint(6) unsigned NOT NULL,
-            `event_data` blob NOT NULL,
-            `sub_event_data` blob NOT NULL,
-            `sync_status` smallint(6) NOT NULL DEFAULT \'0\',
-            `error_message` varchar(255) NOT NULL DEFAULT \'\',
-            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id_event`),
-            KEY `APSIS_EVENT_ID` (`id_event`),
-            KEY `APSIS_EVENT_SHOP_ID` (`id_shop`),
-            KEY `APSIS_EVENT_PROFILE_ID` (`id_profile`),
-            KEY `APSIS_EVENT_CUSTOMER_ID` (`id_customer`),
-            KEY `APSIS_EVENT_EVENT_TYPE` (`event_type`),
-            KEY `APSIS_EVENT_EMAIL` (`email`),
-            KEY `APSIS_EVENT_SYNC_STATUS` (`sync_status`),
-            KEY `APSIS_EVENT_CREATED_AT` (`created_at`),
-            KEY `APSIS_EVENT_UPDATED_AT` (`updated_at`)
+        CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '` (
+            `' . EI::C_ID_EVENT . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL,
+            `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
+            `' . EI::C_ID_ENTITY_PS . '` int(10) unsigned NOT NULL,
+            `' . EI::C_EVENT_TYPE . '` smallint(6) unsigned NOT NULL,
+            `' . EI::C_EVENT_DATA . '` text NOT NULL,
+            `' . EI::C_SUB_EVENT_DATA . '` text NOT NULL DEFAULT \'\',
+            `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'0\',
+            `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
+            `' . EI::C_DATE_ADD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`' . EI::C_ID_EVENT . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_ID_PROFILE) . '` (`' . EI::C_ID_PROFILE . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_ID_ENTITY_PS) . '` (`' . EI::C_ID_ENTITY_PS . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_EVENT_TYPE) . '` (`' . EI::C_EVENT_TYPE . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_SYNC_STATUS) . '` (`' . EI::C_SYNC_STATUS . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_DATE_ADD) . '` (`' . EI::C_DATE_ADD . '`),
+            KEY `' . $this->getIndex(EI::T_EVENT, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
         ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
 
         return $db->execute($sql);
@@ -161,27 +153,20 @@ class Install extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        $db->execute('DROP TABLE IF EXISTS ' . self::MODULE_TABLE_ABANDONED_CART);
-
         $sql = '
-        CREATE TABLE IF NOT EXISTS `' . $this->addPrefix(self::MODULE_TABLE_ABANDONED_CART) . '` (
-            `id_abandonedcart` int(10) unsigned NOT NULL AUTO_INCREMENT,
-            `id_shop` int(11) unsigned NOT NULL,
-            `id_cart` int(10) unsigned NOT NULL,
-            `email` varchar(255) NOT NULL,
-            `id_profile` int(10) unsigned NOT NULL,
-            `id_customer` int(10) unsigned DEFAULT NULL,
-            `cart_data` blob NOT NULL,
-            `token` varchar(255) NOT NULL,
-            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (`id_abandonedcart`),
-            KEY `APSIS_ABANDONED_ID` (`id_abandonedcart`),
-            KEY `APSIS_ABANDONED_CART_ID` (`id_cart`),
-            KEY `APSIS_ABANDONED_SHOP_ID` (`id_shop`),
-            KEY `APSIS_ABANDONED_CUSTOMER_ID` (`id_customer`),
-            KEY `APSIS_ABANDONED_EMAIL` (`email`),
-            KEY `APSIS_ABANDONED_PROFILE_ID` (`id_profile`),
-            KEY `APSIS_ABANDONED_CREATED_AT` (`updated_at`)
+        CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '` (
+            `' . EI::C_ID_AC . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
+            `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL,
+            `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
+            `' . EI::C_ID_CART . '` int(10) unsigned NOT NULL,
+            `' . EI::C_CART_DATA . '` text NOT NULL,
+            `' . EI::C_TOKEN . '` varchar(36) NOT NULL,
+            `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`' . EI::C_ID_AC . '`),
+            KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_PROFILE) . '` (`' . EI::C_ID_PROFILE . '`),
+            KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
+            KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_CART) . '` (`' . EI::C_ID_CART . '`),
+            KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
         ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
 
         return $db->execute($sql);

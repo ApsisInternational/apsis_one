@@ -6,7 +6,7 @@ use Apsis_one;
 use Apsis\One\Module\SetupInterface;
 use Configuration;
 use PhpEncryption;
-use Exception;
+use Throwable;
 
 class Configs implements SetupInterface
 {
@@ -53,7 +53,7 @@ class Configs implements SetupInterface
                 self::CONFIG_KEY_GLOBAL_KEY,
                 $this->phpEncryption->encrypt($this->getRandomString(32))
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -66,7 +66,7 @@ class Configs implements SetupInterface
     {
         try {
             return (string) $this->phpEncryption->decrypt(Configuration::getGlobalValue(self::CONFIG_KEY_GLOBAL_KEY));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -81,7 +81,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_GLOBAL_KEY);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -106,7 +106,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -122,7 +122,7 @@ class Configs implements SetupInterface
     {
         try {
             return (boolean) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_FLAG, null, $idShopGroup, $idShop);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -137,7 +137,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_FLAG);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -162,7 +162,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -178,7 +178,7 @@ class Configs implements SetupInterface
     {
         try {
             return (boolean) Configuration::get(self::CONFIG_KEY_EVENT_SYNC_FLAG, null, $idShopGroup, $idShop);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -193,7 +193,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_EVENT_SYNC_FLAG);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -218,7 +218,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -234,7 +234,7 @@ class Configs implements SetupInterface
     {
         try {
             return (string) Configuration::get(self::CONFIG_KEY_TRACKING_CODE, null, $idShopGroup, $idShop);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -249,7 +249,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_TRACKING_CODE);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -288,7 +288,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -313,7 +313,7 @@ class Configs implements SetupInterface
             }
 
             return $configs;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }
@@ -334,7 +334,7 @@ class Configs implements SetupInterface
                 return (string) $configs[$key];
             }
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
         }
         return '';
@@ -349,7 +349,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_INSTALLATION_CONFIGS);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -375,7 +375,7 @@ class Configs implements SetupInterface
                 $context['idShopGroup'],
                 $context['idShop']
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -394,7 +394,7 @@ class Configs implements SetupInterface
             if ($value) {
                 return $this->phpEncryption->decrypt($value);
             }
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
         }
         return '';
@@ -409,7 +409,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_API_TOKEN);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -435,7 +435,7 @@ class Configs implements SetupInterface
                 $context['idShopGroup'],
                 $context['idShop']
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -451,7 +451,7 @@ class Configs implements SetupInterface
     {
         try {
             return (string) Configuration::get(self::CONFIG_KEY_API_TOKEN_EXPIRY, null, $idShopGroup, $idShop);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -466,7 +466,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_API_TOKEN_EXPIRY);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -491,7 +491,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -508,7 +508,7 @@ class Configs implements SetupInterface
         try {
             $value = (int) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_SIZE, null, $idShopGroup, $idShop);
             return ($value) ?: self::DEFAULT_SYNC_SIZE;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return self::DEFAULT_SYNC_SIZE;
         }
@@ -523,7 +523,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -548,7 +548,7 @@ class Configs implements SetupInterface
                 $idShopGroup,
                 $idShop
             );
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -565,7 +565,7 @@ class Configs implements SetupInterface
         try {
             $value = (int) Configuration::get(self::CONFIG_KEY_DB_CLEANUP_AFTER, null, $idShopGroup, $idShop);
             return ($value) ?: self::DEFAULT_DB_CLEANUP_AFTER;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return self::DEFAULT_DB_CLEANUP_AFTER;
         }
@@ -580,7 +580,7 @@ class Configs implements SetupInterface
             $this->module->helper->logInfoMsg(__METHOD__);
 
             return Configuration::deleteByName(self::CONFIG_KEY_DB_CLEANUP_AFTER);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -718,7 +718,7 @@ class Configs implements SetupInterface
             }
 
             return $clientConfigs;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }

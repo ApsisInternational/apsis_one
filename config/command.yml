@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    public: true
+
   apsis_one.command.sync:
     class: 'Apsis\One\Command\Sync'
     tags:

@@ -9,45 +9,23 @@ use Apsis\One\Context\LinkContext;
 class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    protected $validRequestMethod = self::VERB_GET;
-
-    /**
-     * @inheritdoc
-     */
-    protected $validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
-
-    /**
-     * @inheritdoc
-     */
-    protected $optionalQueryParams = [
-        self::QUERY_PARAM_SCHEMA => self::DATA_TYPE_INT,
-        self::QUERY_PARAM_AFTER_ID => self::DATA_TYPE_INT
-    ];
-
-    /**
-     * @inheritdoc
-     */
-    protected $optionalQueryParamIgnoreRelations = [
-        self::QUERY_PARAM_SCHEMA => [self::PARAM_TYPE_QUERY => [self::QUERY_PARAM_CONTEXT_IDS]]
-    ];
-
-    /**
-     * @inheritdoc
-     */
-    public function init(): void
+    protected function initClassProperties(): void
     {
-        try {
-            parent::init();
-            $this->handleRequest();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
-        }
+        $this->validRequestMethod = self::VERB_GET;
+        $this->validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
+        $this->optionalQueryParams = [
+            self::QUERY_PARAM_SCHEMA => self::DATA_TYPE_INT,
+            self::QUERY_PARAM_AFTER_ID => self::DATA_TYPE_INT
+        ];
+        $this->optionalQueryParamIgnoreRelations = [
+            self::QUERY_PARAM_SCHEMA => [self::PARAM_TYPE_QUERY => [self::QUERY_PARAM_CONTEXT_IDS]]
+        ];
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function handleRequest(): void
     {
@@ -60,8 +38,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 
             //Send profiles
             $this->sendResponse();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -76,8 +54,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 $profileSchema = $this->module->helper->getService(HelperInterface::SERVICE_PROFILE_SCHEMA);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_200, $profileSchema->getDefinition()));
             }
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -89,8 +67,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
         try {
             $response = $this->generateResponse(self::HTTP_CODE_200, $this->createResponseBody());
             $this->exitWithResponse($response);
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 
@@ -116,8 +94,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 self::BODY_PARAM_TOTAL => $this->getTotalCount(),
                 self::JSON_BODY_PARAM_ITEMS => $profilesDataArr[self::JSON_BODY_PARAM_ITEMS]
             ];
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
         return [];
     }
@@ -190,8 +168,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 $items[] = $container->setObject($profile, $schema)->getData();
             }
 
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
 
         return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => 2];
@@ -208,8 +186,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
         /**
         try {
             return 0;
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
             return 0;
         }**/
     }

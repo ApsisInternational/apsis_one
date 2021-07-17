@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class ProductReviewed extends AbstractSchema
 {
     /**
-     * ProductReviewed constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

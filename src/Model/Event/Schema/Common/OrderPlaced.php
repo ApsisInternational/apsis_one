@@ -8,7 +8,7 @@ use Apsis\One\Helper\HelperInterface;
 class OrderPlaced extends AbstractSchema
 {
     /**
-     * OrderPlaced constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

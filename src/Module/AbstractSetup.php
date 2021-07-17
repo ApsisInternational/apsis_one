@@ -32,8 +32,19 @@ abstract class AbstractSetup implements SetupInterface
      *
      * @return string
      */
-    protected function addPrefix(string $tableName): string
+    protected function getTableWithDbPrefix(string $tableName): string
     {
         return _DB_PREFIX_ . $tableName;
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $columnName
+     *
+     * @return string
+     */
+    protected function getIndex(string $tableName, string $columnName): string
+    {
+        return 'IDX_' . strtoupper($tableName . '_' . $columnName);
     }
 }

@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    public: true
+
   apsis_one.module:
     class: 'Apsis_one'
     factory: [ 'Module', 'getInstanceByName' ]

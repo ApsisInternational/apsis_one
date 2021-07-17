@@ -7,25 +7,15 @@ use Apsis\One\Context\ShopContext;
 class apsis_OneApistoresModuleFrontController extends AbstractApiController
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
-    protected $validRequestMethod = self::VERB_GET;
-
-    /**
-     * @inheritdoc
-     */
-    public function init(): void
+    protected function initClassProperties(): void
     {
-        try {
-            parent::init();
-            $this->handleRequest();
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
-        }
+        $this->validRequestMethod = self::VERB_GET;
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     protected function handleRequest(): void
     {
@@ -33,8 +23,8 @@ class apsis_OneApistoresModuleFrontController extends AbstractApiController
             /** @var ShopContext $shopContext */
             $shopContext = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_SHOP);
             $this->exitWithResponse($this->generateResponse(200, ['shops' => $shopContext->getAllContextList()]));
-        } catch (Exception $e) {
-            $this->handleException($e, __METHOD__);
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
     }
 }

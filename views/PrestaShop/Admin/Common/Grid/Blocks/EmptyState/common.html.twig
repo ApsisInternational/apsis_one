@@ -1,0 +1,22 @@
+<div class="text-center grid-table-empty">
+    <p class="mb-0 mt-2"><i class="material-icons">warning</i></p>
+    <p class="mb-2">No records found. Configure APSIS module to start capturing your customer's journey.</p>
+</div>
+<div class="text-center showcase-list-card">
+  <img class="img-responsive mt-3 img-rtl" src="{{ asset('../modules/apsis_one/views/img/logo.png') }}">
+
+  <p class="mt-4 showcase-list-card__header">Gather your data. Automate your customer journey. Grow your business</p>
+
+  <p class="mx-auto showcase-list-card__message">APSIS One is easy-to-use platform with native campaign tools for
+      Email, Marketing Automation, SMS, Website Personalisation, E-commerce and more.
+  </p>
+
+  <div class="mt-4">
+    <a href="https://apsis.com/platform/apsisone-overview" target="_blank" class="btn btn-outline-secondary mr-1">
+        Learn more
+    </a>
+    <a href="{{ path('admin_module_configure_action', {'module_name' : 'apsis_one'}) }}" class="btn btn-primary ml-1">
+        Configure module
+    </a>
+  </div>
+</div>

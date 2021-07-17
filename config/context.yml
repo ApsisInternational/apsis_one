@@ -1,4 +1,7 @@
 services:
+  _defaults:
+    public: true
+
   apsis_one.context.shop:
     class: 'Apsis\One\Context\ShopContext'
     arguments:

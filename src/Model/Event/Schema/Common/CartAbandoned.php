@@ -8,7 +8,7 @@ use Apsis\One\Helper\HelperInterface;
 class CartAbandoned extends AbstractSchema
 {
     /**
-     * CartAbandoned constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

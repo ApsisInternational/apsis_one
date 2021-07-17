@@ -3,6 +3,7 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
+use Apsis\One\Entity\EntityInterface as EI;
 
 interface SetupInterface
 {
@@ -50,10 +51,15 @@ interface SetupInterface
 
     /** MODULE */
     const MODULE_NAME = 'apsis_one';
+    const MODULE_DISPLAY_NAME = 'APSIS One';
     const MODULE_VERSION  = '1.0.0';
-    const MODULE_TABLE_PROFILE = self::MODULE_NAME . '_profile';
-    const MODULE_TABLE_EVENT = self::MODULE_NAME . '_event';
-    const MODULE_TABLE_ABANDONED_CART = self::MODULE_NAME . '_abandoned_cart';
+
+    /** CLASS NAMES FOR LEGACY USAGE */
+    const LEGACY_CONTROLLER_CLASSES = [
+        EI::T_PROFILE => 'ApsisOneProfileController',
+        EI::T_EVENT => 'ApsisOneEventController',
+        EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController'
+    ];
 
     /**
      * @param Apsis_one $module

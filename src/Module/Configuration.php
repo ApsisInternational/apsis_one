@@ -5,7 +5,7 @@ namespace Apsis\One\Module;
 use Apsis\One\Context\LinkContext;
 use Apsis\One\Helper\HelperInterface;
 use Apsis_one;
-use Exception;
+use Throwable;
 use Tools;
 use HelperForm;
 use AdminController;
@@ -25,12 +25,12 @@ class Configuration extends AbstractSetup
         try {
             if (Tools::isSubmit('submit' . $this->module->name)) {
                 $output .= $this->saveConfigurationValues() ?
-                    $this->module->displayConfirmation($this->module->l('Settings updated.')) :
-                    $this->module->displayError($this->module->l('Unable to save some settings.'));
+                    $this->module->displayConfirmation('Settings updated.') :
+                    $this->module->displayError('Unable to save some settings.');
             }
 
             return $output . $this->displayConfigurationForm();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return $output;
         }
@@ -54,7 +54,7 @@ class Configuration extends AbstractSetup
                 $this->configs->saveTrackingCode($trackingScript) &&
                 $this->configs->saveProfileSynSize($profileSyncSize) &&
                 $this->configs->saveDbCleanUpAfter($dbCleanUpAfter);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -103,7 +103,7 @@ class Configuration extends AbstractSetup
             }
 
             return $helper->generateForm($formArray);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -137,17 +137,17 @@ class Configuration extends AbstractSetup
             $helper->submit_action = 'submit' . $this->module->name;
             $helper->toolbar_btn = [
                 'save' => [
-                    'desc' => $this->module->l('Save'),
+                    'desc' => 'Save',
                     'href' => AdminController::$currentIndex . '&configure=' . $this->module->name . '&save' .
                         $this->module->name . '&token=' . Tools::getAdminTokenLite('AdminModules'),
                 ],
                 'back' => [
                     'href' => AdminController::$currentIndex . '&token=' . Tools::getAdminTokenLite('AdminModules'),
-                    'desc' => $this->module->l('Back')
+                    'desc' => 'Back'
                 ]
             ];
             return $helper;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return null;
         }
@@ -161,81 +161,81 @@ class Configuration extends AbstractSetup
         try {
             $fieldsForm[0]['form'] = [
                 'legend' => [
-                    'title' => $this->module->l('Settings'),
+                    'title' => 'Settings',
                 ],
                 'input' => [
                     [
                         'type' => 'text',
-                        'label' => $this->module->l('Account Status'),
+                        'label' => 'Account Status',
                         'name' => self::READ_ONLY_FIELD_ACCOUNT_STATUS,
                         'readonly' => true,
                         'disabled' => true
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->module->l('Base URL'),
+                        'label' => 'Base URL',
                         'name' => self::READ_ONLY_FILED_BASE_URL,
                         'readonly' => true,
                         'disabled' => true
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->module->l('Shared Key'),
+                        'label' => 'Shared Key',
                         'name' => self::CONFIG_KEY_GLOBAL_KEY,
                         'readonly' => true,
                         'disabled' => true
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->module->l('Profile Sync Enabled'),
+                        'label' => 'Profile Sync Enabled',
                         'name' => self::CONFIG_KEY_PROFILE_SYNC_FLAG,
                         'required' => true,
                         'values' => [
                             [
                                 'id' => 'active_on',
                                 'value' => self::CONFIG_FLAG_YES,
-                                'label' => $this->module->l('Yes'),
+                                'label' => 'Yes',
                             ],
                             [
                                 'id' => 'active_off',
                                 'value' => self::CONFIG_FLAG_NO,
-                                'label' => $this->module->l('No'),
+                                'label' => 'No',
                             ]
                         ]
                     ],
                     [
                         'type' => 'text',
-                        'label' => $this->module->l('Profile Sync Size'),
+                        'label' => 'Profile Sync Size',
                         'name' => self::CONFIG_KEY_PROFILE_SYNC_SIZE,
                         'required' => true
                     ],
                     [
                         'type' => 'switch',
-                        'label' => $this->module->l('Event Sync Enabled'),
+                        'label' => 'Event Sync Enabled',
                         'name' => self::CONFIG_KEY_EVENT_SYNC_FLAG,
                         'required' => true,
                         'values' => [
                             [
                                 'id' => 'active_on',
                                 'value' => self::CONFIG_FLAG_YES,
-                                'label' => $this->module->l('Yes'),
+                                'label' => 'Yes',
                             ],
                             [
                                 'id' => 'active_off',
                                 'value' => self::CONFIG_FLAG_NO,
-                                'label' => $this->module->l('No'),
+                                'label' => 'No',
                             ]
                         ]
                     ],
                     [
                         'type' => 'textarea',
-                        'label' => $this->module->l('Tracking Script'),
-                        'desc' => $this->module->l('If left empty feature is automatically disabled.'),
+                        'label' => 'Tracking Script',
+                        'desc' => 'If left empty feature is automatically disabled.',
                         'name' => self::CONFIG_KEY_TRACKING_CODE,
                     ],
                     [
                         'type' => 'select',
-                        'label' => $this->module->l('DB Cleanup - After'),
+                        'label' => 'DB Cleanup - After',
                         'name' => self::CONFIG_KEY_DB_CLEANUP_AFTER,
                         'required' => true,
                         'options' => [
@@ -250,18 +250,16 @@ class Configuration extends AbstractSetup
                             'id' => 'id',
                             'name' => 'name',
                         ],
-                        'desc' => $this->module->l(
-                            'Cleanup cronjob will remove entries from DB tables older then set value.'
-                        ),
+                        'desc' => 'Cleanup cronjob will remove entries from DB tables older then set value.',
                     ],
                 ],
                 'submit' => [
-                    'title' => $this->module->l('Save'),
+                    'title' => 'Save',
                     'class' => 'btn btn-default pull-right'
                 ]
             ];
             return $fieldsForm;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return [];
         }

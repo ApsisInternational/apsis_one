@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class ProductCarted extends AbstractSchema
 {
     /**
-     * ProductCarted constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

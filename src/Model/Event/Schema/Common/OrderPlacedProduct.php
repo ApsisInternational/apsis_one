@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class OrderPlacedProduct extends AbstractSchema
 {
     /**
-     * OrderPlacedProduct constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

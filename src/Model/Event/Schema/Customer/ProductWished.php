@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class ProductWished extends AbstractSchema
 {
     /**
-     * ProductWished constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

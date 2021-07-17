@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Helper;
 
-use Exception;
+use Throwable;
 
 interface HelperInterface
 {
@@ -93,9 +93,44 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 
+    /** GRID */
+    const SERVICE_PROFILE_GRID_FACTORY_ID = 'apsis_one.grid.profile_grid_factory';
+    const SERVICE_EVENT_GRID_FACTORY_ID = 'apsis_one.grid.event_grid_factory';
+    const SERVICE_AC_GRID_FACTORY_ID = 'apsis_one.grid.abandonedcart_grid_factory';
+    const SERVICE_PROFILE_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.profile_grid_definition_factory';
+    const SERVICE_EVENT_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.event_grid_definition_factory';
+    const SERVICE_AC_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory';
+
+    /** GRID ROUTES  */
+    const GRID_ROUTE_PROFILE_LIST = 'admin_apsis_profiles_index';
+    const GRID_ROUTE_EVENT_LIST = 'admin_apsis_events_index';
+    const GRID_ROUTE_AC_LIST = 'admin_apsis_abandonedcart_index';
+    const GRID_ROUTE_PROFILE_RESET = 'admin_apsis_profiles_reset';
+    const GRID_ROUTE_EVENT_RESET = 'admin_apsis_event_reset';
+    const GRID_ROUTE_AC_RESET = 'admin_apsis_abandonedcart_reset';
+    const GRID_ROUTE_PROFILE_DELETE = 'admin_apsis_profiles_delete';
+    const GRID_ROUTE_EVENT_DELETE = 'admin_apsis_event_delete';
+    const GRID_ROUTE_AC_DELETE = 'admin_apsis_abandonedcart_delete';
+
+    /** TEMPLATES */
+    const TPL_BASE_PATH = '@Modules/apsis_one/views/templates/admin/grids/';
+    const TPL_PROFILE_LIST = self::TPL_BASE_PATH . '/profile_list.html.twig';
+    const TPL_EVENT_LIST = self::TPL_BASE_PATH . '/event_list.html.twig';
+    const TPL_AC_LIST = self::TPL_BASE_PATH . '/ac_list.html.twig';
+
     /** COMMANDS */
     const SERVICE_COMMAND_SYNC = 'apsis_one.command.sync';
     const SERVICE_COMMAND_DB = 'apsis_one.command.db';
+
+    /** SERVICE CONTAINERS  */
+    const FROM_CONTAINER_MS = 'getModuleSpecificContainer';
+    const FROM_CONTAINER_FD = 'getFromContainerFinderAdapter';
+    const FROM_CONTAINER_SA = 'getFromSymfonyContainerAdapter';
+    const CONTAINER_RELATIONS = [
+        self::FROM_CONTAINER_MS => self::FROM_CONTAINER_FD,
+        self::FROM_CONTAINER_FD => self::FROM_CONTAINER_SA,
+        self::FROM_CONTAINER_SA => ''
+    ];
 
     /**
      * @param string $message
@@ -116,9 +151,9 @@ interface HelperInterface
      * Log an error message.
      *
      * @param string $message
-     * @param Exception $e
+     * @param Throwable $e
      *
      * @return void
      */
-    public function logErrorMsg(string $message, Exception $e): void;
+    public function logErrorMsg(string $message, Throwable $e): void;
 }

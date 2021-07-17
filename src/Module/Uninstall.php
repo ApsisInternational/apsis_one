@@ -3,8 +3,9 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
+use Apsis\One\Entity\EntityInterface as EI;
 use Db;
-use Exception;
+use Throwable;
 
 class Uninstall extends AbstractSetup
 {
@@ -18,7 +19,7 @@ class Uninstall extends AbstractSetup
         try {
             $this->module = $module;
             return $this->uninstallConfigurations() && $this->uninstallHooks() && $this->removeTables();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -67,8 +68,8 @@ class Uninstall extends AbstractSetup
 
         $db = Db::getInstance();
 
-        return $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_PROFILE) . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_EVENT) . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . $this->addPrefix(self::MODULE_TABLE_ABANDONED_CART) . '`');
+        return $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '`') &&
+            $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '`');
     }
 }

@@ -4,7 +4,7 @@ namespace Apsis\One\Helper;
 
 use DateTime;
 use DateTimeZone;
-use Exception;
+use Throwable;
 use DateInterval;
 
 class DateHelper extends LoggerHelper
@@ -23,7 +23,7 @@ class DateHelper extends LoggerHelper
             }
 
             return $this->getDateTimeFromTime($date)->format($format);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -45,7 +45,7 @@ class DateHelper extends LoggerHelper
             return $this->getDateTimeFromTime($date)
                 ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
                 ->format($format);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -63,7 +63,7 @@ class DateHelper extends LoggerHelper
             return $this->getDateTimeFromTimeAndTimeZone($inputDateTime)
                 ->add($this->getDateIntervalFromIntervalSpec(sprintf('P%sD', $day)))
                 ->format(self::ISO_8601);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return '';
         }
@@ -79,7 +79,7 @@ class DateHelper extends LoggerHelper
         try {
             $nowDateTime = $this->getDateTimeFromTimeAndTimeZone()->format(self::ISO_8601);
             return ($nowDateTime > $inputDateTime);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return false;
         }
@@ -91,7 +91,7 @@ class DateHelper extends LoggerHelper
      *
      * @return DateTime
      *
-     * @throws Exception
+     * @throws Throwable
      */
     public function getDateTimeFromTimeAndTimeZone(string $time = 'now', string $timezone = 'UTC'): DateTime
     {
@@ -103,7 +103,7 @@ class DateHelper extends LoggerHelper
      *
      * @return DateTime
      *
-     * @throws Exception
+     * @throws Throwable
      */
     public function getDateTimeFromTime(string $time = 'now'): DateTime
     {
@@ -115,7 +115,7 @@ class DateHelper extends LoggerHelper
      *
      * @return DateInterval
      *
-     * @throws Exception
+     * @throws Throwable
      */
     public function getDateIntervalFromIntervalSpec(string $intervalSpec): DateInterval
     {

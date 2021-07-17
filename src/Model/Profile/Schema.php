@@ -7,7 +7,7 @@ use Apsis\One\Model\AbstractSchema;
 class Schema extends AbstractSchema
 {
     /**
-     * Schema constructor.
+     * {@inheritdoc}
      */
     public function __construct()
     {

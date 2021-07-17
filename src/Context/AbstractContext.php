@@ -40,7 +40,7 @@ abstract class AbstractContext implements ContextInterface
     abstract protected function setContextObject(): AbstractContext;
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     abstract public function getContextObject();
 }

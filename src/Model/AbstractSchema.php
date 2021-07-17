@@ -15,7 +15,12 @@ abstract class AbstractSchema implements SchemaInterface
     protected $definitionTypes = [];
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     */
+    abstract public function __construct();
+
+    /**
+     * {@inheritdoc}
      */
     public function getDefinition(): array
     {
@@ -23,7 +28,7 @@ abstract class AbstractSchema implements SchemaInterface
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
      */
     public function getDefinitionTypes(): array
     {
