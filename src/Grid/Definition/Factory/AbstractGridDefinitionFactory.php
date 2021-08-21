@@ -8,7 +8,8 @@ use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\BulkActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\Type\SubmitBulkAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\GridActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollection;
-use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\LinkRowAction;
+use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollectionInterface;
+use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\SubmitRowAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Type\LinkGridAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Type\SimpleGridAction;
 use PrestaShop\PrestaShop\Core\Grid\Column\AbstractColumn;
@@ -18,6 +19,7 @@ use PrestaShop\PrestaShop\Core\Grid\Column\Type\BooleanColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\ActionColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BadgeColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BulkActionColumn;
+use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\IdentifierColumn;
 use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\AbstractFilterableGridDefinitionFactory;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollection;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollectionInterface;
@@ -99,7 +101,10 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     protected function getFilters(): FilterCollectionInterface
     {
         $filterCollection = new FilterCollection();
-        $filters = array_merge(static::getAllowedGridFilters($this->getId()), ['actions' => SearchAndResetType::class]);
+        $filters = array_merge(
+            static::getAllowedGridFilters($this->getId()),
+            [self::COLUMN_TYPE_ACTIONS => SearchAndResetType::class]
+        );
 
         if (isset($filters[EI::C_ID_SHOP])) {
             unset($filters[EI::C_ID_SHOP]);
@@ -119,17 +124,17 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     {
         return (new BulkActionCollection())
             ->add((new SubmitBulkAction('reset_selection'))
-                ->setName('Reset selection')
+                ->setName('Reset Selected')
                 ->setOptions([
-                    'submit_route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
-                    'confirm_message' => 'Reset selected items sync status?',
+                    'submit_route' => self::GRID_ROUTES_RESET_BULK_MAP[$this->getId()],
+                    'confirm_message' => 'Reset sync status for selected records?',
                 ])
             )
             ->add((new SubmitBulkAction('delete_selection'))
-                ->setName('Delete selected')
+                ->setName('Delete Selected')
                 ->setOptions([
-                    'submit_route' => self::GRID_ROUTES_DELETE_MAP[$this->getId()],
-                    'confirm_message' => 'Delete selected items?'
+                    'submit_route' => self::GRID_ROUTES_DELETE_BULK_MAP[$this->getId()],
+                    'confirm_message' => 'Delete selected records?'
                 ])
             );
     }
@@ -155,6 +160,41 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
                 (new SimpleGridAction('common_show_query'))
                     ->setName('Show SQL query')
                     ->setIcon('code')
+            )
+            ->add(
+                (new SimpleGridAction('common_export_sql_manager'))
+                    ->setName('Export to SQL Manager')
+                    ->setIcon('storage')
+            );
+    }
+
+    /**
+     * @return RowActionCollectionInterface
+     */
+    protected function getRowActions(): RowActionCollectionInterface
+    {
+        return (new RowActionCollection())
+            ->add(
+                (new SubmitRowAction('reset'))
+                    ->setName('Reset')
+                    ->setIcon('edit')
+                    ->setOptions([
+                        'route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
+                        'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'confirm_message' => 'Reset sync status for this record?'
+                    ])
+            )
+            ->add(
+                (new SubmitRowAction('delete'))
+                    ->setName('Delete')
+                    ->setIcon('delete')
+                    ->setOptions([
+                        'route' => self::GRID_ROUTES_DELETE_MAP[$this->getId()],
+                        'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'confirm_message' => 'Delete this record?'
+                    ])
             );
     }
 
@@ -193,7 +233,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     protected function createColumn(string $column): AbstractColumn
     {
         if ($column === self::COLUMN_TYPE_BULK_ACTION) {
-            return (new BulkActionColumn('bulk_action'))
+            return (new BulkActionColumn(self::COLUMN_TYPE_BULK_ACTION))
                 ->setOptions([
                     'bulk_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                 ]);
@@ -203,32 +243,18 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
             return (new ActionColumn($column))
                 ->setName(ucfirst(self::COLUMN_TYPE_ACTIONS))
                 ->setOptions([
-                    'actions' => (new RowActionCollection())
-                        ->add(
-                            (new LinkRowAction('reset'))
-                                ->setName('Reset')
-                                ->setIcon('edit')
-                                ->setOptions([
-                                    'route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
-                                    'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                                    'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                                    'clickable_row' => false,
-                                ])
-                        )->add(
-                            (new LinkRowAction('delete'))
-                                ->setName('Delete')
-                                ->setIcon('delete')
-                                ->setOptions([
-                                    'route' => self::GRID_ROUTES_DELETE_MAP[$this->getId()],
-                                    'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                                    'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                                    'clickable_row' => false,
-                                ])
-                        )
+                    'actions' => $this->getRowActions(),
                 ]);
         }
 
         $name = $this->getLabel($column);
+
+        if ($column === EI::T_PRIMARY_MAPPINGS[$this->getId()]) {
+            return (new IdentifierColumn($column))
+                ->setName($name)
+                ->setOptions(['identifier_field' => $column]);
+        }
+
         $options = ['field' => $column];
 
         if (in_array($column, self::BOOLEAN_COLUMNS)) {

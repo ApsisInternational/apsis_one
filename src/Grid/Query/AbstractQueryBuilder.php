@@ -93,7 +93,7 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
         $this->applyFilters(
             $searchCriteria->getFilters(),
             $queryBuilder,
-            array_keys(AbstractGridDefinitionFactory::getAllowedGridFilters(static::getTableName()))
+            AbstractGridDefinitionFactory::getAllowedGridFilters(static::getTableName())
         );
 
         return $queryBuilder;
@@ -110,8 +110,10 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
             unset($allowedFilters[EI::C_ID_SHOP]);
         }
 
+        $allowedFilterNames = array_keys($allowedFilters);
+
         foreach ($filters as $filterName => $filterValue) {
-            if (! in_array($filterName, $allowedFilters)) {
+            if (! in_array($filterName, $allowedFilterNames)) {
                 continue;
             }
 

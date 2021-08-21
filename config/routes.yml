@@ -8,14 +8,14 @@ admin_apsis_profile_index:
     _legacy_link: ApsisOneProfileController
 
 admin_apsis_profile_search:
-  path: /
+  path: /apsis_profile/list
   methods: [POST]
   defaults:
-    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    _controller: PrestaShopBundle:Admin\Common:searchGrid
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::searchProfile
     gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.profile_grid_definition_factory
     redirectRoute: admin_apsis_profile_index
-    _legacy_controller: ApsisOneProfileController
-    _legacy_link: ApsisOneProfileController
 
 admin_apsis_profile_export:
   path: /apsis_profile/export
@@ -23,23 +23,39 @@ admin_apsis_profile_export:
   defaults:
     _controller: 'Apsis\One\Controller\Admin\ProfileController::exportAction'
     _legacy_controller: ApsisOneProfileController
-    _legacy_link: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::exportProfile
 
 admin_apsis_profile_reset:
   path: /apsis_profile/reset
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\ProfileController::resetAction'
     _legacy_controller: ApsisOneProfileController
-    _legacy_link: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::resetProfile
 
 admin_apsis_profile_delete:
   path: /apsis_profile/delete
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\ProfileController::deleteAction'
     _legacy_controller: ApsisOneProfileController
-    _legacy_link: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::deleteProfile
+
+admin_apsis_profile_reset_bulk:
+  path: /apsis_profile/reset-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::resetBulkAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::bulkResetProfile
+
+admin_apsis_profile_delete_bulk:
+  path: /apsis_profile/delete-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::deleteBulkAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController::bulkDeleteProfile
 
 # END: Profile routes
 
@@ -53,14 +69,14 @@ admin_apsis_event_index:
     _legacy_link: ApsisOneEventController
 
 admin_apsis_event_search:
-  path: /
+  path: /apsis_event/list
   methods: [POST]
   defaults:
-    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    _controller: PrestaShopBundle:Admin\Common:searchGrid
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::searchEvent
     gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.event_grid_definition_factory
     redirectRoute: admin_apsis_event_index
-    _legacy_controller: ApsisOneEventController
-    _legacy_link: ApsisOneEventController
 
 admin_apsis_event_export:
   path: /apsis_event/export
@@ -68,23 +84,39 @@ admin_apsis_event_export:
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::exportAction'
     _legacy_controller: ApsisOneEventController
-    _legacy_link: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::exportEvent
 
 admin_apsis_event_reset:
   path: /apsis_event/reset
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::resetAction'
     _legacy_controller: ApsisOneEventController
-    _legacy_link: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::resetEvent
 
 admin_apsis_event_delete:
   path: /apsis_event/delete
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::deleteAction'
     _legacy_controller: ApsisOneEventController
-    _legacy_link: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::deleteEvent
+
+admin_apsis_event_reset_bulk:
+  path: /apsis_event/reset-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::resetBulkAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::bulkResetEvent
+
+admin_apsis_event_delete_bulk:
+  path: /apsis_event/delete-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::deleteBulkAction'
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController::bulkDeleteEvent
 
 # END: Event Routes
 
@@ -98,14 +130,14 @@ admin_apsis_abandonedcart_index:
     _legacy_link: ApsisOneAbandonedCartController
 
 admin_apsis_abandonedcart_search:
-  path: /
+  path: /apsis_abandonedcart/list
   methods: [POST]
   defaults:
-    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    _controller: PrestaShopBundle:Admin\Common:searchGrid
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::searchAbandonedcart
     gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory
     redirectRoute: admin_apsis_abandonedcart_index
-    _legacy_controller: ApsisOneAbandonedCartController
-    _legacy_link: ApsisOneAbandonedCartController
 
 admin_apsis_abandonedcart_export:
   path: /apsis_abandonedcart/export
@@ -113,22 +145,38 @@ admin_apsis_abandonedcart_export:
   defaults:
     _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::exportAction'
     _legacy_controller: ApsisOneAbandonedCartController
-    _legacy_link: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::exportAbandonedcart
 
 admin_apsis_abandonedcart_reset:
   path: /apsis_abandonedcart/reset
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::resetAction'
     _legacy_controller: ApsisOneAbandonedCartController
-    _legacy_link: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::resetAbandonedcart
 
 admin_apsis_abandonedcart_delete:
   path: /apsis_abandonedcart/delete
-  methods: [GET]
+  methods: [POST]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::deleteAction'
     _legacy_controller: ApsisOneAbandonedCartController
-    _legacy_link: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::deleteAbandonedcart
+
+admin_apsis_abandonedcart_reset_bulk:
+  path: /apsis_abandonedcart/reset-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::resetBulkAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::bulkResetAbandonedcart
+
+admin_apsis_abandonedcart_delete_bulk:
+  path: /apsis_abandonedcart/delete-bulk
+  methods: [POST]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::deleteBulkAction'
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController::bulkDeleteAbandonedcart
 
 # END: AbandonedCart Routes

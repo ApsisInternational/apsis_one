@@ -81,7 +81,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
 
     /**
      *
-     * @AdminSecurity("is_granted(['read', 'create', 'update', 'delete'], request.get('_legacy_controller'))", message="Access denied.")
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
      *
      * @param Request $request
      *
@@ -94,13 +94,39 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
 
     /**
      *
-     * @AdminSecurity("is_granted(['read', 'create', 'update', 'delete'], request.get('_legacy_controller'))", message="Access denied.")
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
      *
      * @param Request $request
      *
      * @return RedirectResponse
      */
     public function resetAction(Request $request): RedirectResponse
+    {
+        return $this->redirectToRoute($this->redirectRoute);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     *
+     * @return RedirectResponse
+     */
+    public function deleteBulkAction(Request $request): RedirectResponse
+    {
+        return $this->redirectToRoute($this->redirectRoute);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     *
+     * @return RedirectResponse
+     */
+    public function resetBulkAction(Request $request): RedirectResponse
     {
         return $this->redirectToRoute($this->redirectRoute);
     }

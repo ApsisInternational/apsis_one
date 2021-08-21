@@ -3,7 +3,7 @@
 namespace Apsis\One\Grid\Definition\Factory;
 
 use Apsis\One\Helper\HelperInterface as HI;
-use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\GridDefinitionFactoryInterface as PsGridDefinitionFactoryInterface;
+use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\FilterableGridDefinitionFactoryInterface;
 use PrestaShop\PrestaShop\Core\Hook\HookDispatcherInterface;
 use PrestaShopBundle\Form\Admin\Type\DateRangeType;
 use PrestaShopBundle\Form\Admin\Type\YesAndNoChoiceType;
@@ -13,7 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Apsis\One\Form\ChoiceProvider\ProviderInterface;
 use Apsis\One\Entity\EntityInterface as EI;
 
-interface GridDefinitionFactoryInterface extends PsGridDefinitionFactoryInterface
+interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactoryInterface
 {
     /** ROUTES MAP */
     const GRID_ROUTES_LIST_MAP = [
@@ -31,13 +31,23 @@ interface GridDefinitionFactoryInterface extends PsGridDefinitionFactoryInterfac
         EI::T_EVENT => HI::GRID_ROUTE_EVENT_DELETE,
         EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_DELETE
     ];
+    const GRID_ROUTES_RESET_BULK_MAP = [
+        EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_RESET_BULK,
+        EI::T_EVENT => HI::GRID_ROUTE_EVENT_RESET_BULK,
+        EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_RESET_BULK
+    ];
+    const GRID_ROUTES_DELETE_BULK_MAP = [
+        EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_DELETE_BULK,
+        EI::T_EVENT => HI::GRID_ROUTE_EVENT_DELETE_BULK,
+        EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_DELETE_BULK
+    ];
     const GRID_ROUTES_EXPORT_MAP = [
         EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_EXPORT,
         EI::T_EVENT => HI::GRID_ROUTE_EVENT_EXPORT,
         EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_EXPORT
     ];
 
-    /** GRID COLUMNS RELATED  */
+    /** GRID COLUMNS */
     const COLUMN_TYPE_ACTIONS = 'actions';
     const COLUMN_TYPE_BULK_ACTION = 'bulk_action';
     const FILTER_TYPE_MAPPINGS = [
@@ -59,10 +69,7 @@ interface GridDefinitionFactoryInterface extends PsGridDefinitionFactoryInterfac
      * @param HookDispatcherInterface $hookDispatcher
      * @param ProviderInterface|null $provider
      */
-    public function __construct(
-        HookDispatcherInterface $hookDispatcher,
-        ?ProviderInterface $provider = null
-    );
+    public function __construct(HookDispatcherInterface $hookDispatcher, ?ProviderInterface $provider = null);
 
     /**
      * @return string

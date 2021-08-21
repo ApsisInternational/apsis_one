@@ -11,7 +11,7 @@ use PrestaShopBundle\Security\Annotation\AdminSecurity;
 class ProfileController extends AbstractController
 {
     /**
-     * @AdminSecurity("is_granted(['read', 'create', 'update', 'delete'], request.get('_legacy_controller'))", message="Access denied.")
+     * @AdminSecurity("is_granted(['read'], request.get('_legacy_controller'))", message="Access denied.")
      *
      * @param Request $request
      * @param ProfileFilters $filter
@@ -24,7 +24,7 @@ class ProfileController extends AbstractController
     }
 
     /**
-     * @AdminSecurity("is_granted(['read', 'create', 'update', 'delete'], request.get('_legacy_controller'))", message="Access denied.")
+     * @AdminSecurity("is_granted(['read'], request.get('_legacy_controller'))", message="Access denied.")
      *
      * @param Request $request
      * @param ProfileFilters $filter

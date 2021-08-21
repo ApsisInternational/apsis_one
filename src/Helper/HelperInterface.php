@@ -93,14 +93,6 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 
-    /** GRID */
-    const SERVICE_PROFILE_GRID_FACTORY_ID = 'apsis_one.grid.profile_grid_factory';
-    const SERVICE_EVENT_GRID_FACTORY_ID = 'apsis_one.grid.event_grid_factory';
-    const SERVICE_AC_GRID_FACTORY_ID = 'apsis_one.grid.abandonedcart_grid_factory';
-    const SERVICE_PROFILE_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.profile_grid_definition_factory';
-    const SERVICE_EVENT_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.event_grid_definition_factory';
-    const SERVICE_AC_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory';
-
     /** GRID ROUTES  */
     const GRID_ROUTE_PROFILE_LIST = 'admin_apsis_profile_index';
     const GRID_ROUTE_EVENT_LIST = 'admin_apsis_event_index';
@@ -111,6 +103,12 @@ interface HelperInterface
     const GRID_ROUTE_PROFILE_DELETE = 'admin_apsis_profile_delete';
     const GRID_ROUTE_EVENT_DELETE = 'admin_apsis_event_delete';
     const GRID_ROUTE_AC_DELETE = 'admin_apsis_abandonedcart_delete';
+    const GRID_ROUTE_PROFILE_RESET_BULK = 'admin_apsis_profile_reset_bulk';
+    const GRID_ROUTE_EVENT_RESET_BULK = 'admin_apsis_event_reset_bulk';
+    const GRID_ROUTE_AC_RESET_BULK = 'admin_apsis_abandonedcart_reset_bulk';
+    const GRID_ROUTE_PROFILE_DELETE_BULK = 'admin_apsis_profile_delete_bulk';
+    const GRID_ROUTE_EVENT_DELETE_BULK = 'admin_apsis_event_delete_bulk';
+    const GRID_ROUTE_AC_DELETE_BULK = 'admin_apsis_abandonedcart_delete_bulk';
     const GRID_ROUTE_PROFILE_EXPORT = 'admin_apsis_profile_export';
     const GRID_ROUTE_EVENT_EXPORT = 'admin_apsis_event_export';
     const GRID_ROUTE_AC_EXPORT = 'admin_apsis_abandonedcart_export';
