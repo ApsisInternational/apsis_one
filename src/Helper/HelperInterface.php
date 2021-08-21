@@ -102,15 +102,18 @@ interface HelperInterface
     const SERVICE_AC_GRID_DEF_FACTORY_ID = 'apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory';
 
     /** GRID ROUTES  */
-    const GRID_ROUTE_PROFILE_LIST = 'admin_apsis_profiles_index';
-    const GRID_ROUTE_EVENT_LIST = 'admin_apsis_events_index';
+    const GRID_ROUTE_PROFILE_LIST = 'admin_apsis_profile_index';
+    const GRID_ROUTE_EVENT_LIST = 'admin_apsis_event_index';
     const GRID_ROUTE_AC_LIST = 'admin_apsis_abandonedcart_index';
-    const GRID_ROUTE_PROFILE_RESET = 'admin_apsis_profiles_reset';
+    const GRID_ROUTE_PROFILE_RESET = 'admin_apsis_profile_reset';
     const GRID_ROUTE_EVENT_RESET = 'admin_apsis_event_reset';
     const GRID_ROUTE_AC_RESET = 'admin_apsis_abandonedcart_reset';
-    const GRID_ROUTE_PROFILE_DELETE = 'admin_apsis_profiles_delete';
+    const GRID_ROUTE_PROFILE_DELETE = 'admin_apsis_profile_delete';
     const GRID_ROUTE_EVENT_DELETE = 'admin_apsis_event_delete';
     const GRID_ROUTE_AC_DELETE = 'admin_apsis_abandonedcart_delete';
+    const GRID_ROUTE_PROFILE_EXPORT = 'admin_apsis_profile_export';
+    const GRID_ROUTE_EVENT_EXPORT = 'admin_apsis_event_export';
+    const GRID_ROUTE_AC_EXPORT = 'admin_apsis_abandonedcart_export';
 
     /** TEMPLATES */
     const TPL_BASE_PATH = '@Modules/apsis_one/views/templates/admin/grids/';

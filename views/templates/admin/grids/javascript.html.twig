@@ -1,0 +1,5 @@
+{% block javascripts %}
+    <script>window.apsisGridId = "{{ grid.id }}";</script>
+    <script src="{{ asset('../modules/apsis_one/views/js/grid.js') }}"></script>
+    <script src="{{ asset('themes/default/js/bundle/pagination.js') }}"></script>
+{% endblock %}

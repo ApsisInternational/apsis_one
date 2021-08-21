@@ -2,7 +2,8 @@
 
 namespace Apsis\One\Controller\Admin;
 
-use PrestaShop\PrestaShop\Core\Grid\Filter\GridFilterFormFactoryInterface;
+use Apsis\One\Grid\Definition\Factory\AbstractGridDefinitionFactory;
+use PrestaShopBundle\Component\CsvResponse;
 use PrestaShopBundle\Controller\Admin\FrameworkBundleAdminController;
 use PrestaShop\PrestaShop\Core\Grid\GridFactoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -24,23 +25,12 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
     protected $redirectRoute;
 
     /**
-     * 'prestashop.core.grid.filter.form_factory'
-     *
-     * @var GridFilterFormFactoryInterface
-     */
-    protected $filterFormFactory;
-
-    /**
      * {@inheritdoc}
      */
-    public function __construct(
-        GridFactoryInterface $gridFactory,
-        GridFilterFormFactoryInterface $filterFormFactory,
-        string $redirectRoute
-    ) {
+    public function __construct(GridFactoryInterface $gridFactory, string $redirectRoute)
+    {
         $this->redirectRoute = $redirectRoute;
         $this->gridFactory = $gridFactory;
-        $this->filterFormFactory = $filterFormFactory;
         parent::__construct();
     }
 
@@ -50,7 +40,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
      *
      * @return Response
      */
-    public function processList(Request $request, FilterInterface $filter): Response
+    protected function processList(Request $request, FilterInterface $filter): Response
     {
         $grid = $this->gridFactory->getGrid($filter);
         return $this->render(
@@ -60,23 +50,33 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
     }
 
     /**
-     * @AdminSecurity("is_granted(['read', 'create', 'update', 'delete'], request.get('_legacy_controller'))", message="Access denied.")
-     *
      * @param Request $request
      * @param FilterInterface $filter
      *
-     * @return RedirectResponse
+     * @return CsvResponse
      */
-    public function searchAction(Request $request, FilterInterface $filter): RedirectResponse
+    protected function processExport(Request $request, FilterInterface $filter): CsvResponse
     {
-        $filtersForm = $this->filterFormFactory->create($this->gridFactory->getGrid($filter)->getDefinition());
-        $filtersForm->handleRequest($request);
+        $grid = $this->gridFactory->getGrid(new $filter(['limit' => null] + $filter->all()));
+        $headers = AbstractGridDefinitionFactory::getAllowedGridColumns($grid->getDefinition()->getId());
+        $data = [];
 
-        $filters = [];
-        if ($filtersForm->isSubmitted()) {
-            $filters = $filtersForm->getData();
+        foreach ($grid->getData()->getRecords()->all() as $record) {
+            $row = [];
+            foreach ($headers as $header) {
+                if (isset($record[$header])) {
+                    $row[$header] = $record[$header];
+                }
+            }
+            if (! empty($row)) {
+                $data[] = $row;
+            }
         }
-        return $this->redirectToRoute($this->redirectRoute, ['filters' => $filters]);
+
+        return (new CsvResponse())
+            ->setData($data)
+            ->setHeadersData($headers)
+            ->setFileName($grid->getDefinition()->getId() . '_' . date('Y-m-d_His') . '.csv');
     }
 
     /**

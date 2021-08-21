@@ -2,6 +2,7 @@ services:
   _defaults:
     public: true
 
+  # BEGIN: Profile Grid Services
   apsis_one.form.choice_provider.profile_sync_status_provider:
     class: 'Apsis\One\Form\ChoiceProvider\ProfileSyncStatusProvider'
 
@@ -9,8 +10,6 @@ services:
     class: 'Apsis\One\Grid\Definition\Factory\ProfileGridDefinitionFactory'
     parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
     arguments:
-      - "@=service('router').generate('admin_common_reset_search', {'controller': 'profiles', 'action': 'index'})"
-      - "@=service('router').generate('admin_apsis_profiles_index')"
       - '@apsis_one.form.choice_provider.profile_sync_status_provider'
     public: true
 
@@ -44,6 +43,15 @@ services:
       - '@prestashop.core.grid.filter.form_factory'
       - '@prestashop.core.hook.dispatcher'
 
+  Apsis\One\Controller\Admin\ProfileController:
+    class: 'Apsis\One\Controller\Admin\ProfileController'
+    arguments:
+      - '@apsis_one.grid.profile_grid_factory'
+      - 'admin_apsis_profile_index'
+
+  # END: Profile Grid Services
+
+  # BEGIN: Event Grid Services
   apsis_one.form.choice_provider.event_sync_status_provider:
     class: 'Apsis\One\Form\ChoiceProvider\EventSyncStatusProvider'
 
@@ -51,8 +59,6 @@ services:
     class: 'Apsis\One\Grid\Definition\Factory\EventGridDefinitionFactory'
     parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
     arguments:
-      - "@=service('router').generate('admin_common_reset_search', {'controller': 'event', 'action': 'index'})"
-      - "@=service('router').generate('admin_apsis_events_index')"
       - '@apsis_one.form.choice_provider.event_sync_status_provider'
     public: true
 
@@ -86,12 +92,18 @@ services:
       - '@prestashop.core.grid.filter.form_factory'
       - '@prestashop.core.hook.dispatcher'
 
+  Apsis\One\Controller\Admin\EventController:
+    class: 'Apsis\One\Controller\Admin\EventController'
+    arguments:
+      - '@apsis_one.grid.event_grid_factory'
+      - 'admin_apsis_event_index'
+
+  # END: Event Grid Services
+
+  # BEGIN: AbandonedCart Grid Services
   apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory:
     class: 'Apsis\One\Grid\Definition\Factory\AbandonedCartGridDefinitionFactory'
     parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
-    arguments:
-      - "@=service('router').generate('admin_common_reset_search', {'controller': 'abandonedcart', 'action': 'index'})"
-      - "@=service('router').generate('admin_apsis_abandonedcart_index')"
     public: true
 
   apsis_one.grid.query.abandonedcart_query_builder:
@@ -118,23 +130,10 @@ services:
       - '@prestashop.core.grid.filter.form_factory'
       - '@prestashop.core.hook.dispatcher'
 
-  Apsis\One\Controller\Admin\ProfilesController:
-    class: 'Apsis\One\Controller\Admin\ProfilesController'
-    arguments:
-      - '@apsis_one.grid.profile_grid_factory'
-      - '@prestashop.core.grid.filter.form_factory'
-      - 'admin_apsis_profiles_index'
-
-  Apsis\One\Controller\Admin\EventController:
-    class: 'Apsis\One\Controller\Admin\EventController'
-    arguments:
-      - '@apsis_one.grid.event_grid_factory'
-      - '@prestashop.core.grid.filter.form_factory'
-      - 'admin_apsis_event_index'
-
   Apsis\One\Controller\Admin\AbandonedCartController:
     class: 'Apsis\One\Controller\Admin\AbandonedCartController'
     arguments:
       - '@apsis_one.grid.abandonedcart_grid_factory'
-      - '@prestashop.core.grid.filter.form_factory'
       - 'admin_apsis_abandonedcart_index'
+
+  # END: AbandonedCart Grid Services

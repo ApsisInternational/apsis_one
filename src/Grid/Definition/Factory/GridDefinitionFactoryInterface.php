@@ -26,15 +26,20 @@ interface GridDefinitionFactoryInterface extends PsGridDefinitionFactoryInterfac
         EI::T_EVENT => HI::GRID_ROUTE_EVENT_RESET,
         EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_RESET
     ];
-    const GRID_ROUTES_DELETE = [
+    const GRID_ROUTES_DELETE_MAP = [
         EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_DELETE,
         EI::T_EVENT => HI::GRID_ROUTE_EVENT_DELETE,
         EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_DELETE
     ];
+    const GRID_ROUTES_EXPORT_MAP = [
+        EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_EXPORT,
+        EI::T_EVENT => HI::GRID_ROUTE_EVENT_EXPORT,
+        EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_EXPORT
+    ];
 
     /** GRID COLUMNS RELATED  */
     const COLUMN_TYPE_ACTIONS = 'actions';
-    const COLUMN_TYPE_BULK_ACTION = 's_bulk';
+    const COLUMN_TYPE_BULK_ACTION = 'bulk_action';
     const FILTER_TYPE_MAPPINGS = [
         'isUnsignedId' => NumberType::class,
         'isInt' => ChoiceType::class,
@@ -52,14 +57,10 @@ interface GridDefinitionFactoryInterface extends PsGridDefinitionFactoryInterfac
 
     /**
      * @param HookDispatcherInterface $hookDispatcher
-     * @param string $resetActionUrl
-     * @param string $redirectionUrl
      * @param ProviderInterface|null $provider
      */
     public function __construct(
         HookDispatcherInterface $hookDispatcher,
-        string $resetActionUrl,
-        string $redirectionUrl,
         ?ProviderInterface $provider = null
     );
 

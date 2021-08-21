@@ -2,7 +2,6 @@
 
 namespace Apsis\One\Controller\Admin;
 
-use PrestaShop\PrestaShop\Core\Grid\Filter\GridFilterFormFactoryInterface;
 use PrestaShop\PrestaShop\Core\Grid\GridFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Apsis\One\Helper\HelperInterface as HI;
@@ -21,12 +20,7 @@ interface ControllerInterface extends ContainerAwareInterface
      * Class constructor.
      *
      * @param GridFactoryInterface $gridFactory
-     * @param GridFilterFormFactoryInterface $filterFormFactory
      * @param string $redirectRoute
      */
-    public function __construct(
-        GridFactoryInterface $gridFactory,
-        GridFilterFormFactoryInterface $filterFormFactory,
-        string $redirectRoute
-    );
+    public function __construct(GridFactoryInterface $gridFactory, string $redirectRoute);
 }

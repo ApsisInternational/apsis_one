@@ -1,37 +1,51 @@
-admin_apsis_profiles_index:
-  path: /apsis_profiles/list
-  methods: [GET, POST]
+# BEGIN: Profile Routes
+admin_apsis_profile_index:
+  path: /apsis_profile/list
+  methods: [GET]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\ProfilesController::indexAction'
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::indexAction'
     _legacy_controller: ApsisOneProfileController
     _legacy_link: ApsisOneProfileController
 
-admin_apsis_profiles_search:
+admin_apsis_profile_search:
   path: /
   methods: [POST]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\ProfilesController::searchAction'
+    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.profile_grid_definition_factory
+    redirectRoute: admin_apsis_profile_index
     _legacy_controller: ApsisOneProfileController
     _legacy_link: ApsisOneProfileController
 
-admin_apsis_profiles_reset:
-  path: /apsis_profiles/reset
+admin_apsis_profile_export:
+  path: /apsis_profile/export
   methods: [GET]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\ProfilesController::resetAction'
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::exportAction'
     _legacy_controller: ApsisOneProfileController
     _legacy_link: ApsisOneProfileController
 
-admin_apsis_profiles_delete:
-  path: /apsis_profiles/delete
+admin_apsis_profile_reset:
+  path: /apsis_profile/reset
   methods: [GET]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\ProfilesController::deleteAction'
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::resetAction'
     _legacy_controller: ApsisOneProfileController
     _legacy_link: ApsisOneProfileController
 
-admin_apsis_events_index:
-  path: /apsis_events/list
+admin_apsis_profile_delete:
+  path: /apsis_profile/delete
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ProfileController::deleteAction'
+    _legacy_controller: ApsisOneProfileController
+    _legacy_link: ApsisOneProfileController
+
+# END: Profile routes
+
+# BEGIN: Event Routes
+admin_apsis_event_index:
+  path: /apsis_event/list
   methods: [GET]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::indexAction'
@@ -42,12 +56,22 @@ admin_apsis_event_search:
   path: /
   methods: [POST]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\EventController::searchAction'
+    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.event_grid_definition_factory
+    redirectRoute: admin_apsis_event_index
+    _legacy_controller: ApsisOneEventController
+    _legacy_link: ApsisOneEventController
+
+admin_apsis_event_export:
+  path: /apsis_event/export
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\EventController::exportAction'
     _legacy_controller: ApsisOneEventController
     _legacy_link: ApsisOneEventController
 
 admin_apsis_event_reset:
-  path: /apsis_events/reset
+  path: /apsis_event/reset
   methods: [GET]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::resetAction'
@@ -55,13 +79,16 @@ admin_apsis_event_reset:
     _legacy_link: ApsisOneEventController
 
 admin_apsis_event_delete:
-  path: /apsis_events/delete
+  path: /apsis_event/delete
   methods: [GET]
   defaults:
     _controller: 'Apsis\One\Controller\Admin\EventController::deleteAction'
     _legacy_controller: ApsisOneEventController
     _legacy_link: ApsisOneEventController
 
+# END: Event Routes
+
+# BEGIN: AbandonedCart Routes
 admin_apsis_abandonedcart_index:
   path: /apsis_abandonedcart/list
   methods: [GET]
@@ -74,7 +101,17 @@ admin_apsis_abandonedcart_search:
   path: /
   methods: [POST]
   defaults:
-    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::searchAction'
+    _controller: 'PrestaShopBundle:Admin\Common:searchGrid'
+    gridDefinitionFactoryServiceId: apsis_one.grid.definition.factory.abandonedcart_grid_definition_factory
+    redirectRoute: admin_apsis_abandonedcart_index
+    _legacy_controller: ApsisOneAbandonedCartController
+    _legacy_link: ApsisOneAbandonedCartController
+
+admin_apsis_abandonedcart_export:
+  path: /apsis_abandonedcart/export
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::exportAction'
     _legacy_controller: ApsisOneAbandonedCartController
     _legacy_link: ApsisOneAbandonedCartController
 
@@ -93,3 +130,5 @@ admin_apsis_abandonedcart_delete:
     _controller: 'Apsis\One\Controller\Admin\AbandonedCartController::deleteAction'
     _legacy_controller: ApsisOneAbandonedCartController
     _legacy_link: ApsisOneAbandonedCartController
+
+# END: AbandonedCart Routes

@@ -7,3 +7,9 @@
         </div>
     </div>
 {% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    {% include '@Modules/apsis_one/views/templates/admin/grids/javascript.html.twig' with {'grid': apsis_profile} %}
+{% endblock %}

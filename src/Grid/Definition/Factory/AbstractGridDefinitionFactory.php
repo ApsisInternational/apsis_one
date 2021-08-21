@@ -6,8 +6,11 @@ use Apsis\One\Entity\EntityInterface as EI;
 use Apsis\One\Form\ChoiceProvider\ProviderInterface;
 use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\BulkActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\Type\SubmitBulkAction;
+use PrestaShop\PrestaShop\Core\Grid\Action\GridActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\LinkRowAction;
+use PrestaShop\PrestaShop\Core\Grid\Action\Type\LinkGridAction;
+use PrestaShop\PrestaShop\Core\Grid\Action\Type\SimpleGridAction;
 use PrestaShop\PrestaShop\Core\Grid\Column\AbstractColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\ColumnCollection;
 use PrestaShop\PrestaShop\Core\Grid\Column\ColumnCollectionInterface;
@@ -15,7 +18,7 @@ use PrestaShop\PrestaShop\Core\Grid\Column\Type\BooleanColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\ActionColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BadgeColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BulkActionColumn;
-use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\AbstractGridDefinitionFactory as PsAbstractGridDefinitionFactory;
+use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\AbstractFilterableGridDefinitionFactory;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollection;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollectionInterface;
 use PrestaShop\PrestaShop\Core\Hook\HookDispatcherInterface;
@@ -27,7 +30,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFactory
+abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefinitionFactory
     implements GridDefinitionFactoryInterface
 {
     /**
@@ -36,26 +39,10 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
     protected $provider;
 
     /**
-     * @var string
-     */
-    private $resetActionUrl;
-
-    /**
-     * @var string
-     */
-    private $redirectionUrl;
-
-    /**
      * {@inheritdoc}
      */
-    public function __construct(
-        HookDispatcherInterface $hookDispatcher,
-        string $resetActionUrl,
-        string $redirectionUrl,
-        ?ProviderInterface $provider = null
-    ) {
-        $this->resetActionUrl = $resetActionUrl;
-        $this->redirectionUrl = $redirectionUrl;
+    public function __construct(HookDispatcherInterface $hookDispatcher, ?ProviderInterface $provider = null)
+    {
         $this->provider = $provider;
         parent::__construct($hookDispatcher);
     }
@@ -73,7 +60,7 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
      */
     public function getFilterId(): string
     {
-        return static::GRID_ID;
+        return $this->getId();
     }
 
     /**
@@ -81,7 +68,7 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
      */
     protected function getName(): string
     {
-        return EI::T_LABEL_MAPPINGS[static::GRID_ID];
+        return EI::T_LABEL_MAPPINGS[$this->getId()];
     }
 
     /**
@@ -131,20 +118,43 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
     protected function getBulkActions()
     {
         return (new BulkActionCollection())
-            ->add(
-                (new SubmitBulkAction('reset_selection'))
-                    ->setName('Reset selection')
-                    ->setOptions([
-                        'submit_route' => self::GRID_ROUTES_RESET_MAP[static::GRID_ID],
-                        'confirm_message' => 'Reset selected items sync status?',
-                    ])
+            ->add((new SubmitBulkAction('reset_selection'))
+                ->setName('Reset selection')
+                ->setOptions([
+                    'submit_route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
+                    'confirm_message' => 'Reset selected items sync status?',
+                ])
             )
             ->add((new SubmitBulkAction('delete_selection'))
                 ->setName('Delete selected')
                 ->setOptions([
-                    'submit_route' => self::GRID_ROUTES_DELETE[static::GRID_ID],
+                    'submit_route' => self::GRID_ROUTES_DELETE_MAP[$this->getId()],
                     'confirm_message' => 'Delete selected items?'
                 ])
+            );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function getGridActions()
+    {
+        return (new GridActionCollection())
+            ->add(
+                (new LinkGridAction('export'))
+                    ->setName('Export')
+                    ->setIcon('cloud_download')
+                    ->setOptions(['route' => self::GRID_ROUTES_EXPORT_MAP[$this->getId()]])
+            )
+            ->add(
+                (new SimpleGridAction('common_refresh_list'))
+                    ->setName('Refresh list')
+                    ->setIcon('refresh')
+            )
+            ->add(
+                (new SimpleGridAction('common_show_query'))
+                    ->setName('Show SQL query')
+                    ->setIcon('code')
             );
     }
 
@@ -183,7 +193,7 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
     protected function createColumn(string $column): AbstractColumn
     {
         if ($column === self::COLUMN_TYPE_BULK_ACTION) {
-            return (new BulkActionColumn($this->getId() . $column))
+            return (new BulkActionColumn('bulk_action'))
                 ->setOptions([
                     'bulk_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                 ]);
@@ -199,7 +209,7 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
                                 ->setName('Reset')
                                 ->setIcon('edit')
                                 ->setOptions([
-                                    'route' => self::GRID_ROUTES_RESET_MAP[static::GRID_ID],
+                                    'route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
                                     'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                                     'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                                     'clickable_row' => false,
@@ -209,7 +219,7 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
                                 ->setName('Delete')
                                 ->setIcon('delete')
                                 ->setOptions([
-                                    'route' => self::GRID_ROUTES_DELETE[static::GRID_ID],
+                                    'route' => self::GRID_ROUTES_DELETE_MAP[$this->getId()],
                                     'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                                     'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
                                     'clickable_row' => false,
@@ -280,10 +290,11 @@ abstract class AbstractGridDefinitionFactory extends PsAbstractGridDefinitionFac
 
         if ($type === SearchAndResetType::class) {
             $filter->setTypeOptions([
-                'attr' => [
-                    'data-url' => $this->resetActionUrl,
-                    'data-redirect' => $this->redirectionUrl,
+                'reset_route' => 'admin_common_reset_search_by_filter_id',
+                'reset_route_params' => [
+                    'filterId' => $this->getId(),
                 ],
+                'redirect_route' => self::GRID_ROUTES_LIST_MAP[$this->getId()]
             ]);
         }
 
