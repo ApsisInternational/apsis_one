@@ -13,8 +13,6 @@ use Apsis\One\Module\Configuration;
 use Apsis\One\Module\HookProcessor;
 use Apsis\One\Helper\ModuleHelper;
 use Apsis\One\Helper\HelperInterface;
-use Apsis\One\Entity\EntityInterface as EI;
-use Apsis\One\Grid\Definition\Factory\GridDefinitionFactoryInterface;
 
 class Apsis_one extends Module implements SetupInterface
 {
@@ -49,16 +47,15 @@ class Apsis_one extends Module implements SetupInterface
     {
         $this->name = self::MODULE_NAME;
         $this->tab = 'advertising_marketing';
-        $this->tabs = $this->getTabsArr();
         $this->version = self::MODULE_VERSION;
         $this->author = 'APSIS';
         $this->need_instance = 1;
         $this->ps_versions_compliancy = [
-            'min' => '1.7.7.3',
+            'min' => '1.7.8.0',
             'max' => _PS_VERSION_
         ];
         $this->bootstrap = true;
-        $this->displayName = 'APSIS One Integration';
+        $this->displayName = self::MODULE_DISPLAY_NAME;
         $this->description = 'Grow faster with the all-in-One marketing platform.';
         $this->confirmUninstall = 'Are you sure you want to uninstall?';
     }
@@ -110,29 +107,6 @@ class Apsis_one extends Module implements SetupInterface
             $this->helper->logErrorMsg(__METHOD__, $e);
             return 'An error occurred, please check APSIS log file.';
         }
-    }
-
-    /**
-     * @return array
-     */
-    protected function getTabsArr(): array
-    {
-        $tabs = [];
-        try {
-            foreach (EI::TABLES as $table) {
-                $tabs[] = [
-                    'route_name' => GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$table],
-                    'class_name' => self::LEGACY_CONTROLLER_CLASSES[$table],
-                    'visible' => true,
-                    'name' => EI::T_LABEL_MAPPINGS[$table],
-                    'parent_class_name' => 'AdminParentCustomer',
-                    'wording' => self::MODULE_DISPLAY_NAME
-                ];
-            }
-        } catch (Throwable $e) {
-            $this->helper->logErrorMsg(__METHOD__, $e);
-        }
-        return $tabs;
     }
 
     /**

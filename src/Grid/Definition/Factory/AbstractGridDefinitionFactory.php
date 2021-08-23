@@ -9,6 +9,7 @@ use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\Type\SubmitBulkAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\GridActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\RowActionCollectionInterface;
+use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\LinkRowAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Row\Type\SubmitRowAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Type\LinkGridAction;
 use PrestaShop\PrestaShop\Core\Grid\Action\Type\SimpleGridAction;
@@ -20,6 +21,7 @@ use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\ActionColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BadgeColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\BulkActionColumn;
 use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\IdentifierColumn;
+use PrestaShop\PrestaShop\Core\Grid\Column\Type\Common\LinkColumn;
 use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\AbstractFilterableGridDefinitionFactory;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollection;
 use PrestaShop\PrestaShop\Core\Grid\Filter\FilterCollectionInterface;
@@ -173,7 +175,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
      */
     protected function getRowActions(): RowActionCollectionInterface
     {
-        return (new RowActionCollection())
+        $rowActions = (new RowActionCollection())
             ->add(
                 (new SubmitRowAction('reset'))
                     ->setName('Reset')
@@ -196,6 +198,38 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
                         'confirm_message' => 'Delete this record?'
                     ])
             );
+
+        if ($this->getId() === ProfileGridDefinitionFactory::GRID_ID) {
+            $rowActions->add(
+                (new LinkRowAction('events'))
+                    ->setName('Linked Events')
+                    ->setIcon('zoom_in')
+                    ->setOptions([
+                        'route' => self::GRID_ROUTES_LIST_MAP[EventGridDefinitionFactory::GRID_ID],
+                        'route_param_name' => sprintf(
+                            "%s[filters][%s]",
+                            EventGridDefinitionFactory::GRID_ID,
+                            EI::T_PRIMARY_MAPPINGS[$this->getId()]
+                        ),
+                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()]
+                    ])
+            )->add(
+                (new LinkRowAction('abandoned_carts'))
+                    ->setName('Linked Abandoned Carts')
+                    ->setIcon('zoom_in')
+                    ->setOptions([
+                        'route' => self::GRID_ROUTES_LIST_MAP[AbandonedCartGridDefinitionFactory::GRID_ID],
+                        'route_param_name' => sprintf(
+                            "%s[filters][%s]",
+                            AbandonedCartGridDefinitionFactory::GRID_ID,
+                            EI::T_PRIMARY_MAPPINGS[$this->getId()]
+                        ),
+                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()]
+                    ])
+            );
+        }
+
+        return $rowActions;
     }
 
     /**
@@ -242,9 +276,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
         if ($column === self::COLUMN_TYPE_ACTIONS) {
             return (new ActionColumn($column))
                 ->setName(ucfirst(self::COLUMN_TYPE_ACTIONS))
-                ->setOptions([
-                    'actions' => $this->getRowActions(),
-                ]);
+                ->setOptions(['actions' => $this->getRowActions()]);
         }
 
         $name = $this->getLabel($column);
@@ -253,6 +285,17 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
             return (new IdentifierColumn($column))
                 ->setName($name)
                 ->setOptions(['identifier_field' => $column]);
+        }
+
+        if ($column === EI::C_ID_PROFILE && $this->getId() !== ProfileGridDefinitionFactory::GRID_ID) {
+            return (new LinkColumn($column))
+                ->setName($name)
+                ->setOptions([
+                    'field' => $column,
+                    'route' => self::GRID_ROUTES_LIST_MAP[ProfileGridDefinitionFactory::GRID_ID],
+                    'route_param_name' => sprintf("%s[filters][%s]", ProfileGridDefinitionFactory::GRID_ID, $column),
+                    'route_param_field' => $column,
+                ]);
         }
 
         $options = ['field' => $column];

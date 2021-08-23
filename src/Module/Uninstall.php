@@ -5,6 +5,7 @@ namespace Apsis\One\Module;
 use Apsis_one;
 use Apsis\One\Entity\EntityInterface as EI;
 use Db;
+use Tab;
 use Throwable;
 
 class Uninstall extends AbstractSetup
@@ -18,7 +19,10 @@ class Uninstall extends AbstractSetup
     {
         try {
             $this->module = $module;
-            return $this->uninstallConfigurations() && $this->uninstallHooks() && $this->removeTables();
+            return $this->uninstallConfigurations() &&
+                $this->uninstallHooks() &&
+                $this->removeTables() &&
+                $this->uninstallTabs();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -71,5 +75,31 @@ class Uninstall extends AbstractSetup
         return $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '`') &&
             $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '`') &&
             $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '`');
+    }
+
+    /**
+     * @return bool
+     */
+    protected function uninstallTabs(): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        try {
+            $menuItems = array_merge([self::APSIS_MENU], EI::TABLES);
+            foreach ($menuItems as $menuItem) {
+                $tabId = (int) Tab::getIdFromClassName(self::LEGACY_CONTROLLER_CLASSES[$menuItem]);
+                if (! $tabId) {
+                    continue;
+                }
+
+                $tab = new Tab($tabId);
+                $tab->delete();
+            }
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
+
+        return true;
     }
 }

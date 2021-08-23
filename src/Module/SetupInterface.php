@@ -55,7 +55,9 @@ interface SetupInterface
     const MODULE_VERSION  = '1.0.0';
 
     /** CLASS NAMES FOR LEGACY USAGE */
+    const APSIS_MENU = 'AdminParentApsis';
     const LEGACY_CONTROLLER_CLASSES = [
+        self::APSIS_MENU => self::APSIS_MENU,
         EI::T_PROFILE => 'ApsisOneProfileController',
         EI::T_EVENT => 'ApsisOneEventController',
         EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController'

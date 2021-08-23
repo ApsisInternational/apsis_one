@@ -3,10 +3,13 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
+use Apsis\One\Grid\Definition\Factory\GridDefinitionFactoryInterface;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Entity\EntityInterface as EI;
 use Db;
+use Language;
+use Tab;
 use Throwable;
 
 class Install extends AbstractSetup
@@ -27,7 +30,10 @@ class Install extends AbstractSetup
                 $shopContext->setContext();
             }
 
-            return $this->installConfigurations() && $this->installHooks() && $this->createTables();
+            return $this->installConfigurations() &&
+                $this->installHooks() &&
+                $this->createTables() &&
+                $this->installTabs();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -170,5 +176,65 @@ class Install extends AbstractSetup
         ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
 
         return $db->execute($sql);
+    }
+
+    /**
+     * @return bool
+     */
+    protected function installTabs(): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        try {
+            //First create parent menu item and fetch id
+            $check = $this->createTab(self::APSIS_MENU);
+            if (! $check) {
+                return false;
+            }
+
+            //Create sub menu items under given parent menu
+            $parentId = (new Tab(Tab::getIdFromClassName(self::APSIS_MENU)))->id;
+            foreach (EI::TABLES as $menuItem) {
+                $check = $this->createTab($menuItem, $parentId);
+                if (! $check) {
+                    return false;
+                }
+            }
+
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $menuItem
+     * @param int $parentId
+     *
+     * @return bool
+     */
+    protected function createTab(string $menuItem, int $parentId = 0): bool
+    {
+        try {
+            $tab = new Tab();
+            $tab->active = $tab->enabled = 1;
+            $tab->class_name = self::LEGACY_CONTROLLER_CLASSES[$menuItem];
+            $tab->name = [];
+            $tab->wording = empty($parentId) ? self::MODULE_DISPLAY_NAME : EI::T_LABEL_MAPPINGS[$menuItem];
+            $tab->wording_domain = 'Admin.Navigation.Menu';
+            foreach (Language::getLanguages() as $lang) {
+                $tab->name[$lang['id_lang']] = $tab->wording;
+            }
+            $tab->route_name = empty($parentId) ? '' : GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem];
+            $tab->id_parent = empty($parentId) ? (int) Tab::getIdFromClassName('IMPROVE') : $parentId;
+            $tab->icon = empty($parentId) ? 'account_circle' : '';
+            $tab->module = self::MODULE_NAME;
+            return $tab->save();
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
     }
 }
