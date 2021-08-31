@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Grid\Data\Factory;
 
+use Apsis\One\Entity\EntityInterface as EI;
 use PrestaShop\PrestaShop\Core\Grid\Data\Factory\GridDataFactoryInterface;
 use PrestaShop\PrestaShop\Core\Grid\Data\GridData;
 use PrestaShop\PrestaShop\Core\Grid\Record\RecordCollection;
@@ -11,6 +12,9 @@ use Apsis\One\Form\ChoiceProvider\ProviderInterface;
 
 abstract class AbstractGridDataFactoryDecorator implements GridDataFactoryInterface
 {
+    const NO_ID = 0;
+    const NO_ID_COLUMNS = [EI::C_ID_CUSTOMER, EI::C_ID_NEWSLETTER];
+
     /**
      * @var GridDataFactoryInterface
      */
@@ -19,7 +23,12 @@ abstract class AbstractGridDataFactoryDecorator implements GridDataFactoryInterf
     /**
      * @var ProviderInterface
      */
-    protected $choiceProvider;
+    protected $syncStatusProvider;
+
+    /**
+     * @var ProviderInterface|null
+     */
+    protected $eventTypeProvider;
 
     /**
      * @return array
@@ -30,12 +39,17 @@ abstract class AbstractGridDataFactoryDecorator implements GridDataFactoryInterf
      * AbstractGridDataFactoryDecorator constructor.
      *
      * @param GridDataFactoryInterface $apsisGridDataFactory
-     * @param ProviderInterface $provider
+     * @param ProviderInterface $syncStatusProvider
+     * @param ProviderInterface|null $eventTypeProvider
      */
-    public function __construct(GridDataFactoryInterface $apsisGridDataFactory, ProviderInterface $provider)
-    {
+    public function __construct(
+        GridDataFactoryInterface $apsisGridDataFactory,
+        ProviderInterface $syncStatusProvider,
+        ?ProviderInterface $eventTypeProvider = null
+    ) {
         $this->apsisGridDataFactory = $apsisGridDataFactory;
-        $this->choiceProvider = $provider;
+        $this->syncStatusProvider = $syncStatusProvider;
+        $this->eventTypeProvider = $eventTypeProvider;
     }
 
     /**
@@ -54,22 +68,41 @@ abstract class AbstractGridDataFactoryDecorator implements GridDataFactoryInterf
     }
 
     /**
-     * @param RecordCollectionInterface $records
+     * @param RecordCollectionInterface $collection
      * @param array $columns
      *
      * @return RecordCollection
      */
-    protected function modifyColumnsValue(RecordCollectionInterface $records, array $columns): RecordCollection
+    protected function modifyColumnsValue(RecordCollectionInterface $collection, array $columns): RecordCollection
     {
-        $modifiedRecords = [];
-        foreach ($columns as $column => $choiceValuePair) {
-            foreach ($records as $record) {
-                if (isset($record[$column]) && array_key_exists($record[$column], $choiceValuePair)) {
-                    $record[$column] = $choiceValuePair[$record[$column]];
-                }
-                $modifiedRecords[] = $record;
+        $records = $collection->all();
+        foreach ($columns as $column => $cond) {
+            foreach ($records as $index => $record) {
+                $records[$index] = $this->applyModifications($record, $column, is_array($cond) ? $cond : [$cond]);
             }
         }
-        return new RecordCollection($modifiedRecords);
+        return new RecordCollection($records);
+    }
+
+    /**
+     * @param array $record
+     * @param string $column
+     * @param array $cond
+     *
+     * @return array
+     */
+    protected function applyModifications(array $record, string $column, array $cond): array
+    {
+        if (isset($record[$column])) {
+            if ($column === EI::C_SYNC_STATUS && array_key_exists($record[$column], $cond)) {
+                $record[$column] = $cond[$record[$column]];
+            }
+
+            if (in_array($column, self::NO_ID_COLUMNS) && $record[$column] == array_pop($cond)) {
+                $record[$column] = '--';
+            }
+        }
+
+        return $record;
     }
 }

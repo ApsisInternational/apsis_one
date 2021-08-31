@@ -30,7 +30,7 @@ services:
       - 'apsis_profile'
 
   apsis_one.grid.data.factory.profile_data_factory_decorator:
-    class: 'Apsis\One\Grid\Data\Factory\CommonGridDataFactoryDecorator'
+    class: 'Apsis\One\Grid\Data\Factory\ProfileGridDataFactoryDecorator'
     arguments:
       - '@apsis_one.grid.data.factory.profile_data_factory'
       - '@apsis_one.form.choice_provider.profile_sync_status_provider'
@@ -55,11 +55,15 @@ services:
   apsis_one.form.choice_provider.event_sync_status_provider:
     class: 'Apsis\One\Form\ChoiceProvider\EventSyncStatusProvider'
 
+  apsis_one.form.choice_provider.event_type_provider:
+    class: 'Apsis\One\Form\ChoiceProvider\EventTypeProvider'
+
   apsis_one.grid.definition.factory.event_grid_definition_factory:
     class: 'Apsis\One\Grid\Definition\Factory\EventGridDefinitionFactory'
     parent: 'prestashop.core.grid.definition.factory.abstract_grid_definition'
     arguments:
       - '@apsis_one.form.choice_provider.event_sync_status_provider'
+      - '@apsis_one.form.choice_provider.event_type_provider'
     public: true
 
   apsis_one.grid.query.event_query_builder:
@@ -79,10 +83,11 @@ services:
       - 'apsis_event'
 
   apsis_one.grid.data.factory.event_data_factory_decorator:
-    class: 'Apsis\One\Grid\Data\Factory\CommonGridDataFactoryDecorator'
+    class: 'Apsis\One\Grid\Data\Factory\EventGridDataFactoryDecorator'
     arguments:
       - '@apsis_one.grid.data.factory.event_data_factory'
       - '@apsis_one.form.choice_provider.event_sync_status_provider'
+      - '@apsis_one.form.choice_provider.event_type_provider'
 
   apsis_one.grid.event_grid_factory:
     class: 'PrestaShop\PrestaShop\Core\Grid\GridFactory'

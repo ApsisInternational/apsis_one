@@ -32,7 +32,7 @@ abstract class AbstractSetup implements SetupInterface
      *
      * @return string
      */
-    protected function getTableWithDbPrefix(string $tableName): string
+    public static function getTableWithDbPrefix(string $tableName): string
     {
         return _DB_PREFIX_ . $tableName;
     }

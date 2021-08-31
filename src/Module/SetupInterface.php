@@ -63,6 +63,49 @@ interface SetupInterface
         EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController'
     ];
 
+    const PS_T_CUSTOMER = 'customer';
+    const PS_T_NEWSLETTER = 'emailsubscription';
+    const T_DEF_VALUES = 'default';
+    const PS_COLUMNS_SEL = [
+        self::T_DEF_VALUES => [
+            EI::C_ID_INTEGRATION => EI::EXP_UUID . ' as `%s`',
+            EI::C_ID_SHOP => '`%s`',
+            EI::C_EMAIL => '`%s`',
+            EI::C_SYNC_STATUS => '0 as `%s`',
+            EI::C_ERROR_MSG => '"" as `%s`',
+            EI::C_DATE_UPD => EI::EXP_NOW . ' as `%s`',
+        ],
+        self::PS_T_CUSTOMER => [
+            EI::C_ID_CUSTOMER => '`%s`',
+            EI::C_ID_NEWSLETTER => '0 AS `%s`',
+            EI::C_IS_CUSTOMER => '1 AS `%s`',
+            EI::C_IS_GUEST => '`%s`',
+            EI::C_IS_NEWSLETTER => '`newsletter` as `%s`',
+            EI::C_IS_OFFERS => '`optin` as `%s`'
+        ],
+        self::PS_T_NEWSLETTER => [
+            EI::C_ID_CUSTOMER => '0 AS `%s`',
+            EI::C_ID_NEWSLETTER => '`id` AS `%s`',
+            EI::C_IS_CUSTOMER => '0 AS `%s`',
+            EI::C_IS_GUEST => '0 AS `%s`',
+            EI::C_IS_NEWSLETTER => '1 AS `%s`',
+            EI::C_IS_OFFERS => '0 as `%s`'
+        ]
+    ];
+    const PS_WHERE_COND = [
+        self::T_DEF_VALUES => [
+            '`email` != ""',
+            '`email` IS NOT NULL'
+        ],
+        self::PS_T_CUSTOMER => ['`deleted` = 0'],
+        self::PS_T_NEWSLETTER => ['`active` = 1']
+    ];
+
+    const T_PROFILE_MIGRATE_DATA_FROM_TABLES = [
+        self::PS_T_CUSTOMER,
+        self::PS_T_NEWSLETTER
+    ];
+
     /**
      * @param Apsis_one $module
      *

@@ -11,6 +11,6 @@ class CommonGridDataFactoryDecorator extends AbstractGridDataFactoryDecorator
      */
     protected function getColumns(): array
     {
-        return [EI::C_SYNC_STATUS => array_flip($this->choiceProvider->getChoices())];
+        return [EI::C_SYNC_STATUS => array_flip($this->syncStatusProvider->getChoices())];
     }
 }

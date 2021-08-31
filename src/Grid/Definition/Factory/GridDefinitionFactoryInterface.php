@@ -60,16 +60,22 @@ interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactory
         'isDate' => DateRangeType::class
     ];
     const BOOLEAN_COLUMNS = [
-        EI::C_IS_SUBSCRIBER,
+        EI::C_IS_NEWSLETTER,
+        EI::C_IS_OFFERS,
         EI::C_IS_GUEST,
         EI::C_IS_CUSTOMER
     ];
 
     /**
      * @param HookDispatcherInterface $hookDispatcher
-     * @param ProviderInterface|null $provider
+     * @param ProviderInterface|null $syncStatusProvider
+     * @param ProviderInterface|null $eventTypeProvider
      */
-    public function __construct(HookDispatcherInterface $hookDispatcher, ?ProviderInterface $provider = null);
+    public function __construct(
+        HookDispatcherInterface $hookDispatcher,
+        ?ProviderInterface $syncStatusProvider = null,
+        ?ProviderInterface $eventTypeProvider = null
+    );
 
     /**
      * @return string

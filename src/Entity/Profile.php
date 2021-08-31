@@ -34,7 +34,12 @@ class Profile extends AbstractEntity
     /**
      * @var bool
      */
-    protected $is_subscriber = self::NO;
+    protected $is_newsletter = self::NO;
+
+    /**
+     * @var bool
+     */
+    protected $is_offers = self::NO;
 
     /**
      * {@inheritdoc}
@@ -159,19 +164,38 @@ class Profile extends AbstractEntity
     /**
      * @return bool
      */
-    public function getIsSubscriber(): bool
+    public function getIsNewsletter(): bool
     {
-        return $this->is_subscriber;
+        return $this->is_newsletter;
     }
 
     /**
-     * @param bool $isSubscriber
+     * @param bool $isNewsletter
      *
      * @return $this
      */
-    public function setIsSubscriber(bool $isSubscriber = self::NO): Profile
+    public function setIsNewsletter(bool $isNewsletter = self::NO): Profile
     {
-        $this->is_subscriber = $isSubscriber;
+        $this->is_newsletter = $isNewsletter;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsOffers(): bool
+    {
+        return $this->is_offers;
+    }
+
+    /**
+     * @param bool $isOffers
+     *
+     * @return $this
+     */
+    public function setIsOffers(bool $isOffers = self::NO): Profile
+    {
+        $this->is_offers = $isOffers;
         return $this;
     }
 

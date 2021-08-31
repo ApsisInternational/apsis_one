@@ -176,6 +176,12 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Newsletter Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
+        ],
+        [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffersSubscription',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers Subscription',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ]
     ];
     const SCHEMA_PROFILE_ENTRY = [
@@ -359,6 +365,12 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Newsletter Subscribe Date',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP
+        ],
+        'isSubscribedToPartnerOffers' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'isSubscribedToPartnerOffers',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Subscribed To Partner Offers',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
         'isActive' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'isActive',

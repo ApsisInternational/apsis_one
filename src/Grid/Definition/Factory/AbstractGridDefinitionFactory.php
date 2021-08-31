@@ -40,14 +40,23 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     /**
      * @var ProviderInterface|null
      */
-    protected $provider;
+    protected $syncStatusProvider;
+
+    /**
+     * @var ProviderInterface|null
+     */
+    protected $eventTypeProvider;
 
     /**
      * {@inheritdoc}
      */
-    public function __construct(HookDispatcherInterface $hookDispatcher, ?ProviderInterface $provider = null)
-    {
-        $this->provider = $provider;
+    public function __construct(
+        HookDispatcherInterface $hookDispatcher,
+        ?ProviderInterface $syncStatusProvider = null,
+        ?ProviderInterface $eventTypeProvider = null
+    ) {
+        $this->syncStatusProvider = $syncStatusProvider;
+        $this->eventTypeProvider = $eventTypeProvider;
         parent::__construct($hookDispatcher);
     }
 
@@ -246,14 +255,8 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
      */
     public static function getAllowedGridFilters(string $gridId): array
     {
-        $columns = static::getAllowedColumns(EI::T_COLUMNS_MAPPINGS[$gridId]);
-        $columns = array_merge(
-            [EI::T_PRIMARY_MAPPINGS[$gridId] => EI::C_PRIMARY_DEF[EI::T_PRIMARY_MAPPINGS[$gridId]]],
-            $columns
-        );
-
         $allowedFilters = [];
-        foreach ($columns as $name => $definition) {
+        foreach (static::getAllowedColumns(EI::T_COLUMNS_MAPPINGS[$gridId]) as $name => $definition) {
             $allowedFilters[$name] = self::FILTER_TYPE_MAPPINGS[$definition['validate']];
         }
         return $allowedFilters;
@@ -279,22 +282,22 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
                 ->setOptions(['actions' => $this->getRowActions()]);
         }
 
-        $name = $this->getLabel($column);
-
         if ($column === EI::T_PRIMARY_MAPPINGS[$this->getId()]) {
             return (new IdentifierColumn($column))
-                ->setName($name)
+                ->setName('ID')
                 ->setOptions(['identifier_field' => $column]);
         }
 
-        if ($column === EI::C_ID_PROFILE && $this->getId() !== ProfileGridDefinitionFactory::GRID_ID) {
+        if ($column === EI::C_ID_PROFILE && $column !== EI::T_PRIMARY_MAPPINGS[$this->getId()]) {
             return (new LinkColumn($column))
-                ->setName($name)
+                ->setName($this->getLabel($column))
                 ->setOptions([
                     'field' => $column,
                     'route' => self::GRID_ROUTES_LIST_MAP[ProfileGridDefinitionFactory::GRID_ID],
                     'route_param_name' => sprintf("%s[filters][%s]", ProfileGridDefinitionFactory::GRID_ID, $column),
                     'route_param_field' => $column,
+                    'icon' => '',
+                    'button_template' => 'outline',
                 ]);
         }
 
@@ -305,7 +308,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
             $options['false_name'] = 'No';
             $options['clickable'] = false;
             return (new BooleanColumn($column))
-                ->setName($name)
+                ->setName($this->getLabel($column) . '?')
                 ->setOptions($options);
         }
 
@@ -314,12 +317,12 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
             $options['empty_value'] = '';
             $options['clickable'] = false;
             return (new BadgeColumn($column))
-                ->setName($name)
+                ->setName($this->getLabel($column))
                 ->setOptions($options);
         }
 
         return (new DataColumn($column))
-            ->setName($name)
+            ->setName($this->getLabel($column))
             ->setOptions($options);
     }
 
@@ -347,9 +350,19 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
             $filter->setTypeOptions(['required' => false]);
         }
 
-        if ($type === ChoiceType::class && $this->provider instanceof ProviderInterface) {
+        if ($type === ChoiceType::class) {
+            $choices = [];
+
+            if ($name === EI::C_SYNC_STATUS  && $this->syncStatusProvider instanceof ProviderInterface) {
+                $choices = $this->syncStatusProvider->getChoices();
+            }
+
+            if ($name === EI::C_EVENT_TYPE  && $this->eventTypeProvider instanceof ProviderInterface) {
+                $choices = $this->eventTypeProvider->getChoices();
+            }
+
             $filter->setTypeOptions([
-                'choices' => $this->provider->getChoices(),
+                'choices' => $choices,
                 'expanded' => false,
                 'multiple' => false,
                 'required' => false,
@@ -392,6 +405,10 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
      */
     protected static function getAllowedColumns(array $columns): array
     {
+        if (isset($columns[EI::C_ID_ENTITY_PS])) {
+            unset($columns[EI::C_ID_ENTITY_PS]);
+        }
+
         if (isset($columns[EI::C_EVENT_DATA])) {
             unset($columns[EI::C_EVENT_DATA]);
         }
@@ -402,13 +419,6 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
 
         if (isset($columns[EI::C_CART_DATA])) {
             unset($columns[EI::C_CART_DATA]);
-        }
-
-        // Change position to end
-        if (isset($columns[EI::C_ID_SHOP])) {
-            $idShopColumn = $columns[EI::C_ID_SHOP];
-            unset($columns[EI::C_ID_SHOP]);
-            $columns[EI::C_ID_SHOP] = $idShopColumn;
         }
 
         return $columns;

@@ -36,15 +36,20 @@ class Uninstall extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        return $this->configs->deleteGlobalKey() &&
-            $this->configs->deleteProfileSyncFlagFromAllContext() &&
-            $this->configs->deleteEventSyncFlagFromAllContext() &&
-            $this->configs->deleteTrackingCodeFromAllContext() &&
-            $this->configs->deleteInstallationConfigsFromAllContext() &&
-            $this->configs->deleteApiTokenFromAllContext() &&
-            $this->configs->deleteApiTokenExpiryFromAllContext() &&
-            $this->configs->deleteDbCleanUpAfterFromAllContext() &&
-            $this->configs->deleteProfileSynSizeFromAllContext();
+        try {
+            return $this->configs->deleteGlobalKey() &&
+                $this->configs->deleteProfileSyncFlagFromAllContext() &&
+                $this->configs->deleteEventSyncFlagFromAllContext() &&
+                $this->configs->deleteTrackingCodeFromAllContext() &&
+                $this->configs->deleteInstallationConfigsFromAllContext() &&
+                $this->configs->deleteApiTokenFromAllContext() &&
+                $this->configs->deleteApiTokenExpiryFromAllContext() &&
+                $this->configs->deleteDbCleanUpAfterFromAllContext() &&
+                $this->configs->deleteProfileSynSizeFromAllContext();
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
     }
 
     /**
@@ -54,13 +59,18 @@ class Uninstall extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        $status = true;
-        foreach ($this->module->helper->getAllAvailableHooks() as $hook) {
-            if (! $this->module->unregisterHook($hook)) {
-                $status = false;
+        try {
+            $status = true;
+            foreach ($this->module->helper->getAllAvailableHooks() as $hook) {
+                if (! $this->module->unregisterHook($hook)) {
+                    $status = false;
+                }
             }
+            return $status;
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
         }
-        return $status;
     }
 
     /**
@@ -70,11 +80,15 @@ class Uninstall extends AbstractSetup
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
+        try {
         $db = Db::getInstance();
-
-        return $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '`') &&
-            $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '`');
+            return $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '`') &&
+                $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '`') &&
+                $db->execute('DROP TABLE IF EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '`');
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
     }
 
     /**
@@ -95,11 +109,10 @@ class Uninstall extends AbstractSetup
                 $tab = new Tab($tabId);
                 $tab->delete();
             }
+            return true;
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
-
-        return true;
     }
 }

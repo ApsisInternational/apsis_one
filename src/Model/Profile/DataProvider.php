@@ -30,6 +30,12 @@ class DataProvider extends AbstractDataProvider
         return '';
     }
 
+    protected function getIsSubscribedToPartnerOffers()
+    {
+        //return $this->object->getSomeValue();
+        return '';
+    }
+
     protected function getNewsletterDateAdded()
     {
         //return $this->object->getSomeValue();

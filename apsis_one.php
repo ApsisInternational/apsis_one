@@ -70,7 +70,7 @@ class Apsis_one extends Module implements SetupInterface
 
             /** @var Install $installModule */
             $installModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_INSTALL);
-            return parent::install() && $installModule->init($this);
+            return $installModule->init($this) && parent::install();
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -87,7 +87,7 @@ class Apsis_one extends Module implements SetupInterface
 
             /** @var Uninstall $uninstallModule */
             $uninstallModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_UNINSTALL);
-            return parent::uninstall() && $uninstallModule->init($this);
+            return  $uninstallModule->init($this) && parent::uninstall();
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
