@@ -17,32 +17,27 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     /**
      * @var int
      */
-    protected $id_apsis_profile;
-
-    /**
-     * @var int
-     */
-    protected $id_entity_ps;
-
-    /**
-     * @var int
-     */
-    protected $sync_status = self::SS_PENDING;
-
-    /**
-     * @var string
-     */
-    protected $error_message = self::EMPTY;
-
-    /**
-     * @var string
-     */
-    protected $date_upd;
+    public $id_apsis_profile;
 
     /**
      * {@inheritdoc}
      */
-    protected $id_shop;
+    public $id_shop;
+
+    /**
+     * @var int
+     */
+    public $sync_status = self::SS_PENDING;
+
+    /**
+     * @var string
+     */
+    public $error_message = self::EMPTY;
+
+    /**
+     * @var string
+     */
+    public $date_upd;
 
     /**
      * AbstractEntity constructor.
@@ -55,32 +50,6 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     public function __construct($id = null)
     {
         parent::__construct($id);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    abstract public static function fetchCollectionClassName(): string;
-
-    /**
-     * {@inheritdoc}
-     */
-    abstract public static function fetchRepositoryClassName(): string;
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getRepositoryClassName(): string
-    {
-        return static::fetchRepositoryClassName();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getCollectionClassName(): string
-    {
-        return static::fetchCollectionClassName();
     }
 
     /**
@@ -129,7 +98,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function getId(): int
     {
-        return $this->id;
+        return (int) $this->id;
     }
 
     /**
@@ -148,7 +117,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function getIdApsisProfile(): int
     {
-        return $this->id_apsis_profile;
+        return (int) $this->id_apsis_profile;
     }
 
     /**
@@ -167,7 +136,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function getIdShop(): int
     {
-        return $this->id_shop;
+        return (int) $this->id_shop;
     }
 
     /**
@@ -184,28 +153,9 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     /**
      * @return int
      */
-    public function getIdEntityPs(): int
-    {
-        return $this->id_entity_ps;
-    }
-
-    /**
-     * @param int $idEntityPs
-     *
-     * @return $this
-     */
-    public function setIdEntityPs(int $idEntityPs): AbstractEntity
-    {
-        $this->id_entity_ps = $idEntityPs;
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
     public function getSyncStatus(): int
     {
-        return $this->sync_status;
+        return (int) $this->sync_status;
     }
 
     /**
@@ -224,7 +174,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function getErrorMessage(): string
     {
-        return $this->error_message;
+        return (string) $this->error_message;
     }
 
     /**
@@ -243,7 +193,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function getDateUpd(): string
     {
-        return $this->date_upd;
+        return (string) $this->date_upd;
     }
 
     /**
@@ -259,14 +209,18 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
 
     /**
      * @return array
+     *
+     * @throws PrestaShopException
      */
     public function toArray(): array
     {
-        return get_object_vars($this);
+        return $this->getFields();
     }
 
     /**
      * @return string
+     *
+     * @throws PrestaShopException
      */
     public function toJson(): string
     {

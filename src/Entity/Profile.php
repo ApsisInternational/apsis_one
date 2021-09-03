@@ -2,44 +2,51 @@
 
 namespace Apsis\One\Entity;
 
-use Apsis\One\Entity\Repository\ProfileRepository;
-use Apsis\One\Entity\Collection\ProfileCollection;
 use Apsis\One\Helper\EntityHelper;
 use PrestaShopDatabaseException;
 use PrestaShopException;
-use Shop;
 
 class Profile extends AbstractEntity
 {
     /**
      * @var string
      */
-    protected $id_integration;
+    public $id_integration;
 
     /**
      * @var string
      */
-    protected $email;
+    public $email;
+
+    /**
+     * @var int
+     */
+    public $id_customer = self::NO_ID;
+
+    /**
+     * @var int
+     */
+    public $id_newsletter = self::NO_ID;
 
     /**
      * @var bool
      */
-    protected $is_customer = self::NO;
+    public $is_customer = self::NO;
 
     /**
      * @var bool
      */
-    protected $is_guest = self::NO;
+    public $is_guest = self::NO;
 
     /**
      * @var bool
      */
-    protected $is_newsletter = self::NO;
+    public $is_newsletter = self::NO;
 
     /**
      * @var bool
      */
-    protected $is_offers = self::NO;
+    public $is_offers = self::NO;
 
     /**
      * {@inheritdoc}
@@ -47,44 +54,8 @@ class Profile extends AbstractEntity
     public static $definition = [
         'table' => self::T_PROFILE,
         'primary' => self::T_PRIMARY_MAPPINGS[self::T_PROFILE],
-        'fields' => self::T_COLUMNS_MAPPINGS[self::T_PROFILE],
-        'associations' => [
-            'shop' => [
-                'type' => self::HAS_ONE,
-                'field' => self::C_ID_SHOP,
-                'object' => Shop::class,
-                'association' => 'shop'
-            ],
-            'events' => [
-                'type' => self::HAS_MANY,
-                'field' => self::C_ID_EVENT,
-                'object' => Event::class,
-                'association' => self::T_EVENT
-            ],
-            'abandoned_carts' => [
-                'type' => self::HAS_MANY,
-                'field' => self::C_ID_AC,
-                'object' => AbandonedCart::class,
-                'association' => self::T_ABANDONED_CART
-            ],
-        ]
+        'fields' => self::T_COLUMNS_MAPPINGS[self::T_PROFILE]
     ];
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fetchCollectionClassName(): string
-    {
-        return ProfileCollection::class;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fetchRepositoryClassName(): string
-    {
-        return ProfileRepository::class;
-    }
 
     /**
      * @param bool $auto_date
@@ -109,7 +80,7 @@ class Profile extends AbstractEntity
      */
     public function getIdIntegration(): string
     {
-        return $this->id_integration;
+        return (string) $this->id_integration;
     }
 
     /**
@@ -124,11 +95,49 @@ class Profile extends AbstractEntity
     }
 
     /**
+     * @return int
+     */
+    public function getIdCustomer(): int
+    {
+        return (int) $this->id_customer;
+    }
+
+    /**
+     * @param int $idCustomer
+     *
+     * @return $this
+     */
+    public function setIdCustomer(int $idCustomer = self::NO_ID): Profile
+    {
+        $this->id_customer = $idCustomer;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getIdNewsletter(): int
+    {
+        return (int) $this->id_newsletter;
+    }
+
+    /**
+     * @param int $idNewsletter
+     *
+     * @return $this
+     */
+    public function setIdNewsletter(int $idNewsletter = self::NO_ID): Profile
+    {
+        $this->id_newsletter = $idNewsletter;
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getEmail(): string
     {
-        return $this->email;
+        return (string) $this->email;
     }
 
     /**
@@ -147,7 +156,7 @@ class Profile extends AbstractEntity
      */
     public function getIsCustomer(): bool
     {
-        return $this->is_customer;
+        return (bool) $this->is_customer;
     }
 
     /**
@@ -166,7 +175,7 @@ class Profile extends AbstractEntity
      */
     public function getIsNewsletter(): bool
     {
-        return $this->is_newsletter;
+        return (bool) $this->is_newsletter;
     }
 
     /**
@@ -185,7 +194,7 @@ class Profile extends AbstractEntity
      */
     public function getIsOffers(): bool
     {
-        return $this->is_offers;
+        return (bool) $this->is_offers;
     }
 
     /**
@@ -204,7 +213,7 @@ class Profile extends AbstractEntity
      */
     public function getIsGuest(): bool
     {
-        return $this->is_guest;
+        return (bool) $this->is_guest;
     }
 
     /**

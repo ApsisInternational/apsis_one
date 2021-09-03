@@ -269,32 +269,5 @@ interface EntityInterface extends PsEntityInterface
 
     //** OTHER */
     const EMPTY = '';
-
-    /**
-     * Returns the name of the repository class for this entity.
-     *
-     * @return string
-     */
-    public static function fetchRepositoryClassName(): string;
-
-    /**
-     * Returns the name of the collection class for this entity.
-     *
-     * @return string
-     */
-    public static function fetchCollectionClassName(): string;
-
-    /**
-     * Alias to fetchRepositoryClassName method
-     *
-     * @return string
-     */
-    public static function getRepositoryClassName(): string;
-
-    /**
-     * Alias to fetchCollectionClassName method
-     *
-     * @return string
-     */
-    public static function getCollectionClassName(): string;
+    const NO_ID = 0;
 }

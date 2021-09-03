@@ -82,7 +82,7 @@ class ModuleHelper extends LoggerHelper
 
             $in = implode(',', array_map('intval', $shopList));
             $moduleId = Module::getModuleIdByName(SetupInterface::MODULE_NAME);
-            $select = 'SELECT `id_module` FROM `' . AbstractSetup::getTableWithDbPrefix('module_shop`') . '`';
+            $select = 'SELECT `id_module` FROM `' . AbstractSetup::getTableWithDbPrefix('module_shop') . '`';
             $where = 'WHERE `id_module` = ' . $moduleId .' AND `id_shop` IN (' . $in . ')';
 
             if (Db::getInstance()->getValue($select . ' ' . $where)) {

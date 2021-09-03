@@ -2,36 +2,37 @@
 
 namespace Apsis\One\Entity;
 
-use Apsis\One\Entity\Repository\EventRepository;
-use Apsis\One\Entity\Collection\EventCollection;
-use Shop;
-
 class Event extends AbstractEntity
 {
     /**
      * @var int
      */
-    protected $id_apsis_event;
+    public $id_apsis_event;
 
     /**
      * @var int
      */
-    protected $event_type;
+    public $id_entity_ps;
+
+    /**
+     * @var int
+     */
+    public $event_type;
 
     /**
      * @var string
      */
-    protected $event_data;
+    public $event_data;
 
     /**
      * @var string
      */
-    protected $sub_event_data = self::EMPTY;
+    public $sub_event_data = self::EMPTY;
 
     /**
      * @var string
      */
-    protected $date_add;
+    public $date_add;
 
     /**
      * {@inheritdoc}
@@ -39,45 +40,15 @@ class Event extends AbstractEntity
     public static $definition = [
         'table' => self::T_EVENT,
         'primary' => self::T_PRIMARY_MAPPINGS[self::T_EVENT],
-        'fields' => self::T_COLUMNS_MAPPINGS[self::T_EVENT],
-        'associations' => [
-            'shop' => [
-                'type' => self::HAS_ONE,
-                'field' => self::C_ID_SHOP,
-                'object' => Shop::class,
-                'association' => 'shop'
-            ],
-            'profile' => [
-                'type' => self::HAS_ONE,
-                'field' => self::C_ID_PROFILE,
-                'object' => Profile::class,
-                'association' => self::T_PROFILE
-            ],
-        ]
+        'fields' => self::T_COLUMNS_MAPPINGS[self::T_EVENT]
     ];
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fetchCollectionClassName(): string
-    {
-        return EventCollection::class;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function fetchRepositoryClassName(): string
-    {
-        return EventRepository::class;
-    }
 
     /**
      * @return int
      */
     public function getIdApsisEvent(): int
     {
-        return $this->id_apsis_event;
+        return (int) $this->id_apsis_event;
     }
 
     /**
@@ -94,9 +65,28 @@ class Event extends AbstractEntity
     /**
      * @return int
      */
+    public function getIdEntityPs(): int
+    {
+        return (int) $this->id_entity_ps;
+    }
+
+    /**
+     * @param int $idEntityPs
+     *
+     * @return $this
+     */
+    public function setIdEntityPs(int $idEntityPs): AbstractEntity
+    {
+        $this->id_entity_ps = $idEntityPs;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
     public function getEventType(): int
     {
-        return $this->event_type;
+        return (int) $this->event_type;
     }
 
     /**
@@ -115,7 +105,7 @@ class Event extends AbstractEntity
      */
     public function getEventData(): string
     {
-        return $this->event_data;
+        return (string) $this->event_data;
     }
 
     /**
@@ -134,7 +124,7 @@ class Event extends AbstractEntity
      */
     public function getSubEventData(): string
     {
-        return $this->sub_event_data;
+        return (string) $this->sub_event_data;
     }
 
     /**
@@ -153,7 +143,7 @@ class Event extends AbstractEntity
      */
     public function getDateAdd(): string
     {
-        return $this->date_add;
+        return (string) $this->date_add;
     }
 
     /**
