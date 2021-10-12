@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Grid\Data\Factory;
 
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 use PrestaShop\PrestaShop\Core\Grid\Data\Factory\GridDataFactoryInterface;
 use PrestaShop\PrestaShop\Core\Grid\Data\GridData;
 use PrestaShop\PrestaShop\Core\Grid\Record\RecordCollection;

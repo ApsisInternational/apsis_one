@@ -7,7 +7,7 @@ use PrestaShop\PrestaShop\Core\Grid\Query\DoctrineSearchCriteriaApplicatorInterf
 use PrestaShop\PrestaShop\Core\Grid\Search\SearchCriteriaInterface;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Query\QueryBuilder;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 use PrestaShopBundle\Form\Admin\Type\DateRangeType;
 use Apsis\One\Grid\Definition\Factory\AbstractGridDefinitionFactory;
 

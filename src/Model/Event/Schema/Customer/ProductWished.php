@@ -15,7 +15,7 @@ class ProductWished extends AbstractSchema
             self::EVENT_CUSTOMER_PRODUCT_WISHED_DISCRIMINATOR => array_merge(
                 self::SCHEMA_FIELD_GROUP_PRODUCT_WISHED,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT,
+                self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_GROUP_PRODUCT,
                 self::SCHEMA_FIELD_PRODUCT_QTY,
                 self::SCHEMA_FIELD_GROUP_PRODUCT_PRICE,

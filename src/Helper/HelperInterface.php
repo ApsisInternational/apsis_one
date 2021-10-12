@@ -11,18 +11,22 @@ interface HelperInterface
     const ISO_8601 = 'c';
 
     /** CUSTOMER ENTITY HOOKS  */
-    const ENTITY_CUSTOMER_HOOKS = [
-        'actionObjectCustomerAddAfter',
-        'actionObjectCustomerUpdateAfter',
-        'actionObjectCustomerDeleteAfter',
-        'actionAuthentication',
-        'displayCustomerAccount'
+    const CUSTOMER_HOOK_ADD_AFTER = 'actionObjectCustomerAddAfter';
+    const CUSTOMER_HOOK_UPDATE_AFTER = 'actionObjectCustomerUpdateAfter';
+    const CUSTOMER_HOOK_DELETE_AFTER = 'actionObjectCustomerDeleteAfter';
+    const CUSTOMER_HOOK_AUTH = 'actionAuthentication';
+    const CUSTOMER_HOOK_DISPLAY_ACCOUNT = 'displayCustomerAccount';
+    const CUSTOMER_HOOKS = [
+        self::CUSTOMER_HOOK_ADD_AFTER,
+        self::CUSTOMER_HOOK_UPDATE_AFTER,
+        self::CUSTOMER_HOOK_DELETE_AFTER,
+        self::CUSTOMER_HOOK_AUTH,
+        self::CUSTOMER_HOOK_DISPLAY_ACCOUNT
     ];
 
     /** SUBSCRIPTION ENTITY HOOKS  */
-    const ENTITY_SUBSCRIPTION_HOOKS = [
-        'actionNewsletterRegistrationAfter'
-    ];
+    const EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER = 'actionNewsletterRegistrationAfter';
+    const EMAIL_SUBSCRIPTION_HOOKS = [self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER];
 
     /** ADDRESS ENTITY HOOKS  */
     const ENTITY_ADDRESS_HOOKS = [];
@@ -31,16 +35,21 @@ interface HelperInterface
     const ENTITY_GDPR_HOOKS = [];
 
     /** PRODUCT COMMENT ENTITY HOOKS  */
-    const ENTITY_PRODUCT_COMMENT_HOOKS = ['actionObjectProductCommentValidateAfter'];
+    const PRODUCT_COMMENT_HOOK_VALIDATE = 'actionObjectProductCommentValidateAfter';
+    const PRODUCT_COMMENT_HOOKS = [self::PRODUCT_COMMENT_HOOK_VALIDATE];
 
     /** WISHLIST ENTITY HOOKS  */
-    const ENTITY_WISHLIST_HOOKS = ['actionWishlistAddProduct'];
+    const WISHLIST_HOOK_ADD_PRODUCT = 'actionWishlistAddProduct';
+    const WISHLIST_HOOKS = [self::WISHLIST_HOOK_ADD_PRODUCT];
 
     /** ORDER ENTITY HOOKS  */
-    const ENTITY_ORDER_HOOKS = ['actionValidateOrder', 'actionObjectOrderAddAfter'];
+    const ORDER_HOOK_VALIDATE = 'actionValidateOrder';
+    const ORDER_HOOK_ADD_AFTER = 'actionObjectOrderAddAfter';
+    const ORDER_HOOKS = [self::ORDER_HOOK_VALIDATE, self::ORDER_HOOK_ADD_AFTER];
 
     /** CART ENTITY HOOKS  */
-    const ENTITY_CART_HOOKS = [ 'actionCartUpdateQuantityBefore'];
+    const CART_HOOK_UPDATE_QTY_BEFORE = 'actionCartUpdateQuantityBefore';
+    const CART_HOOKS = [self::CART_HOOK_UPDATE_QTY_BEFORE];
 
     /**
      * SERVICES
@@ -53,31 +62,24 @@ interface HelperInterface
     const SERVICE_MODULE_API_CLIENT_FACTORY = 'apsis_one.module.api.clientfactory';
     const SERVICE_MODULE_ADMIN_CONFIGURATION = 'apsis_one.module.configuration';
     const SERVICE_MODULE_HOOK_PROCESSOR = 'apsis_one.module.hook-processor';
-
     /** CONTEXT */
     const SERVICE_CONTEXT_SHOP = 'apsis_one.context.shop';
     const SERVICE_CONTEXT_LINK = 'apsis_one.context.link';
-
     /** HELPER */
     const SERVICE_HELPER_LOGGER = 'apsis_one.helper.logger';
     const SERVICE_HELPER_DATA = 'apsis_one.helper.data';
     const SERVICE_HELPER_DATE = 'apsis_one.helper.date';
     const SERVICE_HELPER_MODULE = 'apsis_one.helper.module';
-
+    const SERVICE_HELPER_ENTITY = 'apsis_one.helper.entity';
     /** PROFILE */
     const SERVICE_PROFILE_SCHEMA = 'apsis_one.profile.schema';
     const SERVICE_PROFILE_CONTAINER = 'apsis_one.profile.container';
-    const SERVICE_PROFILE_REPOSITORY = 'apsis_one.profile.repository';
-
     /** ABANDONED CART */
     const SERVICE_ABANDONED_CART_SCHEMA = 'apsis_one.abandoned-cart.schema';
     const SERVICE_ABANDONED_CART_ITEM_SCHEMA = 'apsis_one.abandoned-cart-item.schema';
     const SERVICE_ABANDONED_CART_CONTAINER = 'apsis_one.abandoned-cart.container';
-    const SERVICE_ABANDONED_CART_REPOSITORY = 'apsis_one.abandoned-cart.repository';
-
     /** EVENT */
     const SERVICE_EVENT_CONTAINER = 'apsis_one.event.container';
-    const SERVICE_EVENT_REPOSITORY = 'apsis_one.event.repository.';
     const SERVICE_EVENT_CUSTOMER_IS_SUBSCRIBER_SCHEMA = 'apsis_one.event.customer-is-subscriber.schema';
     const SERVICE_EVENT_CUSTOMER_LOGIN_SCHEMA = 'apsis_one.event.customer-login.schema';
     const SERVICE_EVENT_CUSTOMER_PRODUCT_WISHED_SCHEMA = 'apsis_one.event.product-wished.schema';
@@ -93,7 +95,10 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 
-    /** GRID ROUTES  */
+    /**
+     * ROUTES
+     */
+    /** GRID  */
     const GRID_ROUTE_PROFILE_LIST = 'admin_apsis_profile_index';
     const GRID_ROUTE_EVENT_LIST = 'admin_apsis_event_index';
     const GRID_ROUTE_AC_LIST = 'admin_apsis_abandonedcart_index';
@@ -112,6 +117,8 @@ interface HelperInterface
     const GRID_ROUTE_PROFILE_EXPORT = 'admin_apsis_profile_export';
     const GRID_ROUTE_EVENT_EXPORT = 'admin_apsis_event_export';
     const GRID_ROUTE_AC_EXPORT = 'admin_apsis_abandonedcart_export';
+    /** OTHER  */
+    const MODULE_CONFIG_ROUTE = 'admin_apsis_module_config';
 
     /** TEMPLATES */
     const TPL_BASE_PATH = '@Modules/apsis_one/views/templates/admin/grids/';

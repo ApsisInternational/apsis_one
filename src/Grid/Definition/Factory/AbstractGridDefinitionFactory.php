@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Grid\Definition\Factory;
 
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 use Apsis\One\Form\ChoiceProvider\ProviderInterface;
 use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\BulkActionCollection;
 use PrestaShop\PrestaShop\Core\Grid\Action\Bulk\Type\SubmitBulkAction;
@@ -405,22 +405,11 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
      */
     protected static function getAllowedColumns(array $columns): array
     {
-        if (isset($columns[EI::C_ID_ENTITY_PS])) {
-            unset($columns[EI::C_ID_ENTITY_PS]);
+        foreach (self::NOT_ALLOWED_COLUMNS as $notAllowedColumn) {
+            if (isset($columns[$notAllowedColumn])) {
+                unset($columns[$notAllowedColumn]);
+            }
         }
-
-        if (isset($columns[EI::C_EVENT_DATA])) {
-            unset($columns[EI::C_EVENT_DATA]);
-        }
-
-        if (isset($columns[EI::C_SUB_EVENT_DATA])) {
-            unset($columns[EI::C_SUB_EVENT_DATA]);
-        }
-
-        if (isset($columns[EI::C_CART_DATA])) {
-            unset($columns[EI::C_CART_DATA]);
-        }
-
         return $columns;
     }
 }

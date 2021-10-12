@@ -5,7 +5,7 @@ namespace Apsis\One\Controller\Admin;
 use PrestaShop\PrestaShop\Core\Grid\GridFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 use Apsis\One\Helper\HelperInterface as HI;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 
 interface ControllerInterface extends ContainerAwareInterface
 {

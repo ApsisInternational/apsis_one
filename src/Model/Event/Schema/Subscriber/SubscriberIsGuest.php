@@ -15,7 +15,7 @@ class SubscriberIsGuest extends AbstractSchema
             self::EVENT_SUBSCRIBER_IS_GUEST_DISCRIMINATOR => array_merge(
                 self::SCHEMA_FIELD_GUEST_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT,
+                self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_IP_NEWSLETTER
             )
         ];

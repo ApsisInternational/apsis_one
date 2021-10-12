@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Form\ChoiceProvider;
 
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 
 class EventSyncStatusProvider extends AbstractProvider
 {

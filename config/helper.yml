@@ -13,3 +13,6 @@ services:
 
   apsis_one.helper.date:
     class: 'Apsis\One\Helper\DateHelper'
+
+  apsis_one.helper.entity:
+    class: 'Apsis\One\Helper\EntityHelper'

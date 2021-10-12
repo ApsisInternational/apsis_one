@@ -259,7 +259,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function setQueryParam(string $queryParam, string $dataType): void
     {
         try {
-            $value = Tools::getValue($queryParam, false);
+            $value = htmlspecialchars_decode(Tools::getValue($queryParam, false));
             if (! $this->isDataValid($value, $dataType)) {
                 $msg = "Invalid value for query param: " . $queryParam;
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);

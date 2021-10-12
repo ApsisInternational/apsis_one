@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Grid\Data\Factory;
 
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 
 class CommonGridDataFactoryDecorator extends AbstractGridDataFactoryDecorator
 {

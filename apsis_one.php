@@ -61,16 +61,19 @@ class Apsis_one extends Module implements SetupInterface
     }
 
     /**
+     * @param bool $parent
+     *
      * @return bool
      */
-    public function install(): bool
+    public function install(bool $parent = false): bool
     {
         try {
-            $this->helper->logInfoMsg(__METHOD__);
+            $this->helper->logInfoMsg($parent === false ? __METHOD__ :
+                __METHOD__ . ' > ' . str_replace('Apsis_one', 'Module', __METHOD__));
 
             /** @var Install $installModule */
             $installModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_INSTALL);
-            return $installModule->init($this) && parent::install();
+            return $parent === true ? parent::install() : $installModule->init($this);
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -78,16 +81,19 @@ class Apsis_one extends Module implements SetupInterface
     }
 
     /**
+     * @param bool $parent
+     *
      * @return bool
      */
-    public function uninstall(): bool
+    public function uninstall(bool $parent = false): bool
     {
         try {
-            $this->helper->logInfoMsg(__METHOD__);
+            $this->helper->logInfoMsg($parent === false ? __METHOD__ :
+                __METHOD__ . ' > ' . str_replace('Apsis_one', 'Module', __METHOD__));
 
             /** @var Uninstall $uninstallModule */
             $uninstallModule = $this->helper->getService(HelperInterface::SERVICE_MODULE_UNINSTALL);
-            return  $uninstallModule->init($this) && parent::uninstall();
+            return $parent === true ? parent::uninstall() : $uninstallModule->init($this);
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;

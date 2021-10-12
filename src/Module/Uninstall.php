@@ -3,7 +3,7 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 use Db;
 use Tab;
 use Throwable;
@@ -22,7 +22,8 @@ class Uninstall extends AbstractSetup
             return $this->uninstallConfigurations() &&
                 $this->uninstallHooks() &&
                 $this->removeTables() &&
-                $this->uninstallTabs();
+                $this->uninstallTabs() &&
+                $this->module->uninstall(true);
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;

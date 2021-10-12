@@ -16,7 +16,7 @@ class ProductReviewed extends AbstractSchema
                 self::SCHEMA_FIELD_COMMENT_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GUEST_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT,
+                self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_GROUP_PRODUCT,
                 self::SCHEMA_FIELD_GROUP_PRODUCT_PRICE,
                 self::SCHEMA_FIELD_CURRENCY_CODE

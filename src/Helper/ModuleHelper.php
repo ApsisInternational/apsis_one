@@ -16,28 +16,69 @@ use Throwable;
 
 class ModuleHelper extends LoggerHelper
 {
-    /** @var array ALL AVAILABLE HOOKS */
-    protected $availableHooks = [];
-
     /**
      * @return array
      */
     public function getAllAvailableHooks(): array
     {
-        if (empty($this->availableHooks)) {
-            $this->availableHooks = array_merge(
-                self::ENTITY_CUSTOMER_HOOKS,
-                self::ENTITY_SUBSCRIPTION_HOOKS,
-                self::ENTITY_ADDRESS_HOOKS,
-                self::ENTITY_GDPR_HOOKS,
-                self::ENTITY_PRODUCT_COMMENT_HOOKS,
-                self::ENTITY_WISHLIST_HOOKS,
-                self::ENTITY_ORDER_HOOKS,
-                self::ENTITY_CART_HOOKS
-            );
-        }
+        return array_merge(
+            self::CUSTOMER_HOOKS,
+            self::EMAIL_SUBSCRIPTION_HOOKS,
+            self::ENTITY_ADDRESS_HOOKS,
+            self::ENTITY_GDPR_HOOKS,
+            self::PRODUCT_COMMENT_HOOKS,
+            self::WISHLIST_HOOKS,
+            self::ORDER_HOOKS,
+            self::CART_HOOKS
+        );
+    }
 
-        return $this->availableHooks;
+    /**
+     * @return array
+     */
+    public function getAllHooksForProfileEntity(): array
+    {
+        return [
+            self::CUSTOMER_HOOK_ADD_AFTER,
+            self::CUSTOMER_HOOK_UPDATE_AFTER,
+            self::CUSTOMER_HOOK_DELETE_AFTER,
+            self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllCustomerHooks(): array
+    {
+        return [
+            self::CUSTOMER_HOOK_ADD_AFTER,
+            self::CUSTOMER_HOOK_UPDATE_AFTER,
+            self::CUSTOMER_HOOK_DELETE_AFTER
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllEmailSubscriptionHooks(): array
+    {
+        return [self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER];
+    }
+
+    /**
+     * @return array
+     */
+    public function getAllHooksForEventEntity(): array
+    {
+        return [
+            self::CUSTOMER_HOOK_AUTH,
+            self::PRODUCT_COMMENT_HOOK_VALIDATE,
+            self::WISHLIST_HOOK_ADD_PRODUCT,
+            self::ORDER_HOOK_VALIDATE,
+            self::ORDER_HOOK_ADD_AFTER,
+            self::CART_HOOK_UPDATE_QTY_BEFORE
+        ];
     }
 
     /**

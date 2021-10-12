@@ -1,6 +1,8 @@
 <?php
 
-namespace Apsis\One\Entity;
+namespace Apsis\One\Model;
+
+use Apsis\One\Repository\EventRepository;
 
 class Event extends AbstractEntity
 {
@@ -42,6 +44,14 @@ class Event extends AbstractEntity
         'primary' => self::T_PRIMARY_MAPPINGS[self::T_EVENT],
         'fields' => self::T_COLUMNS_MAPPINGS[self::T_EVENT]
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function getRepositoryClassName(): string
+    {
+        return EventRepository::class;
+    }
 
     /**
      * @return int

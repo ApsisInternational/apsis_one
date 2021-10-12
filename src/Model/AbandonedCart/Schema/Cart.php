@@ -17,7 +17,7 @@ class Cart extends AbstractSchema
                 self::SCHEMA_FIELD_CART_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GUEST_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT,
+                self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_GROUP_SALES,
                 self::SCHEMA_FIELD_CURRENCY_CODE
             ),

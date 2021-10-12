@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>apsis_one</name>
-    <displayName><![CDATA[APSIS One Integration]]></displayName>
+    <displayName><![CDATA[APSIS One]]></displayName>
     <version><![CDATA[1.0.0]]></version>
     <description><![CDATA[Grow faster with the all-in-One marketing platform.]]></description>
     <author><![CDATA[APSIS]]></author>

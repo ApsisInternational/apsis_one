@@ -13,9 +13,9 @@ abstract class AbstractSetup implements SetupInterface
     protected $configs;
 
     /**
-     * @var Apsis_one
+     * @var Apsis_one|null
      */
-    protected $module;
+    protected $module = null;
 
     /**
      * AbstractSetup constructor.

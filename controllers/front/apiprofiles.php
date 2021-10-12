@@ -5,6 +5,7 @@ use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Model\Profile\Schema;
 use Apsis\One\Module\SetupInterface;
 use Apsis\One\Context\LinkContext;
+use Apsis\One\Helper\EntityHelper;
 
 class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
@@ -96,8 +97,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             ];
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
+            return [];
         }
-        return [];
     }
 
     /**
@@ -112,12 +113,14 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             return '';
         }
 
+        $param[self::QUERY_PARAM_CONTEXT_IDS] = $this->queryParams[self::QUERY_PARAM_CONTEXT_IDS];
+
         /** @var LinkContext $linkContext */
         $linkContext = $this->module->helper->getService(HelperInterface::SERVICE_CONTEXT_LINK);
         return $linkContext->getModuleLink(
-            SetupInterface::API_STORES_CONTROLLER_FILENAME,
+            SetupInterface::API_PROFILES_CONTROLLER,
             $param,
-            null,
+            true,
             null,
             $this->shopId ?: $this->configs->getDefaultShopId()
         );
@@ -128,52 +131,25 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
      */
     protected function getProfilesDataArr(): array
     {
-        // TODO: get profiles from profile entity
-        return [self::JSON_BODY_PARAM_ITEMS => [], self::QUERY_PARAM_AFTER_ID => 0];
-
-        /** START - dummy test data for testing
         $items = [];
-        try {
-            $profiles = [
-                (object)[
-                    'profileId' => 'a2720191-1cc6-11eb-9a2c-107d1a24f935',
-                    'customerId' => null,
-                    'shopId' => 1,
-                    'shopGroupId' => 1,
-                    'shopName' => 'Some Name',
-                    'shopGroupName' => 'Some Group',
-                    'email' => 'one@example.com',
-                    'subscriptionId' => 1,
-                    'isSubscribedToNewsletter' => true,
-                    'newsletterDateAdded' => 1619793187
-                ],
-                (object)[
-                    'profileId' => 'b2720191-1cc6-11eb-9a2c-107d1a24f935',
-                    'customerId' => 1,
-                    'shopId' => 1,
-                    'shopGroupId' => 1,
-                    'shopName' => 'Some Name',
-                    'shopGroupName' => 'Some Group',
-                    'email' => 'two@example.com',
-                    'subscriptionId' => 2,
-                    'isSubscribedToNewsletter' => true,
-                    'newsletterDateAdded' => 1619713187
-                ]
-            ];
 
-            //@var Apsis\One\Model\Profile\Data $container
-            $schema = $this->module->helper->getService('apsis_one.profile.schema');
-            $container = $this->module->helper->getService('apsis_one.profile.container');
+        try {
+            /** @var EntityHelper $entityHelper */
+            $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+            $profiles = $entityHelper->getProfileRepository()->findAll();
+
             foreach ($profiles as $profile) {
-                $items[] = $container->setObject($profile, $schema)->getData();
+                $item = $entityHelper->getProfileDataArrForExport($profile);
+                if (! empty($item)) {
+                    $items[$profile->getId()] = $item;
+                }
             }
 
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
         }
 
-        return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => 2];
-         **/
+        return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => (int) array_key_last($items)];
     }
 
     /**

@@ -1,10 +1,8 @@
 <?php
 
-namespace Apsis\One\Entity;
+namespace Apsis\One\Model;
 
-use Apsis\One\Helper\EntityHelper;
-use PrestaShopDatabaseException;
-use PrestaShopException;
+use Apsis\One\Repository\AbandonedCartRepository;
 
 class AbandonedCart extends AbstractEntity
 {
@@ -38,21 +36,11 @@ class AbandonedCart extends AbstractEntity
     ];
 
     /**
-     * @param bool $auto_date
-     * @param false $null_values
-     *
-     * @return bool
-     *
-     * @throws PrestaShopDatabaseException
-     * @throws PrestaShopException
+     * @inheritDoc
      */
-    public function add($auto_date = true, $null_values = false): bool
+    public static function getRepositoryClassName(): string
     {
-        if (empty($this->getToken())) {
-            $this->setToken(EntityHelper::generateUniversallyUniqueIdentifier());
-        }
-
-        return parent::add($auto_date, $null_values);
+        return AbandonedCartRepository::class;
     }
 
     /**

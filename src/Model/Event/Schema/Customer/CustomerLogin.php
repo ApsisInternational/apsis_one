@@ -14,7 +14,7 @@ class CustomerLogin extends AbstractSchema
         $this->definition = [
             self::EVENT_CUSTOMER_LOGIN_DISCRIMINATOR => array_merge(
                 self::SCHEMA_FIELD_CUSTOMER_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT
+                self::SCHEMA_FIELD_GROUP_SHOP
             )
         ];
         $this->definitionTypes = [self::EVENT_CUSTOMER_LOGIN_DISCRIMINATOR];

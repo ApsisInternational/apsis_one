@@ -15,7 +15,7 @@ class GuestIsCustomer extends AbstractSchema
             self::EVENT_GUEST_IS_CUSTOMER_DISCRIMINATOR => array_merge(
                 self::SCHEMA_FIELD_GUEST_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
-                self::SCHEMA_FIELD_GROUP_CONTEXT
+                self::SCHEMA_FIELD_GROUP_SHOP
             )
         ];
         $this->definitionTypes = [self::EVENT_GUEST_IS_CUSTOMER_DISCRIMINATOR];

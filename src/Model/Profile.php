@@ -1,10 +1,8 @@
 <?php
 
-namespace Apsis\One\Entity;
+namespace Apsis\One\Model;
 
-use Apsis\One\Helper\EntityHelper;
-use PrestaShopDatabaseException;
-use PrestaShopException;
+use Apsis\One\Repository\ProfileRepository;
 
 class Profile extends AbstractEntity
 {
@@ -17,6 +15,11 @@ class Profile extends AbstractEntity
      * @var string
      */
     public $email;
+
+    /**
+     * @var string
+     */
+    public $profile_data;
 
     /**
      * @var int
@@ -58,21 +61,11 @@ class Profile extends AbstractEntity
     ];
 
     /**
-     * @param bool $auto_date
-     * @param false $null_values
-     *
-     * @return bool
-     *
-     * @throws PrestaShopDatabaseException
-     * @throws PrestaShopException
+     * @inheritDoc
      */
-    public function add($auto_date = true, $null_values = false): bool
+    public static function getRepositoryClassName(): string
     {
-        if (empty($this->getIdIntegration())) {
-            $this->setIdIntegration(EntityHelper::generateUniversallyUniqueIdentifier());
-        }
-
-        return parent::add($auto_date, $null_values);
+        return ProfileRepository::class;
     }
 
     /**
@@ -224,6 +217,42 @@ class Profile extends AbstractEntity
     public function setIsGuest(bool $isGuest = self::NO): Profile
     {
         $this->is_guest = $isGuest;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getProfileData(): string
+    {
+        return (string) $this->profile_data;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProfileDataArr(): array
+    {
+        $profileData = [];
+
+        if ($this->getId() && $this->getIdIntegration() && strlen($this->getProfileData())) {
+            $profileData = json_decode($this->getProfileData(), true);
+            if (! empty($profileData)) {
+                $profileData[self::C_ID_INTEGRATION] = $this->getIdIntegration();
+            }
+        }
+
+        return $profileData;
+    }
+
+    /**
+     * @param string $dataJsonString
+     *
+     * @return $this
+     */
+    public function setProfileData(string $dataJsonString): Profile
+    {
+        $this->profile_data = $dataJsonString;
         return $this;
     }
 }

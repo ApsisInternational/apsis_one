@@ -4,215 +4,355 @@ namespace Apsis\One\Model\Profile;
 
 use Apsis\One\Model\AbstractDataProvider;
 
-// TODO: entity's values
 class DataProvider extends AbstractDataProvider
 {
-    protected function getEntryId()
+    /**
+     * @param string $type
+     *
+     * @return string
+     */
+    protected function getEntryId(string $type): string
     {
-       return $this->getProfileId();
+        return $this->getProfileId($type);
     }
 
-    protected function getProfileId()
+    /**
+     * @param string $type
+     *
+     * @return string
+     */
+    protected function getProfileId(string $type): string
     {
-        //return $this->object->getSomeValue();
-        return $this->object->profileId;
+        return $this->getFormattedValueByType('id_integration', $type);
     }
 
-    protected function getCustomerGroup()
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getEmailNewsletterSubscription(string $type): ?bool
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getEmailNewsletter($type);
     }
 
-    protected function getIsSubscribedToNewsletter()
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getPartnerOffersSubscription(string $type): ?bool
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getPartnerOffers($type);
     }
 
-    protected function getIsSubscribedToPartnerOffers()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getCustomerGroupName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('default_group_name', $type);
     }
 
-    protected function getNewsletterDateAdded()
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getEmailNewsletter(string $type): ?bool
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('newsletter', $type);
     }
 
-    protected function getIsActive()
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getPartnerOffers(string $type): ?bool
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('optin', $type);
     }
 
-    protected function getLanguageName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getNewsletterDateAdded(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('newsletter_date_add', $type);
     }
 
-    protected function getDateAdded()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getLanguageName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('language_name', $type);
     }
 
-    protected function getFirstName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getDateAdded(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('date_add', $type);
     }
 
-    protected function getLastName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getFirstName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('firstname', $type);
     }
 
-    protected function getAlias()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getLastName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('lastname', $type);
     }
 
-    protected function getEmail()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getEmail(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return $this->object->email;
+        return $this->getFormattedValueByType('email', $type);
     }
 
-    protected function getGender()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getGender(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('gender', $type);
     }
 
-    protected function getBirthday()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBirthday(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('birthday', $type);
     }
 
-    protected function getCompany()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getCompany(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('company', $type);
     }
 
-    protected function getBillingAddress1()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingAddress1(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('address1', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingAddress2()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingAddress2(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('address2', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingPostcode()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingPostcode(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('postcode', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingCity()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingCity(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('city', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingPhone()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingState(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('state', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingPhoneMobile()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingCountry(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('country', $type, false, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingState()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingPhone(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('phone', $type, true, self::ADD_TYPE_BILLING);
     }
 
-    protected function getBillingCountry()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getBillingPhoneMobile(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('phone_mobile', $type, true, self::ADD_TYPE_BILLING);
     }
 
-    protected function getShippingAddress1()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingAddress1(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('address1', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingAddress2()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingAddress2(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('address2', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingPostcode()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingPostcode(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('postcode', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingCity()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingCity(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('city', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingPhone()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingState(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('state', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingPhoneMobile()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingCountry(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('country', $type, false, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingState()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingPhone(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('phone', $type, true, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getShippingCountry()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShippingPhoneMobile(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('phone_mobile', $type, true, self::ADD_TYPE_SHIPPING);
     }
 
-    protected function getLifetimeTotalSpend()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getLifetimeTotalSpend(string $type): ?float
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('lifetime_total_spend', $type);
     }
 
-    protected function getAverageOrderValue()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getLifetimeTotalOrders(string $type): ?int
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('lifetime_total_orders', $type);
     }
 
-    protected function getNewsletterSubscription()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getAverageOrderValue(string $type): ?float
     {
-        //return $this->object->getSomeValue();
-        return $this->getIsSubscribedToNewsletter();
+        return $this->getFormattedValueByType('average_order_value', $type);
     }
 }

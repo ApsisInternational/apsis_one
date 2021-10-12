@@ -3,7 +3,7 @@
 namespace Apsis\One\Module;
 
 use Apsis_one;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 
 interface SetupInterface
 {
@@ -11,7 +11,10 @@ interface SetupInterface
     const READ_ONLY_FIELD_ACCOUNT_STATUS = 'APSIS_ONE_ACCOUNT_STATUS';
     const READ_ONLY_FILED_BASE_URL = 'APSIS_ONE_BASE_URL';
 
-    const API_STORES_CONTROLLER_FILENAME = 'apistores';
+    const API_INSTALL_CONFIG_CONTROLLER = 'apiinstallationconfig';
+    const API_STORES_CONTROLLER = 'apistores';
+    const API_PROFILES_CONTROLLER = 'apiprofiles';
+    const API_PROFILE_UPDATE_CONTROLLER = 'apisubscriptionupdate';
 
     /** CONFIGURATION PREFIX  */
     const CONFIG_PREFIX = 'APSIS_ONE_';
@@ -53,35 +56,41 @@ interface SetupInterface
     const MODULE_NAME = 'apsis_one';
     const MODULE_DISPLAY_NAME = 'APSIS One';
     const MODULE_VERSION  = '1.0.0';
+    const MODULE_CONFIG_TAB = 'Configure Module';
 
     /** CLASS NAMES FOR LEGACY USAGE */
     const APSIS_MENU = 'AdminParentApsis';
+    const APSIS_CONFIG_TAB = 'ApsisOneModuleConfig';
     const LEGACY_CONTROLLER_CLASSES = [
         self::APSIS_MENU => self::APSIS_MENU,
         EI::T_PROFILE => 'ApsisOneProfileController',
         EI::T_EVENT => 'ApsisOneEventController',
-        EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController'
+        EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController',
+        self::APSIS_CONFIG_TAB => 'ApsisOneModuleConfigController'
     ];
 
     const PS_T_CUSTOMER = 'customer';
     const PS_T_NEWSLETTER = 'emailsubscription';
+    const PS_T_CUSTOMER_ALIAS = 'pc';
+    const PS_T_NEWSLETTER_ALIAS = 'pes';
     const T_DEF_VALUES = 'default';
     const PS_COLUMNS_SEL = [
         self::T_DEF_VALUES => [
-            EI::C_ID_INTEGRATION => EI::EXP_UUID . ' as `%s`',
+            EI::C_ID_INTEGRATION => '(SELECT UUID()) as `%s`',
             EI::C_ID_SHOP => '`%s`',
             EI::C_EMAIL => '`%s`',
             EI::C_SYNC_STATUS => '0 as `%s`',
             EI::C_ERROR_MSG => '"" as `%s`',
-            EI::C_DATE_UPD => EI::EXP_NOW . ' as `%s`',
+            EI::C_DATE_UPD => '(SELECT NOW()) as `%s`',
         ],
         self::PS_T_CUSTOMER => [
             EI::C_ID_CUSTOMER => '`%s`',
             EI::C_ID_NEWSLETTER => '0 AS `%s`',
             EI::C_IS_CUSTOMER => '1 AS `%s`',
             EI::C_IS_GUEST => '`%s`',
-            EI::C_IS_NEWSLETTER => '`newsletter` as `%s`',
-            EI::C_IS_OFFERS => '`optin` as `%s`'
+            EI::C_IS_NEWSLETTER => '`newsletter` AS `%s`',
+            EI::C_IS_OFFERS => '`optin` AS `%s`',
+            EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_CUSTOMER .') AS `%s`'
         ],
         self::PS_T_NEWSLETTER => [
             EI::C_ID_CUSTOMER => '0 AS `%s`',
@@ -89,21 +98,19 @@ interface SetupInterface
             EI::C_IS_CUSTOMER => '0 AS `%s`',
             EI::C_IS_GUEST => '0 AS `%s`',
             EI::C_IS_NEWSLETTER => '1 AS `%s`',
-            EI::C_IS_OFFERS => '0 as `%s`'
+            EI::C_IS_OFFERS => '0 AS `%s`',
+            EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_SUBSCRIBER . ') AS `%s`'
         ]
     ];
     const PS_WHERE_COND = [
-        self::T_DEF_VALUES => [
-            '`email` != ""',
-            '`email` IS NOT NULL'
-        ],
-        self::PS_T_CUSTOMER => ['`deleted` = 0'],
+        self::T_DEF_VALUES => ['`email` != ""', '`email` IS NOT NULL'],
+        self::PS_T_CUSTOMER => ['`deleted` = 0', '`active` = 1'],
         self::PS_T_NEWSLETTER => ['`active` = 1']
     ];
 
     const T_PROFILE_MIGRATE_DATA_FROM_TABLES = [
-        self::PS_T_CUSTOMER,
-        self::PS_T_NEWSLETTER
+        self::PS_T_CUSTOMER => self::PS_T_CUSTOMER_ALIAS,
+        self::PS_T_NEWSLETTER => self::PS_T_NEWSLETTER_ALIAS
     ];
 
     /**

@@ -6,7 +6,8 @@ use Apsis_one;
 use Apsis\One\Grid\Definition\Factory\GridDefinitionFactoryInterface;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Context\ShopContext;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
+use Apsis\One\Helper\HelperInterface as HI;
 use Db;
 use DbQuery;
 use Language;
@@ -31,11 +32,12 @@ class Install extends AbstractSetup
                 $shopContext->setContext();
             }
 
-            return $this->installConfigurations() &&
-                $this->installHooks() &&
-                $this->createTables() &&
+            return $this->createTables() &&
                 $this->populateTables() &&
-                $this->installTabs();
+                $this->installConfigurations() &&
+                $this->installTabs() &&
+                $this->module->install(true) &&
+                $this->installHooks();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -127,7 +129,7 @@ class Install extends AbstractSetup
             //Create sub menu items under given parent menu
             $parentId = (new Tab(Tab::getIdFromClassName(self::APSIS_MENU)))->id;
             $status = true;
-            foreach (EI::TABLES as $menuItem) {
+            foreach (array_merge(EI::TABLES, [self::APSIS_CONFIG_TAB]) as $menuItem) {
                 if (! $this->createTab($menuItem, $parentId)) {
                     $status = false;
                 }
@@ -150,6 +152,7 @@ class Install extends AbstractSetup
         $this->module->helper->logInfoMsg(__METHOD__);
 
         try {
+            $db->execute(sprintf('DROP TABLE IF EXISTS `%s`;', $this->getTableWithDbPrefix(EI::T_PROFILE)));
             $sql = '
             CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_PROFILE) . '` (
                 `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -162,6 +165,7 @@ class Install extends AbstractSetup
                 `' . EI::C_IS_GUEST . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_IS_NEWSLETTER . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_IS_OFFERS . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
+                `' . EI::C_PROFILE_DATA . '` text NOT NULL,
                 `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
                 `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -196,6 +200,7 @@ class Install extends AbstractSetup
         $this->module->helper->logInfoMsg(__METHOD__);
 
         try {
+            $db->execute(sprintf('DROP TABLE IF EXISTS `%s`;', $this->getTableWithDbPrefix(EI::T_EVENT)));
             $sql = '
             CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_EVENT) . '` (
                 `' . EI::C_ID_EVENT . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
@@ -218,7 +223,6 @@ class Install extends AbstractSetup
                 KEY `' . $this->getIndex(EI::T_EVENT, EI::C_DATE_ADD) . '` (`' . EI::C_DATE_ADD . '`),
                 KEY `' . $this->getIndex(EI::T_EVENT, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
             ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
-
             return $db->execute($sql);
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
@@ -236,22 +240,22 @@ class Install extends AbstractSetup
         $this->module->helper->logInfoMsg(__METHOD__);
 
         try {
-        $sql = '
-            CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '` (
-                `' . EI::C_ID_AC . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
-                `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL,
-                `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
-                `' . EI::C_ID_CART . '` int(10) unsigned NOT NULL,
-                `' . EI::C_CART_DATA . '` text NOT NULL,
-                `' . EI::C_TOKEN . '` varchar(36) NOT NULL,
-                `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (`' . EI::C_ID_AC . '`),
-                KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_PROFILE) . '` (`' . EI::C_ID_PROFILE . '`),
-                KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
-                KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_CART) . '` (`' . EI::C_ID_CART . '`),
-                KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
-            ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
-
+            $db->execute(sprintf('DROP TABLE IF EXISTS `%s`;', $this->getTableWithDbPrefix(EI::T_ABANDONED_CART)));
+            $sql = '
+                CREATE TABLE IF NOT EXISTS `' . $this->getTableWithDbPrefix(EI::T_ABANDONED_CART) . '` (
+                    `' . EI::C_ID_AC . '` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                    `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL,
+                    `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
+                    `' . EI::C_ID_CART . '` int(10) unsigned NOT NULL,
+                    `' . EI::C_CART_DATA . '` text NOT NULL,
+                    `' . EI::C_TOKEN . '` varchar(36) NOT NULL,
+                    `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    PRIMARY KEY (`' . EI::C_ID_AC . '`),
+                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_PROFILE) . '` (`' . EI::C_ID_PROFILE . '`),
+                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
+                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_CART) . '` (`' . EI::C_ID_CART . '`),
+                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
+                ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
             return $db->execute($sql);
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
@@ -272,12 +276,23 @@ class Install extends AbstractSetup
             $tab->active = $tab->enabled = 1;
             $tab->class_name = self::LEGACY_CONTROLLER_CLASSES[$menuItem];
             $tab->name = [];
-            $tab->wording = empty($parentId) ? self::MODULE_DISPLAY_NAME : EI::T_LABEL_MAPPINGS[$menuItem];
+            $wording = self::MODULE_DISPLAY_NAME;
+            $routeName = '';
+
+            if ($menuItem === self::APSIS_CONFIG_TAB) {
+                $wording = self::MODULE_CONFIG_TAB;
+                $routeName = HI::MODULE_CONFIG_ROUTE;
+            } elseif (isset(EI::T_LABEL_MAPPINGS[$menuItem], GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem])) {
+                $wording = EI::T_LABEL_MAPPINGS[$menuItem];
+                $routeName = GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem];
+            }
+
+            $tab->wording = $wording;
             $tab->wording_domain = 'Admin.Navigation.Menu';
             foreach (Language::getLanguages() as $lang) {
                 $tab->name[$lang['id_lang']] = $tab->wording;
             }
-            $tab->route_name = empty($parentId) ? '' : GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem];
+            $tab->route_name = $routeName;
             $tab->id_parent = empty($parentId) ? (int) Tab::getIdFromClassName('IMPROVE') : $parentId;
             $tab->icon = empty($parentId) ? 'account_circle' : '';
             $tab->module = self::MODULE_NAME;
@@ -297,15 +312,33 @@ class Install extends AbstractSetup
 
         try {
             $status = true;
-            foreach (self::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $psTable) {
-                $selectFromPs = (new DbQuery())->from($psTable);
+            foreach (self::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $psTable => $alias) {
+                $selectFromPs = (new DbQuery())->from($psTable, $alias);
                 $selectColumns = array_merge(self::PS_COLUMNS_SEL[self::T_DEF_VALUES], self::PS_COLUMNS_SEL[$psTable]);
                 $insertColumns = [];
 
                 foreach (array_keys(EI::T_COLUMNS_MAPPINGS[EI::T_PROFILE]) as $insertColumn) {
                     if (isset($selectColumns[$insertColumn])) {
                         $insertColumns[] = sprintf('`%s`', $insertColumn);
-                        $selectFromPs->select(sprintf($selectColumns[$insertColumn], $insertColumn));
+                        if ($insertColumn === EI::C_PROFILE_DATA && $psTable === self::PS_T_CUSTOMER) {
+                            $selectFromPs->select(
+                                sprintf(
+                                    $selectColumns[$insertColumn],
+                                    self::PS_T_CUSTOMER_ALIAS . '.`id_customer`',
+                                    $insertColumn
+                                )
+                            );
+                        } elseif ($insertColumn === EI::C_PROFILE_DATA && $psTable === self::PS_T_NEWSLETTER) {
+                            $selectFromPs->select(
+                                sprintf(
+                                    $selectColumns[$insertColumn],
+                                    self::PS_T_NEWSLETTER_ALIAS . '.`id`',
+                                    $insertColumn
+                                )
+                            );
+                        } else {
+                            $selectFromPs->select(sprintf($selectColumns[$insertColumn], $insertColumn));
+                        }
                     }
                 }
 

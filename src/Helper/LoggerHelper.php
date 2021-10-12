@@ -10,7 +10,7 @@ use Throwable;
 class LoggerHelper extends FileLogger implements HelperInterface
 {
     /**
-     * LoggerHelper constructor.
+     * Class constructor.
      */
     public function __construct()
     {

@@ -103,6 +103,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_IP_NEWSLETTER = [
         'ipRegistrationNewsletter' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'ipRegistrationNewsletter',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'IP Registration Newsletter',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_IP_ADDRESS
         ]
@@ -110,6 +111,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_CART_ID = [
         'cartId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'cartId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Cart Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ]
@@ -117,6 +119,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_COMMENT_ID = [
         'commentId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'commentId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Comment Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ]
@@ -124,6 +127,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_CUSTOMER_ID = [
         'customerId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'customerId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Customer Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID
         ]
@@ -131,6 +135,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_SUBSCRIBER_ID = [
         'subscriberId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'subscriberId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Subscriber Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID
         ]
@@ -138,6 +143,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_GUEST_ID = [
         'guestId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'guestId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Guest Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID
         ]
@@ -145,6 +151,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_ORDER_ID = [
         'orderId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'orderId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Order Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ]
@@ -152,6 +159,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_CURRENCY_CODE = [
         'currencyCode' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'currencyCode',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Currency Code',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ISO_4217_CODE_NOT_NULL
         ]
@@ -159,6 +167,7 @@ interface SchemaInterface
     const SCHEMA_FIELD_PRODUCT_QTY = [
         'productQty' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productQty',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Qty',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_UNSIGNED_INT_NOT_NULL
         ]
@@ -166,14 +175,15 @@ interface SchemaInterface
     const SCHEMA_FIELD_IS_GUEST = [
         'isGuest' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'isGuest',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Guest',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ]
     ];
     const SCHEMA_PROFILE_CONSENT = [
         [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'newsletterSubscription',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Newsletter Subscription',
+            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletterSubscription',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Email Newsletter Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
@@ -192,24 +202,28 @@ interface SchemaInterface
     /**
      * Schema Fields Group
      */
-    const SCHEMA_FIELD_GROUP_CONTEXT = [
+    const SCHEMA_FIELD_GROUP_SHOP = [
         'shopId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ],
         'shopGroupId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopGroupId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Group Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ],
         'shopName' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopName',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
         ],
         'shopGroupName' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopGroupName',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Group Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
         ]
@@ -217,11 +231,13 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_PRODUCT_PRICE = [
         'productPriceAmountInclTax' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productPriceAmountInclTax',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Price Amount Incl Tax',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'productPriceAmountExclTax' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productPriceAmountExclTax',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Price Amount Excl Tax',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ]
@@ -229,26 +245,31 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_PRODUCT = [
         'productId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ],
         'productName' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productName',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
         ],
         'productReference' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productReference',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Reference',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
         ],
         'productImageUrl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productImageUrl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Image Url',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_URL
         ],
         'productUrl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productUrl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Url',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_URL
         ]
@@ -256,11 +277,13 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_SALES = [
         'isRecyclable' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'isRecyclable',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Recyclable',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
         'isGift' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'isGift',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Gift',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ]
@@ -268,41 +291,49 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_ORDER = [
         'orderReference' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'orderReference',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Order Reference',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
         ],
         'paymentMethod' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'paymentMethod',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Payment Method',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
         ],
         'totalDiscounts' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalDiscounts',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Discounts',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'totalPaid' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaid',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'totalPaidReal' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaidReal',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid Real',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'totalProducts' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalProducts',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'totalShipping' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalShipping',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'totalWrapping' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalWrapping',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Wrapping',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ]
@@ -310,21 +341,25 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_ORDER_PRODUCT = [
         'orderRowId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'orderRowId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Order Row Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ],
         'productPrice' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productPrice',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Price',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'unitPriceTaxIncl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'unitPriceTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Unit Price Tax Incl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
         'unitPriceTaxExcl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'unitPriceTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Unit Price Tax Excl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ]
@@ -332,11 +367,13 @@ interface SchemaInterface
     const SCHEMA_FIELD_GROUP_PRODUCT_WISHED = [
         'wishlistId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'wishlistId',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Wishlist Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ],
         'wishlistName' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'wishlistName',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Wishlist Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
         ]
@@ -348,15 +385,15 @@ interface SchemaInterface
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_PROFILE_UUID_NOT_NULL
         ],
-        'customerGroup' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'customerGroup',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Customer Group',
+        'defaultGroupName' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'customerGroupName',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Default Group Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
         ],
         'isSubscribedToNewsletter' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'isSubscribedToNewsletter',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Subscribed To Newsletter',
+            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletter',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Email Newsletter?',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
@@ -367,14 +404,8 @@ interface SchemaInterface
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP
         ],
         'isSubscribedToPartnerOffers' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'isSubscribedToPartnerOffers',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Subscribed To Partner Offers',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
-        ],
-        'isActive' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'isActive',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Is Active',
+            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffers',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers?',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
@@ -401,12 +432,6 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Last Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_NAME
-        ],
-        'alias' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'alias',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Alias',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
         ],
         'email' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'email',
@@ -459,13 +484,13 @@ interface SchemaInterface
         'billingPhone' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'billingPhone',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Billing Phone',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_PHONE
         ],
         'billingPhoneMobile' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'billingPhoneMobile',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Billing Mobile Phone',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_PHONE
         ],
         'billingState' => [
@@ -507,13 +532,13 @@ interface SchemaInterface
         'shippingPhone' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shippingPhone',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shipping Phone',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_PHONE
         ],
         'shippingPhoneMobile' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shippingPhoneMobile',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shipping Mobile Phone',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_PHONE
         ],
         'shippingState' => [
@@ -533,6 +558,12 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Lifetime Total Spend',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'lifetimeTotalOrders' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'lifetimeTotalOrders',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Lifetime Total Orders',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_UNSIGNED_INT
         ],
         'averageOrderValue' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'averageOrderValue',

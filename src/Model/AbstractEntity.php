@@ -1,7 +1,8 @@
 <?php
 
-namespace Apsis\One\Entity;
+namespace Apsis\One\Model;
 
+use Apsis\One\Helper\EntityHelper;
 use ObjectModel;
 use PrestaShopDatabaseException;
 use PrestaShopException;
@@ -49,6 +50,14 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function __construct($id = null)
     {
+        if ($this instanceof Profile && empty($this->getIdIntegration())) {
+            $this->setIdIntegration(EntityHelper::generateUniversallyUniqueIdentifier());
+        }
+
+        if ($this instanceof AbandonedCart && empty($this->getToken())) {
+            $this->setToken(EntityHelper::generateUniversallyUniqueIdentifier());
+        }
+
         parent::__construct($id);
     }
 
@@ -63,10 +72,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function add($auto_date = true, $null_values = false): bool
     {
-        if (empty($this->getIdShop())) {
-            $this->setIdShop(Context::getContext()->shop->id);
-        }
-
+        $this->setNecessaryFields();
         return parent::add($auto_date, $null_values);
     }
 
@@ -80,6 +86,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function update($null_values = false): bool
     {
+        $this->setNecessaryFields();
         return parent::update($null_values);
     }
 
@@ -208,6 +215,41 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     }
 
     /**
+     * @return $this
+     */
+    protected function setNecessaryFields(): AbstractEntity
+    {
+        // If no shop set
+        if (empty($this->getIdShop())) {
+            $this->setIdShop(Context::getContext()->shop->id);
+        }
+
+        // Clears error field, in following conditions
+        if (empty($this->getId()) &&
+            ($this instanceof Event || $this instanceof Profile) &&
+            $this->getSyncStatus() === self::SS_PENDING
+        ) {
+            $this->setErrorMessage(); // Clears field
+        }
+
+        // Set Profile Data field value
+        if ($this instanceof Profile) {
+            $format = 'CAST(%d AS SIGNED)';
+            if ($this->getIsCustomer() && $this->getIdCustomer()) {
+                $sql = sprintf(self::PROFILE_DATA_SQL_CUSTOMER, sprintf($format, $this->getIdCustomer()));
+            } elseif($this->getIsNewsletter() && $this->getIdNewsletter()) {
+                $sql = sprintf(self::PROFILE_DATA_SQL_SUBSCRIBER, sprintf($format, $this->getIdNewsletter()));
+            }
+
+            if (isset($sql)) {
+                $this->setProfileData(EntityHelper::fetchSingleValueFromRow($sql, 'string'));
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * @return array
      *
      * @throws PrestaShopException
@@ -225,5 +267,13 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     public function toJson(): string
     {
         return (string) json_encode($this->toArray());
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function getRepositoryClassName(): string
+    {
+        return '';
     }
 }

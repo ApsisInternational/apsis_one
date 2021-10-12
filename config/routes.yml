@@ -1,3 +1,13 @@
+# BEGIN: Module Config Route
+admin_apsis_module_config:
+  path: /apsis_module/config
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\ModuleConfigController::indexAction'
+    _legacy_controller: ApsisOneModuleConfigController
+    _legacy_link: ApsisOneModuleConfigController
+# END: Module Config Route
+
 # BEGIN: Profile Routes
 admin_apsis_profile_index:
   path: /apsis_profile/list

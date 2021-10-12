@@ -2,48 +2,73 @@
 
 namespace Apsis\One\Model;
 
-// TODO: common values shared between entities
 abstract class AbstractDataProvider extends AbstractData
 {
-    protected function getCustomerId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getCustomerId(string $type): ?int
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('id_customer', $type);
     }
 
-    protected function getSubscriberId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getSubscriberId(string $type): ?int
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('id_subscriber', $type);
     }
 
-    protected function getShopId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getShopId(string $type): ?int
     {
-        //return $this->object->getSomeValue();
-        return $this->object->shopId;
+        return $this->getFormattedValueByType('id_shop', $type);
     }
 
-    protected function getShopGroupId()
+    /**
+     * @return int
+     */
+    protected function getShopGroupId(string $type): ?int
     {
-        //return $this->object->getSomeValue();
-        return $this->object->shopGroupId;
+        return $this->getFormattedValueByType('id_shop_group', $type);
     }
 
-    protected function getShopName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShopName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return $this->object->shopName;
+        return $this->getFormattedValueByType('shop_name', $type);
     }
 
-    protected function getShopGroupName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getShopGroupName(string $type): ?string
     {
-        //return $this->object->getSomeValue();
-        return $this->object->shopGroupName;
+        return $this->getFormattedValueByType('shop_group_name', $type);
     }
 
-    protected function getIsGuest()
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getIsGuest(string $type): ?bool
     {
-        //return $this->object->getSomeValue();
-        return '';
+        return $this->getFormattedValueByType('is_guest', $type);
     }
 }

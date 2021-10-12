@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Apsis\One\Form\ChoiceProvider\ProviderInterface;
-use Apsis\One\Entity\EntityInterface as EI;
+use Apsis\One\Model\EntityInterface as EI;
 
 interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactoryInterface
 {
@@ -64,6 +64,13 @@ interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactory
         EI::C_IS_OFFERS,
         EI::C_IS_GUEST,
         EI::C_IS_CUSTOMER
+    ];
+    const NOT_ALLOWED_COLUMNS = [
+        EI::C_ID_ENTITY_PS,
+        EI::C_PROFILE_DATA,
+        EI::C_EVENT_DATA,
+        EI::C_SUB_EVENT_DATA,
+        EI::C_CART_DATA
     ];
 
     /**
