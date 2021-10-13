@@ -2,11 +2,12 @@
 
 namespace Apsis\One\Repository;
 
+use Apsis\One\Helper\LoggerHelper;
 use Apsis\One\Model\EntityInterface as EI;
+use Apsis\One\Helper\EntityHelper;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityMetaData;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityRepository;
-use Apsis\One\Helper\LoggerHelper;
 use PrestaShop\PrestaShop\Core\Foundation\Database\Exception;
 use Throwable;
 
@@ -134,10 +135,11 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     /**
      * @param array $statusArr
      * @param array $idShopArr
+     * @param int $afterId
      *
      * @return EI[]|null
      */
-    public function findBySyncStatusForGivenShop(array $statusArr, array $idShopArr): ?array
+    public function findBySyncStatusForGivenShop(array $statusArr, array $idShopArr, int $afterId): ?array
     {
         try {
             if ($this instanceof AbandonedCartRepository) {
@@ -146,11 +148,40 @@ abstract class AbstractRepository extends EntityRepository implements Repository
 
             $this->logger->logInfoMsg(__METHOD__);
 
+           $primary =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
             $sql = $this->buildSqlQuery(
-                $this->buildWhereClause([EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr]),
+                $this->buildWhereClause(
+                    [EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr, $primary => $afterId]
+                ),
                 self::QUERY_LIMIT
             );
-            return $this->hydrateMany($this->db->select($sql));
+            return $this->hydrateMany($this->db->select(str_replace($primary . " =", $primary . " >", $sql)));
+        } catch (Throwable $e) {
+            $this->logger->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
+    }
+
+    /**
+     * @param array $statusArr
+     * @param array $idShopArr
+     *
+     * @return int|null
+     */
+    public function getTotalCountBySyncStatusAndShop(array $statusArr, array $idShopArr): ?int
+    {
+        try {
+            $this->logger->logInfoMsg(__METHOD__);
+
+            if ($this instanceof AbandonedCartRepository) {
+                return null;
+            }
+
+            $where = $this->buildWhereClause([EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr]);
+            return EntityHelper::fetchSingleValueFromRow(
+                sprintf('SELECT COUNT(*) FROM %s WHERE %s', $this->getTableNameWithPrefix(), $where),
+                'integer'
+            );
         } catch (Throwable $e) {
             $this->logger->logErrorMsg(__METHOD__, $e);
             return null;

@@ -685,8 +685,8 @@ class Configs implements SetupInterface
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        return $this->saveEventSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop) &&
-            $this->saveProfileSyncFlag(self::CONFIG_FLAG_NO, $idShopGroup, $idShop);
+        return $this->saveEventSyncFlag(self::FLAG_NO, $idShopGroup, $idShop) &&
+            $this->saveProfileSyncFlag(self::FLAG_NO, $idShopGroup, $idShop);
     }
 
     /**

@@ -137,6 +137,32 @@ class ModuleHelper extends LoggerHelper
     }
 
     /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return array
+     */
+    public function getStoreIdArrFromGivenContext(?int $idShopGroup = null, ?int $idShop = null): array
+    {
+        if ($idShop) {
+            return [$idShop];
+        }
+
+        /** @var ShopContext $shopContext */
+        $shopContext = $this->getService(self::SERVICE_CONTEXT_SHOP);
+
+        if ($idShopGroup && ! empty($list = $shopContext->getShopListGroupedByGroup()) && ! empty($list[$idShopGroup])) {
+            return $list[$idShopGroup];
+        }
+
+        if ($idShopGroup === 0 && $idShop === 0) {
+            return $shopContext->getAllActiveShopIdsAsList();
+        }
+
+        return [];
+    }
+
+    /**
      * @param string $serviceName
      * @param string $container
      *

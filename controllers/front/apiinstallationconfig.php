@@ -47,8 +47,8 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
         try {
             $status = $this->configs->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId);
             if ($status) {
-                $this->configs->saveProfileSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
-                $this->configs->saveEventSyncFlag(SetupInterface::CONFIG_FLAG_YES, $this->groupId, $this->shopId);
+                $this->configs->saveProfileSyncFlag(SetupInterface::FLAG_YES, $this->groupId, $this->shopId);
+                $this->configs->saveEventSyncFlag(SetupInterface::FLAG_YES, $this->groupId, $this->shopId);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
             } else {
                 $msg = 'Unable to save some configurations.';

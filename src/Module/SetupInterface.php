@@ -45,8 +45,8 @@ interface SetupInterface
     ];
 
     /** CONFIG FLAGS */
-    const CONFIG_FLAG_YES = 1;
-    const CONFIG_FLAG_NO = 0;
+    const FLAG_YES = 1;
+    const FLAG_NO = 0;
 
     /** LIMITATIONS  */
     const DEFAULT_SYNC_SIZE = 5000;
@@ -79,33 +79,33 @@ interface SetupInterface
             EI::C_ID_INTEGRATION => '(SELECT UUID()) as `%s`',
             EI::C_ID_SHOP => '`%s`',
             EI::C_EMAIL => '`%s`',
-            EI::C_SYNC_STATUS => '0 as `%s`',
+            EI::C_SYNC_STATUS => EI::SS_JUSTIN . ' as `%s`',
             EI::C_ERROR_MSG => '"" as `%s`',
             EI::C_DATE_UPD => '(SELECT NOW()) as `%s`',
         ],
         self::PS_T_CUSTOMER => [
             EI::C_ID_CUSTOMER => '`%s`',
-            EI::C_ID_NEWSLETTER => '0 AS `%s`',
-            EI::C_IS_CUSTOMER => '1 AS `%s`',
+            EI::C_ID_NEWSLETTER => EI::NO_ID . ' AS `%s`',
+            EI::C_IS_CUSTOMER => self::FLAG_YES . ' AS `%s`',
             EI::C_IS_GUEST => '`%s`',
             EI::C_IS_NEWSLETTER => '`newsletter` AS `%s`',
             EI::C_IS_OFFERS => '`optin` AS `%s`',
             EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_CUSTOMER .') AS `%s`'
         ],
         self::PS_T_NEWSLETTER => [
-            EI::C_ID_CUSTOMER => '0 AS `%s`',
+            EI::C_ID_CUSTOMER => self::FLAG_NO . ' AS `%s`',
             EI::C_ID_NEWSLETTER => '`id` AS `%s`',
-            EI::C_IS_CUSTOMER => '0 AS `%s`',
-            EI::C_IS_GUEST => '0 AS `%s`',
-            EI::C_IS_NEWSLETTER => '1 AS `%s`',
-            EI::C_IS_OFFERS => '0 AS `%s`',
+            EI::C_IS_CUSTOMER => self::FLAG_NO . ' AS `%s`',
+            EI::C_IS_GUEST => self::FLAG_NO . ' AS `%s`',
+            EI::C_IS_NEWSLETTER => self::FLAG_YES . ' AS `%s`',
+            EI::C_IS_OFFERS => self::FLAG_NO . ' AS `%s`',
             EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_SUBSCRIBER . ') AS `%s`'
         ]
     ];
     const PS_WHERE_COND = [
         self::T_DEF_VALUES => ['`email` != ""', '`email` IS NOT NULL'],
-        self::PS_T_CUSTOMER => ['`deleted` = 0', '`active` = 1'],
-        self::PS_T_NEWSLETTER => ['`active` = 1']
+        self::PS_T_CUSTOMER => ['`deleted` = ' . self::FLAG_NO, '`active` = ' . self::FLAG_YES],
+        self::PS_T_NEWSLETTER => ['`active` = ' . self::FLAG_YES]
     ];
 
     const T_PROFILE_MIGRATE_DATA_FROM_TABLES = [

@@ -32,6 +32,7 @@ interface ApiControllerInterface
     const BODY_PARAM_LINKS = 'links';
     const BODY_PARAM_LINKS_SELF = 'self';
     const BODY_PARAM_LINKS_NEXT = 'next';
+    const BODY_PARAM_LINKS_PREV = 'previous';
 
     /** HTTP Codes  */
     const HTTP_CODE_200 = 200;

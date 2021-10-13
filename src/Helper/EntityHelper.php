@@ -2,9 +2,6 @@
 
 namespace Apsis\One\Helper;
 
-use Context;
-use Customer;
-use Db;
 use PrestaShop\PrestaShop\Adapter\CoreException;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager;
 use PrestaShop\PrestaShop\Adapter\ServiceLocator;
@@ -16,8 +13,12 @@ use Apsis\One\Model\AbandonedCart;
 use Apsis\One\Repository\ProfileRepository;
 use Apsis\One\Repository\EventRepository;
 use Apsis\One\Repository\AbandonedCartRepository;
-use Throwable;
+use Apsis\One\Module\AbstractSetup;
 use Validate;
+use Context;
+use Customer;
+use Db;
+use Throwable;
 
 class EntityHelper extends LoggerHelper
 {
@@ -201,8 +202,8 @@ class EntityHelper extends LoggerHelper
     {
         try {
             $sql = sprintf(
-                "SELECT `id` FROM %semailsubscription WHERE `email` = '%s' AND id_shop = %d",
-                _DB_PREFIX_, pSQL($email), $shopId
+                "SELECT `id` FROM %s WHERE `email` = '%s' AND id_shop = %d",
+                AbstractSetup::getTableWithDbPrefix('emailsubscription'), pSQL($email), $shopId
             );
 
             return $this->fetchSingleValueFromRow($sql, 'integer');
@@ -223,8 +224,8 @@ class EntityHelper extends LoggerHelper
     {
         try {
             $sql = sprintf(
-                "SELECT `id_customer` FROM %scustomer WHERE `email` = '%s' AND id_shop = %d",
-                _DB_PREFIX_, pSQL($email), $shopId
+                "SELECT `id_customer` FROM %s WHERE `email` = '%s' AND id_shop = %d",
+                AbstractSetup::getTableWithDbPrefix('customer'), pSQL($email), $shopId
             );
 
             if ($isEmailSubscriber) {

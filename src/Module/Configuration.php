@@ -193,12 +193,12 @@ class Configuration extends AbstractSetup
                         'values' => [
                             [
                                 'id' => 'active_on',
-                                'value' => self::CONFIG_FLAG_YES,
+                                'value' => self::FLAG_YES,
                                 'label' => 'Yes',
                             ],
                             [
                                 'id' => 'active_off',
-                                'value' => self::CONFIG_FLAG_NO,
+                                'value' => self::FLAG_NO,
                                 'label' => 'No',
                             ]
                         ]
@@ -217,12 +217,12 @@ class Configuration extends AbstractSetup
                         'values' => [
                             [
                                 'id' => 'active_on',
-                                'value' => self::CONFIG_FLAG_YES,
+                                'value' => self::FLAG_YES,
                                 'label' => 'Yes',
                             ],
                             [
                                 'id' => 'active_off',
-                                'value' => self::CONFIG_FLAG_NO,
+                                'value' => self::FLAG_NO,
                                 'label' => 'No',
                             ]
                         ]

@@ -6,6 +6,7 @@ use Apsis\One\Model\Profile\Schema;
 use Apsis\One\Module\SetupInterface;
 use Apsis\One\Context\LinkContext;
 use Apsis\One\Helper\EntityHelper;
+use Apsis\One\Model\EntityInterface as EI;
 
 class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 {
@@ -79,8 +80,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     protected function createResponseBody(): array
     {
         try {
-            $profilesDataArr = $this->getProfilesDataArr();
             $afterIdFromRequest = (int) Tools::getValue(self::QUERY_PARAM_AFTER_ID);
+            $profilesDataArr = $this->getProfilesDataArr($afterIdFromRequest);
             $afterIdFromDataArr = $profilesDataArr[self::QUERY_PARAM_AFTER_ID];
 
             $paramSelf = empty($afterIdFromRequest) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromRequest];
@@ -127,16 +128,23 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     }
 
     /**
+     * @param int $afterId
+     *
      * @return array
      */
-    protected function getProfilesDataArr(): array
+    protected function getProfilesDataArr(int $afterId): array
     {
         $items = [];
 
         try {
             /** @var EntityHelper $entityHelper */
             $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
-            $profiles = $entityHelper->getProfileRepository()->findAll();
+            $profiles = $entityHelper->getProfileRepository()
+                ->findBySyncStatusForGivenShop(
+                    [EI::SS_JUSTIN],
+                    $this->module->helper->getStoreIdArrFromGivenContext($this->groupId, $this->shopId),
+                    $afterId
+                );
 
             foreach ($profiles as $profile) {
                 $item = $entityHelper->getProfileDataArrForExport($profile);
@@ -153,18 +161,21 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    protected function getTotalCount(): int
+    protected function getTotalCount(): ?int
     {
-        // TODO: fetch from db
-        return 0;
-        /**
         try {
-            return 0;
+            /** @var EntityHelper $entityHelper */
+            $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+            return $entityHelper->getProfileRepository()
+                ->getTotalCountBySyncStatusAndShop(
+                    [EI::SS_JUSTIN],
+                    $this->module->helper->getStoreIdArrFromGivenContext($this->groupId, $this->shopId)
+                );
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
-            return 0;
-        }**/
+            return null;
+        }
     }
 }
