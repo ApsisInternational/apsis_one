@@ -2,14 +2,17 @@
 
 namespace Apsis\One\Model;
 
+use Apsis\One\Helper\HelperInterface as HI;
+use Apsis\One\Model\EntityInterface as EI;
+
 interface SchemaInterface
 {
     /**
      * Array Keys
      */
+    const KEY_MAIN = 'main';
     const KEY_ITEMS = 'items';
     const KEY_SCHEMA = 'schema';
-    const KEY_PROVIDER = 'container';
 
     /**
      * Data types
@@ -27,8 +30,8 @@ interface SchemaInterface
     const VALIDATE_FORMAT_ID = 'isNullOrUnsignedId';
     const VALIDATE_FORMAT_ID_NOT_NULL = 'isUnsignedId';
     const VALIDATE_FORMAT_NAME = 'isNullOrCustomerName';
-    const VALIDATE_FORMAT_GENERIC_NAME = 'isNullOrGenericName';
-    const VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL = 'isGenericName';
+    const VALIDATE_FORMAT_GENERIC_STRING = 'isNullOrGenericString';
+    const VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL = 'isGenericString';
     const VALIDATE_FORMAT_ADDRESS = 'isNullOrAddress';
     const VALIDATE_FORMAT_POSTCODE = 'isNullOrPostCode';
     const VALIDATE_FORMAT_CITY = 'isNullOrCityName';
@@ -51,7 +54,7 @@ interface SchemaInterface
     const NOT_NULL_VALIDATIONS = [
         self::VALIDATE_FORMAT_UNSIGNED_INT_NOT_NULL,
         self::VALIDATE_FORMAT_ID_NOT_NULL,
-        self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL,
+        self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL,
         self::VALIDATE_FORMAT_EMAIL_NOT_NULL,
         self::VALIDATE_FORMAT_PROFILE_UUID_NOT_NULL,
         self::VALIDATE_FORMAT_URL_NOT_NULL,
@@ -77,25 +80,21 @@ interface SchemaInterface
     /**
      * Events discriminator
      */
-    const EVENT_CUSTOMER_IS_SUBSCRIBER_DISCRIMINATOR =
-        'com.apsis1.integrations.prestashop.events.customer-is-subscriber';
+    const EVENT_CUSTOMER_SUB_NEWS_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.customer-sub-newsletter';
+    const EVENT_CUSTOMER_UNSUB_NEWSLETTER_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.customer-unsub-newsletter';
+    const EVENT_CUSTOMER_SUB_OFFERS_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.customer-sub-offers';
+    const EVENT_CUSTOMER_UNSUB_OFFERS_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.customer-unsub-offers';
+    const EVENT_NEWS_GUEST_OPTIN_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.non-customer-sub-newsletter';
+    const EVENT_NEWS_GUEST_OPTOUT_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.non-customer-unsub-newsletter';
+    const EVENT_NEWS_SUB_IS_CUSTOMER_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.subscriber-is-customer';
     const EVENT_CUSTOMER_LOGIN_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.customer-login';
-    const EVENT_CUSTOMER_PRODUCT_WISHED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-wished';
-    const EVENT_GUEST_IS_CUSTOMER_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.guest-is-customer';
-    const EVENT_GUEST_IS_SUBSCRIBER_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.guest-is-subscriber';
-    const EVENT_SUBSCRIBER_IS_GUEST_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.subscriber-is-guest';
-    const EVENT_SUBSCRIBER_IS_CUSTOMER_DISCRIMINATOR =
-        'com.apsis1.integrations.prestashop.events.subscriber-is-customer';
-    const EVENT_SUBSCRIBER_UNSUBSCRIBE_DISCRIMINATOR =
-        'com.apsis1.integrations.prestashop.events.subscriber-unsubscribes';
-    const EVENT_COMMON_PRODUCT_CARTED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-carted';
-    const EVENT_COMMON_PRODUCT_REVIEWED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-reviewed';
-    const EVENT_COMMON_ORDER_PLACED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.order-placed';
-    const EVENT_COMMON_ORDER_PLACED_PRODUCT_DISCRIMINATOR =
-        'com.apsis1.integrations.prestashop.events.order-placed-product';
-    const EVENT_COMMON_CART_ABANDONED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.cart-abandoned';
-    const EVENT_COMMON_CART_ABANDONED_PRODUCT_DISCRIMINATOR =
-        'com.apsis1.integrations.prestashop.events.cart-abandoned-product';
+    const EVENT_PRODUCT_WISHED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-wished';
+    const EVENT_PRODUCT_CARTED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-carted';
+    const EVENT_PRODUCT_REVIEWED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-reviewed';
+    const EVENT_ORDER_PLACED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.order-placed';
+    const EVENT_ORDER_PLACED_PRODUCT_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.order-placed-product';
+    const EVENT_CART_ABANDONED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.cart-abandoned';
+    const EVENT_CART_ABANDONED_PRODUCT_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.cart-abandoned-product';
 
     /**
      * Schema Fields
@@ -116,12 +115,36 @@ interface SchemaInterface
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
         ]
     ];
-    const SCHEMA_FIELD_COMMENT_ID = [
+    const SCHEMA_FIELD_GROUP_REVIEW = [
         'commentId' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'commentId',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Comment Id',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
+        ],
+        'reviewTitle' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'reviewTitle',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Review Title',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
+        ],
+        'reviewDetail' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'reviewDetail',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Review Detail',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
+        ],
+        'reviewRating' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'reviewRating',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Review Rating',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_UNSIGNED_INT_NOT_NULL
+        ],
+        'reviewAuthor' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'reviewAuthor',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Review Author',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ]
     ];
     const SCHEMA_FIELD_CUSTOMER_ID = [
@@ -219,13 +242,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
         ],
         'shopGroupName' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shopGroupName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shop Group Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
         ]
     ];
     const SCHEMA_FIELD_GROUP_PRODUCT_PRICE = [
@@ -253,13 +276,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'productName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Product Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
         ],
         'productReference' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productReference',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Product Reference',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
         ],
         'productImageUrl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productImageUrl',
@@ -293,13 +316,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'orderReference',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Order Reference',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME_NOT_NULL
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
         ],
         'paymentMethod' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'paymentMethod',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Payment Method',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'totalDiscounts' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'totalDiscounts',
@@ -339,12 +362,6 @@ interface SchemaInterface
         ]
     ];
     const SCHEMA_FIELD_GROUP_ORDER_PRODUCT = [
-        'orderRowId' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'orderRowId',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Order Row Id',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_ID_NOT_NULL
-        ],
         'productPrice' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'productPrice',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Product Price',
@@ -375,7 +392,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'wishlistName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Wishlist Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ]
     ];
     const SCHEMA_FIELD_GROUP_PROFILE = [
@@ -389,7 +406,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'customerGroupName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Default Group Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'isSubscribedToNewsletter' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletter',
@@ -413,7 +430,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'languageName',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Language Name',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'dateAdded' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'dateAdded',
@@ -443,7 +460,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'gender',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Gender',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'birthday' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'birthday',
@@ -455,7 +472,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'company',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Company',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'billingAddress1' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'billingAddress1',
@@ -497,13 +514,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'billingState',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Billing State',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'billingCountry' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'billingCountry',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Billing Country',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'shippingAddress1' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shippingAddress1',
@@ -545,13 +562,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'shippingState',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shipping State',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'shippingCountry' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'shippingCountry',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Shipping Country',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_NAME
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
         'lifetimeTotalSpend' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'lifetimeTotalSpend',
@@ -570,6 +587,50 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Average Order Value',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ]
+    ];
+
+    /** EVENT TYPE MAPPINGS  */
+    const EVENT_TYPE_TO_DISCRIMINATOR_MAP = [
+        EI::ET_CUST_LOGIN => self::EVENT_CUSTOMER_LOGIN_DISCRIMINATOR,
+        EI::ET_NEWS_GUEST_OPTIN => self::EVENT_NEWS_GUEST_OPTIN_DISCRIMINATOR,
+        EI::ET_NEWS_GUEST_OPTOUT => self::EVENT_NEWS_GUEST_OPTOUT_DISCRIMINATOR,
+        EI::ET_NEWS_SUB_2_CUST => self::EVENT_NEWS_SUB_IS_CUSTOMER_DISCRIMINATOR,
+        EI::ET_CUST_SUB_OFFERS => self::EVENT_CUSTOMER_SUB_OFFERS_DISCRIMINATOR,
+        EI::ET_CUST_UNSUB_OFFERS => self::EVENT_CUSTOMER_UNSUB_OFFERS_DISCRIMINATOR,
+        EI::ET_CUST_SUB_NEWS => self::EVENT_CUSTOMER_SUB_NEWS_DISCRIMINATOR,
+        EI::ET_CUST_UNSUB_NEWS => self::EVENT_CUSTOMER_UNSUB_NEWSLETTER_DISCRIMINATOR,
+        EI::ET_PRODUCT_WISHED => self::EVENT_PRODUCT_WISHED_DISCRIMINATOR,
+        EI::ET_PRODUCT_CARTED => self::EVENT_PRODUCT_CARTED_DISCRIMINATOR,
+        EI::ET_PRODUCT_REVIEWED => self::EVENT_PRODUCT_REVIEWED_DISCRIMINATOR,
+        EI::ET_ORDER_PLACED => [
+            self::KEY_MAIN => self::EVENT_ORDER_PLACED_DISCRIMINATOR,
+            self::KEY_ITEMS => self::EVENT_ORDER_PLACED_PRODUCT_DISCRIMINATOR
+        ],
+        EI::ET_CART_ABANDONED => [
+            self::KEY_MAIN => self::EVENT_CART_ABANDONED_DISCRIMINATOR,
+            self::KEY_ITEMS => self::EVENT_CART_ABANDONED_PRODUCT_DISCRIMINATOR
+        ],
+    ];
+    const EVENT_TYPE_TO_SCHEMA_MAP = [
+        EI::ET_CUST_LOGIN => HI::SERVICE_EVENT_CUSTOMER_LOGIN_SCHEMA,
+        EI::ET_NEWS_SUB_2_CUST => HI::SERVICE_EVENT_NEWSLETTER_SUB_IS_CUSTOMER_SCHEMA,
+        EI::ET_NEWS_GUEST_OPTIN => HI::SERVICE_EVENT_NEWSLETTER_GUEST_OPTIN_SCHEMA,
+        EI::ET_NEWS_GUEST_OPTOUT => HI::SERVICE_EVENT_NEWSLETTER_GUEST_OPTOUT_SCHEMA,
+        EI::ET_CUST_SUB_OFFERS => HI::SERVICE_EVENT_CUSTOMER_OPTIN_OFFERS_SCHEMA,
+        EI::ET_CUST_UNSUB_OFFERS => HI::SERVICE_EVENT_CUSTOMER_OPTOUT_OFFERS_SCHEMA,
+        EI::ET_CUST_SUB_NEWS => HI::SERVICE_EVENT_CUSTOMER_OPTIN_NEWSLETTER_SCHEMA,
+        EI::ET_CUST_UNSUB_NEWS => HI::SERVICE_EVENT_CUSTOMER_OPTOUT_NEWSLETTER_SCHEMA,
+        EI::ET_PRODUCT_WISHED => HI::SERVICE_EVENT_CUSTOMER_PRODUCT_WISHED_SCHEMA,
+        EI::ET_PRODUCT_CARTED => HI::SERVICE_EVENT_COMMON_PRODUCT_CARTED_SCHEMA,
+        EI::ET_PRODUCT_REVIEWED => HI::SERVICE_EVENT_COMMON_PRODUCT_REVIEWED_SCHEMA,
+        EI::ET_ORDER_PLACED => [
+            self::KEY_MAIN => HI::SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA,
+            self::KEY_ITEMS => HI::SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA
+        ],
+        EI::ET_CART_ABANDONED => [
+            self::KEY_MAIN => HI::SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA,
+            self::KEY_ITEMS => HI::SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA
         ]
     ];
 

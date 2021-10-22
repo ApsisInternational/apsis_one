@@ -3,6 +3,9 @@
 namespace Apsis\One\Grid\Definition\Factory;
 
 use Apsis\One\Helper\HelperInterface as HI;
+use Apsis\One\Model\AbandonedCart;
+use Apsis\One\Model\Event;
+use Apsis\One\Model\Profile;
 use PrestaShop\PrestaShop\Core\Grid\Definition\Factory\FilterableGridDefinitionFactoryInterface;
 use PrestaShop\PrestaShop\Core\Hook\HookDispatcherInterface;
 use PrestaShopBundle\Form\Admin\Type\DateRangeType;
@@ -45,6 +48,11 @@ interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactory
         EI::T_PROFILE => HI::GRID_ROUTE_PROFILE_EXPORT,
         EI::T_EVENT => HI::GRID_ROUTE_EVENT_EXPORT,
         EI::T_ABANDONED_CART => HI::GRID_ROUTE_AC_EXPORT
+    ];
+    const GRID_ENTITY_CLASSNAME_MAP = [
+        EI::T_PROFILE => Profile::class,
+        EI::T_EVENT => Event::class,
+        EI::T_ABANDONED_CART => AbandonedCart::class
     ];
 
     /** GRID COLUMNS */

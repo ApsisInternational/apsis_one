@@ -5,6 +5,7 @@ namespace Apsis\One\Controller;
 use Apsis\One\Model\SchemaInterface;
 use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Repository\ProfileRepository;
 use Apsis_one;
 use ModuleFrontController;
 use WebserviceRequest;
@@ -499,5 +500,16 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         $this->exitWithResponse(
             $this->generateResponse(AbstractApiController::HTTP_CODE_500, [], $e->getMessage())
         );
+    }
+
+    /**
+     * @return ProfileRepository
+     */
+    protected function getProfileRepository(): ProfileRepository
+    {
+        /** @var ProfileRepository $repository */
+        return $this->module->helper
+            ->getService(HelperInterface::SERVICE_HELPER_ENTITY)
+            ->getProfileRepository();
     }
 }

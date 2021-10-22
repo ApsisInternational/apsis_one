@@ -22,8 +22,7 @@ class Cart extends AbstractSchema
                 self::SCHEMA_FIELD_CURRENCY_CODE
             ),
             self::KEY_ITEMS => [
-                self::KEY_SCHEMA => HelperInterface::SERVICE_ABANDONED_CART_ITEM_SCHEMA,
-                self::KEY_PROVIDER => HelperInterface::SERVICE_ABANDONED_CART_CONTAINER
+                self::KEY_SCHEMA => HelperInterface::SERVICE_ABANDONED_CART_ITEM_SCHEMA
             ]
         ];
         $this->definitionTypes = [HelperInterface::SERVICE_ABANDONED_CART_SCHEMA, self::KEY_ITEMS];

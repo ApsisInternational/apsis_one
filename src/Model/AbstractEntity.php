@@ -3,10 +3,12 @@
 namespace Apsis\One\Model;
 
 use Apsis\One\Helper\EntityHelper;
+use Db;
 use ObjectModel;
 use PrestaShopDatabaseException;
 use PrestaShopException;
 use Context;
+use Validate;
 
 abstract class AbstractEntity extends ObjectModel implements EntityInterface
 {
@@ -97,7 +99,76 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
      */
     public function delete(): bool
     {
-        return parent::delete();
+        $check = parent::delete();
+
+        // Remove linked Events and ACs
+        if ($check && $this instanceof Profile) {
+            Db::getInstance()->delete(self::T_EVENT, 'id_apsis_profile = ' . (int) $this->id);
+            Db::getInstance()->delete(self::T_ABANDONED_CART, 'id_apsis_profile = ' . (int) $this->id);
+        }
+
+        return $check;
+    }
+
+    /**
+     * @return bool
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function reset(): bool
+    {
+        if ($this instanceof AbandonedCart) {
+            return true;
+        }
+
+        return $this->setSyncStatus()
+            ->setErrorMessage()
+            ->update();
+    }
+
+    /**
+     * @param array $ids
+     * @param string $class
+     *
+     * @return bool
+     *
+     * @throws PrestaShopDatabaseException
+     * @throws PrestaShopException
+     */
+    public function resetSelection(array $ids, string $class): bool
+    {
+        $result = true;
+
+        if ($this instanceof AbandonedCart) {
+            return $result;
+        }
+
+        foreach ($ids as $id) {
+            /** @var AbstractEntity $object */
+            $object = new $class((int) $id);
+            if (Validate::isLoadedObject($object)) {
+                $result = $result && $object->reset();
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param string $whereCond
+     *
+     * @return bool
+     */
+    public function resetProfilesAndEvents(string $whereCond): bool
+    {
+        if ($this instanceof AbandonedCart) {
+            return true;
+        }
+
+        $columnData = [self::C_SYNC_STATUS => self::SS_JUSTIN];
+        return Db::getInstance()->update(self::T_PROFILE, $columnData, $whereCond) &&
+            Db::getInstance()->update(self::T_EVENT, $columnData, $whereCond);
     }
 
     /**
@@ -221,28 +292,27 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     {
         // If no shop set
         if (empty($this->getIdShop())) {
-            $this->setIdShop(Context::getContext()->shop->id);
+            $this->setIdShop(Context::getContext()->shop->getContextShopID());
         }
 
         // Clears error field, in following conditions
-        if (empty($this->getId()) &&
-            ($this instanceof Event || $this instanceof Profile) &&
-            $this->getSyncStatus() === self::SS_PENDING
-        ) {
+        if (($this instanceof Event || $this instanceof Profile) && $this->getSyncStatus() === self::SS_PENDING) {
             $this->setErrorMessage(); // Clears field
         }
 
         // Set Profile Data field value
         if ($this instanceof Profile) {
             $format = 'CAST(%d AS SIGNED)';
-            if ($this->getIsCustomer() && $this->getIdCustomer()) {
+            if ($this->getIdCustomer()) {
                 $sql = sprintf(self::PROFILE_DATA_SQL_CUSTOMER, sprintf($format, $this->getIdCustomer()));
-            } elseif($this->getIsNewsletter() && $this->getIdNewsletter()) {
+            } elseif ($this->getIdNewsletter()) {
                 $sql = sprintf(self::PROFILE_DATA_SQL_SUBSCRIBER, sprintf($format, $this->getIdNewsletter()));
             }
 
             if (isset($sql)) {
                 $this->setProfileData(EntityHelper::fetchSingleValueFromRow($sql, 'string'));
+            } else {
+                $this->setProfileData('');
             }
         }
 

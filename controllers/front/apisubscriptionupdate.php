@@ -1,9 +1,13 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
+use Apsis\One\Model\Profile;
+use Apsis\One\Module\HookProcessor;
 
 class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiController
 {
+    const REG_ARR = [Ps_Emailsubscription::GUEST_REGISTERED, Ps_Emailsubscription::CUSTOMER_REGISTERED];
+
     /**
      * {@inheritdoc}
      */
@@ -22,7 +26,9 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
         try {
             $this->validateProfileSyncFeature();
 
-            if ($profile = $this->getProfile() === null) {
+            if (empty($PK = $this->bodyParams[self::BODY_PARAM_PROFILE_KEY]) ||
+                is_null($profile = $this->getProfile($PK))
+            ) {
                 $msg = 'Profile not found.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
@@ -43,28 +49,47 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
     }
 
     /**
-     * @return stdClass|null
+     * @param string $PK
+     *
+     * @return Profile|null
      */
-    protected function getProfile(): ?stdClass
+    protected function getProfile(string $PK): ?Profile
     {
         try {
-            // TODO: fetch profile from profile entity
-            return new stdClass();
+            if (strlen($PK)) {
+                $repository = $this->getProfileRepository();
+                if ($profile = $repository->findOneByIntegrationId($PK)) {
+                    return $profile;
+                }
+            }
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
-            return null;
         }
+
+        return null;
     }
 
     /**
-     * @param $profile
+     * @param Profile $profile
      *
      * @return bool
      */
-    protected function updateSubscription($profile): bool
+    protected function updateSubscription(Profile $profile): bool
     {
         try {
-            // TODO: update subscription in profile entity and ps subscription entity
+            $_POST['email'] = $profile->getEmail();
+            $_POST['action'] = HookProcessor::ACT_UNSUB;
+            $_POST[self::POST_KEY_UPDATE] = true;
+
+            $subscription = new Ps_Emailsubscription;
+            if (in_array($subscription->isNewsletterRegistered($_POST['email']), self::REG_ARR)) {
+                $status = $subscription->newsletterRegistration();
+                $this->module->helper->logDebugMsg(
+                    __METHOD__,
+                    ['Info' => $status, 'Profile' => $profile->id, 'Email' => $_POST['email']]
+                );
+            }
+
             return true;
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

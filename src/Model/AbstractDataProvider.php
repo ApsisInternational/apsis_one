@@ -71,4 +71,14 @@ abstract class AbstractDataProvider extends AbstractData
     {
         return $this->getFormattedValueByType('is_guest', $type);
     }
+
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getIpRegistrationNewsletter(string $type): ?string
+    {
+        return $this->getFormattedValueByType('ip_registration_newsletter', $type);
+    }
 }

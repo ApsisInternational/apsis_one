@@ -4,6 +4,7 @@ namespace Apsis\One\Context;
 
 use Apsis\One\Module\SetupInterface;
 use Link;
+use Product;
 use Throwable;
 
 class LinkContext extends AbstractContext
@@ -64,6 +65,23 @@ class LinkContext extends AbstractContext
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return '';
+        }
+    }
+
+    /**
+     * @param Product $product
+     *
+     * @return string|null
+     */
+    public function getProductCoverImage(Product $product): ?string
+    {
+        try {
+            $imgArr = $product->getCover($product->id);
+            return ! empty($imgArr['id_image']) ?
+                $this->getContextObject()->getImageLink($product->link_rewrite, $imgArr['id_image']) : null;
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+            return null;
         }
     }
 }

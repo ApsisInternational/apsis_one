@@ -3,7 +3,6 @@
 namespace Apsis\One\Controller\Admin;
 
 use Apsis\One\Grid\Search\Filters\ProfileFilters;
-use PrestaShopBundle\Component\CsvResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use PrestaShopBundle\Security\Annotation\AdminSecurity;
@@ -29,10 +28,67 @@ class ProfileController extends AbstractController
      * @param Request $request
      * @param ProfileFilters $filter
      *
-     * @return CsvResponse
+     * @return Response
      */
-    public function exportAction(Request $request, ProfileFilters $filter): CsvResponse
+    public function exportAction(Request $request, ProfileFilters $filter): Response
     {
         return $this->processExport($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param ProfileFilters $filter
+     *
+     * @return Response
+     */
+    public function deleteAction(Request $request, ProfileFilters $filter): Response
+    {
+        // @todo remove Profile from One, and subscriptions if any
+        return parent::processDelete($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param ProfileFilters $filter
+     *
+     * @return Response
+     */
+    public function resetAction(Request $request, ProfileFilters $filter): Response
+    {
+        return parent::processReset($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param ProfileFilters $filter
+     *
+     * @return Response
+     */
+    public function deleteBulkAction(Request $request, ProfileFilters $filter): Response
+    {
+        return parent::processDeleteBulk($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param ProfileFilters $filter
+     *
+     * @return Response
+     */
+    public function resetBulkAction(Request $request, ProfileFilters $filter): Response
+    {
+        return parent::processResetBulkAction($request, $filter);
     }
 }

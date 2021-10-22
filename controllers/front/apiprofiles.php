@@ -142,7 +142,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $profiles = $entityHelper->getProfileRepository()
                 ->findBySyncStatusForGivenShop(
                     [EI::SS_JUSTIN],
-                    $this->module->helper->getStoreIdArrFromGivenContext($this->groupId, $this->shopId),
+                    $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId),
                     $afterId
                 );
 
@@ -171,7 +171,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             return $entityHelper->getProfileRepository()
                 ->getTotalCountBySyncStatusAndShop(
                     [EI::SS_JUSTIN],
-                    $this->module->helper->getStoreIdArrFromGivenContext($this->groupId, $this->shopId)
+                    $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId)
                 );
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

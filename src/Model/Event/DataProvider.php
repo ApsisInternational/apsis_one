@@ -4,136 +4,315 @@ namespace Apsis\One\Model\Event;
 
 use Apsis\One\Model\AbstractDataProvider;
 
-// TODO: entity's values
 class DataProvider extends AbstractDataProvider
 {
-    protected function getWishlistId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getWishlistId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_wishlist', $type);
     }
 
-    protected function getProductId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getGuestId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_guest', $type);
     }
 
-    protected function getCartId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getProductId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_product', $type);
     }
 
-    protected function getCommentId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getCartId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_cart', $type);
     }
 
-    protected function getOrderId()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getCommentId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_comment', $type);
     }
 
-    protected function getOrderRowId()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getReviewTitle(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('review_title', $type);
     }
 
-    protected function getWishlistName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getReviewDetail(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('review_detail', $type);
     }
 
-    protected function getProductName()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getReviewAuthor(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('review_author', $type);
     }
 
-    protected function getProductReference()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getReviewRating(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('review_rating', $type);
     }
 
-    protected function getProductImageUrl()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getOrderId(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('id_order', $type);
     }
 
-    protected function getProductUrl()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getWishlistName(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('wishlist_name', $type);
     }
 
-    protected function getProductQty()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getProductName(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('product_name', $type);
     }
 
-    protected function getProductPriceAmountInclTax()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getProductReference(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('product_reference', $type);
     }
 
-    protected function getProductPriceAmountExclTax()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getProductImageUrl(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('product_image_url', $type);
     }
 
-    protected function getCurrencyCode()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getProductUrl(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('product_url', $type);
     }
 
-    protected function getOrderReference()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getCurrencyCode(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('currency_code', $type);
     }
 
-    protected function getPaymentMethod()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getOrderReference(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('order_reference', $type);
     }
 
-    protected function getTotalDiscounts()
+    /**
+     * @param string $type
+     *
+     * @return string|null
+     */
+    protected function getPaymentMethod(string $type): ?string
     {
-        return '';
+        return $this->getFormattedValueByType('payment_method', $type);
     }
 
-    protected function getTotalPaid()
+    /**
+     * @param string $type
+     *
+     * @return int|null
+     */
+    protected function getProductQty(string $type): ?int
     {
-        return '';
+        return $this->getFormattedValueByType('product_qty', $type);
     }
 
-    protected function getTotalPaidReal()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getProductPriceAmountInclTax(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('product_price_amount_incl_tax', $type);
     }
 
-    protected function getTotalProducts()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getProductPriceAmountExclTax(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('product_price_amount_excl_tax', $type);
     }
 
-    protected function getTotalShipping()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalDiscounts(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('total_discounts', $type);
     }
 
-    protected function getIsRecyclable()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalPaid(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('total_paid', $type);
     }
 
-    protected function getIsGift()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalPaidReal(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('total_paid_real', $type);
     }
 
-    protected function getUnitPriceTaxIncl()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalWrapping(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('total_wrapping', $type);
     }
 
-    protected function getUnitPriceTaxExcl()
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalProducts(string $type): ?float
     {
-        return '';
+        return $this->getFormattedValueByType('total_products', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalShipping(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_shipping', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getUnitPriceTaxIncl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('unit_price_tax_incl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getUnitPriceTaxExcl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('unit_price_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getIsRecyclable(string $type): ?bool
+    {
+        return $this->getFormattedValueByType('is_recyclable', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return bool|null
+     */
+    protected function getIsGift(string $type): ?bool
+    {
+        return $this->getFormattedValueByType('is_gift', $type);
     }
 }

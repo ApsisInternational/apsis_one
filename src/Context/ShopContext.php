@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Context;
 
+use ShopGroup;
 use Throwable;
 use PrestaShopException;
 use Shop;
@@ -139,5 +140,85 @@ class ShopContext extends AbstractContext
             $this->helper->logErrorMsg(__METHOD__, $e);
             return false;
         }
+    }
+
+    /**
+     * @param int|null $idShop
+     *
+     * @return Shop|null
+     */
+    public function getShopById(?int $idShop = null): ?Shop
+    {
+        try {
+            if (! $idShop) {
+                $idShop = $this->getCurrentShopId();
+            }
+
+            if ($idShop) {
+                return new Shop($idShop);
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int|null $idShop
+     *
+     * @return string|null
+     */
+    public function getShopNameById(?int $idShop = null): ?string
+    {
+        try {
+            if ($shop = $this->getShopById($idShop)) {
+                return $shop->name;
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     *
+     * @return ShopGroup|null
+     */
+    public function getShopGroupById(?int $idShopGroup = null): ?ShopGroup
+    {
+        try {
+            if (! $idShopGroup) {
+                $idShopGroup = $this->getCurrentShopGroupId();
+            }
+
+            if ($idShopGroup) {
+                return new ShopGroup($idShopGroup);
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     *
+     * @return string|null
+     */
+    public function getShopGroupNameById(?int $idShopGroup = null): ?string
+    {
+        try {
+            if ($shopGroup = $this->getShopGroupById($idShopGroup)) {
+                return (string) $shopGroup->name;
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
     }
 }

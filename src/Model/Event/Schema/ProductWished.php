@@ -1,6 +1,6 @@
 <?php
 
-namespace Apsis\One\Model\Event\Schema\Customer;
+namespace Apsis\One\Model\Event\Schema;
 
 use Apsis\One\Model\AbstractSchema;
 
@@ -12,7 +12,7 @@ class ProductWished extends AbstractSchema
     public function __construct()
     {
         $this->definition = [
-            self::EVENT_CUSTOMER_PRODUCT_WISHED_DISCRIMINATOR => array_merge(
+            self::KEY_MAIN => array_merge(
                 self::SCHEMA_FIELD_GROUP_PRODUCT_WISHED,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GROUP_SHOP,
@@ -22,6 +22,6 @@ class ProductWished extends AbstractSchema
                 self::SCHEMA_FIELD_CURRENCY_CODE
             )
         ];
-        $this->definitionTypes = [self::EVENT_CUSTOMER_PRODUCT_WISHED_DISCRIMINATOR];
+        $this->definitionTypes = [self::KEY_MAIN];
     }
 }

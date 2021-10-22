@@ -133,14 +133,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
      */
     protected function getBulkActions()
     {
-        return (new BulkActionCollection())
-            ->add((new SubmitBulkAction('reset_selection'))
-                ->setName('Reset Selected')
-                ->setOptions([
-                    'submit_route' => self::GRID_ROUTES_RESET_BULK_MAP[$this->getId()],
-                    'confirm_message' => 'Reset sync status for selected records?',
-                ])
-            )
+        $bulkActions =  (new BulkActionCollection())
             ->add((new SubmitBulkAction('delete_selection'))
                 ->setName('Delete Selected')
                 ->setOptions([
@@ -148,6 +141,18 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
                     'confirm_message' => 'Delete selected records?'
                 ])
             );
+
+        if ($this->getId() !== AbandonedCartGridDefinitionFactory::GRID_ID) {
+            $bulkActions->add((new SubmitBulkAction('reset_selection'))
+                ->setName('Reset Selected')
+                ->setOptions([
+                    'submit_route' => self::GRID_ROUTES_RESET_BULK_MAP[$this->getId()],
+                    'confirm_message' => 'Reset sync status for selected records?',
+                ])
+            );
+        }
+
+        return $bulkActions;
     }
 
     /**
@@ -186,17 +191,6 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     {
         $rowActions = (new RowActionCollection())
             ->add(
-                (new SubmitRowAction('reset'))
-                    ->setName('Reset')
-                    ->setIcon('edit')
-                    ->setOptions([
-                        'route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
-                        'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
-                        'confirm_message' => 'Reset sync status for this record?'
-                    ])
-            )
-            ->add(
                 (new SubmitRowAction('delete'))
                     ->setName('Delete')
                     ->setIcon('delete')
@@ -207,6 +201,20 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
                         'confirm_message' => 'Delete this record?'
                     ])
             );
+
+        if ($this->getId() !== AbandonedCartGridDefinitionFactory::GRID_ID) {
+            $rowActions->add(
+                (new SubmitRowAction('reset'))
+                    ->setName('Reset')
+                    ->setIcon('edit')
+                    ->setOptions([
+                        'route' => self::GRID_ROUTES_RESET_MAP[$this->getId()],
+                        'route_param_name' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'route_param_field' => EI::T_PRIMARY_MAPPINGS[$this->getId()],
+                        'confirm_message' => 'Reset sync status for this record?'
+                    ])
+            );
+        }
 
         if ($this->getId() === ProfileGridDefinitionFactory::GRID_ID) {
             $rowActions->add(

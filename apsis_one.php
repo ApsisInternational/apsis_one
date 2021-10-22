@@ -129,101 +129,113 @@ class Apsis_one extends Module implements SetupInterface
 
     /**
      * @param array $hookArgs
-     *
-     * @return bool
      */
-    public function hookActionObjectCustomerAddAfter(array $hookArgs): bool
+    public function hookActionObjectCustomerAddAfter(array $hookArgs): void
     {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectCustomerUpdateAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectCustomerDeleteAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionAuthentication(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionNewsletterRegistrationAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectAddressAddAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectAddressUpdateAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectAddressDeleteAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectProductCommentValidateAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionWishlistAddProduct(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionValidateOrder(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionCartUpdateQuantityBefore(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
     }
 
     /**
      * @param array $hookArgs
      *
-     * @return bool
+     * @return string
      */
-    public function hookActionObjectCustomerUpdateAfter(array $hookArgs): bool
+    public function hookDisplayCustomerAccount(array $hookArgs): string
     {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionObjectCustomerDeleteAfter(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionAuthentication(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookDisplayCustomerAccount(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionNewsletterRegistrationAfter(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionObjectProductCommentValidateAfter(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionWishlistAddProduct(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionValidateOrder(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
-    }
-
-    /**
-     * @param array $hookArgs
-     *
-     * @return bool
-     */
-    public function hookActionCartUpdateQuantityBefore(array $hookArgs): bool
-    {
-        return $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+        $this->helper->logInfoMsg(__METHOD__);
+        return 'YES';
+        /**  See Method hookDisplayAdminCustomersForm() Class ps_emailsubscription
+        $input = [];
+        $this->context->smarty->assign(['input' => $input]);
+        return $this->display(__FILE__, 'views/templates/admin/newsletter_subscribe.tpl');
+        **/
     }
 }

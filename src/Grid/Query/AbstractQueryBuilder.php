@@ -90,6 +90,10 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
             ->where($this->formatString($this->getColumn(EI::C_ID_SHOP), EI::PS_SHOP_ID_PARAM, ' = :'))
             ->setParameter(EI::PS_SHOP_ID_PARAM, $this->contextShopId);
 
+        if (static::getTableName() === EI::T_PROFILE) {
+            $queryBuilder->andWhere($this->formatString($this->getColumn(EI::C_SYNC_STATUS), EI::SS_NOTHING, ' != '));
+        }
+
         $this->applyFilters(
             $searchCriteria->getFilters(),
             $queryBuilder,

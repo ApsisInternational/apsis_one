@@ -1,6 +1,8 @@
 <?php
 
 use Apsis\One\Controller\AbstractApiController;
+use Apsis\One\Model\EntityInterface as EI;
+use Apsis\One\Model\Profile;
 use Apsis\One\Model\SchemaInterface;
 use Apsis\One\Module\SetupInterface;
 
@@ -67,11 +69,21 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
     {
         try {
             if (isset($this->queryParams[self::QUERY_PARAM_RESET])) {
-                // TODO: also reset events and profiles
-                if ($this->configs->disableSyncsClearConfigs($this->groupId, $this->shopId)) {
+                $repository = $this->getProfileRepository();
+
+                /** @var Profile $entity */
+                $entity = $repository->getNewEntity();
+                $where = $repository->buildWhereClause(
+                    [EI::C_ID_SHOP => $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId)]
+                );
+
+                if ($this->configs->disableSyncsClearConfigs($this->groupId, $this->shopId) &&
+                    $entity->resetProfilesAndEvents($where)
+                ) {
+                    $this->module->helper->logDebugMsg(__METHOD__, ['info' => 'Full reset performed.']);
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
                 } else {
-                    $msg = 'Unable to reset some configurations.';
+                    $msg = 'Unable to complete reset.';
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_500, [], $msg));
                 }

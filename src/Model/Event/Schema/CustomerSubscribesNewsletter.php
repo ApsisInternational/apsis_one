@@ -1,10 +1,10 @@
 <?php
 
-namespace Apsis\One\Model\Event\Schema\Subscriber;
+namespace Apsis\One\Model\Event\Schema;
 
 use Apsis\One\Model\AbstractSchema;
 
-class SubscriberIsGuest extends AbstractSchema
+class CustomerSubscribesNewsletter extends AbstractSchema
 {
     /**
      * {@inheritdoc}
@@ -12,13 +12,12 @@ class SubscriberIsGuest extends AbstractSchema
     public function __construct()
     {
         $this->definition = [
-            self::EVENT_SUBSCRIBER_IS_GUEST_DISCRIMINATOR => array_merge(
-                self::SCHEMA_FIELD_GUEST_ID,
+            self::KEY_MAIN => array_merge(
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_IP_NEWSLETTER
             )
         ];
-        $this->definitionTypes = [self::EVENT_SUBSCRIBER_IS_GUEST_DISCRIMINATOR];
+        $this->definitionTypes = [self::KEY_MAIN];
     }
 }

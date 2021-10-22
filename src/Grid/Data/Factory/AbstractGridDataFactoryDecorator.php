@@ -94,7 +94,7 @@ abstract class AbstractGridDataFactoryDecorator implements GridDataFactoryInterf
     protected function applyModifications(array $record, string $column, array $cond): array
     {
         if (isset($record[$column])) {
-            if ($column === EI::C_SYNC_STATUS && array_key_exists($record[$column], $cond)) {
+            if (in_array($column, [EI::C_SYNC_STATUS, EI::C_EVENT_TYPE]) && array_key_exists($record[$column], $cond)) {
                 $record[$column] = $cond[$record[$column]];
             }
 

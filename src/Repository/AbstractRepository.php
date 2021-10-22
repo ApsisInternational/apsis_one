@@ -53,7 +53,7 @@ abstract class AbstractRepository extends EntityRepository implements Repository
      *
      * @throws Exception
      */
-    protected function buildWhereClause(array $conditions, string $andOrOr = 'AND'): string
+    public function buildWhereClause(array $conditions, string $andOrOr = 'AND'): string
     {
         return $this->queryBuilder->buildWhereConditions($andOrOr, $conditions);
     }

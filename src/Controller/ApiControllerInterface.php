@@ -4,6 +4,8 @@ namespace Apsis\One\Controller;
 
 interface ApiControllerInterface
 {
+    const POST_KEY_UPDATE = 'APSIS_UPDATE';
+
     /** CURL OPT VALUES */
     const CURL_REQUEST_TIMOUT = 30;
     const CURL_REQUEST_MAX_REDIRECTS = 10;
@@ -32,7 +34,6 @@ interface ApiControllerInterface
     const BODY_PARAM_LINKS = 'links';
     const BODY_PARAM_LINKS_SELF = 'self';
     const BODY_PARAM_LINKS_NEXT = 'next';
-    const BODY_PARAM_LINKS_PREV = 'previous';
 
     /** HTTP Codes  */
     const HTTP_CODE_200 = 200;

@@ -2,47 +2,50 @@ services:
   _defaults:
     public: true
 
-  apsis_one.event.cart-abandoned.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\CartAbandoned'
+  apsis_one.event.customer-optin-newsletter.schema:
+    class: 'Apsis\One\Model\Event\Schema\CustomerSubscribesNewsletter'
 
-  apsis_one.event.cart-abandoned-product.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\CartAbandonedProduct'
+  apsis_one.event.customer-optout-newsletter.schema:
+    class: 'Apsis\One\Model\Event\Schema\CustomerUnsubscribesNewsletter'
 
-  apsis_one.event.cart-order-placed.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\OrderPlaced'
+  apsis_one.event.customer-optin-offers.schema:
+    class: 'Apsis\One\Model\Event\Schema\CustomerSubscribesOffers'
 
-  apsis_one.event.cart-order-placed-product.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\OrderPlacedProduct'
-
-  apsis_one.event.product-carted.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\ProductCarted'
-
-  apsis_one.event.product-reviewed.schema:
-    class: 'Apsis\One\Model\Event\Schema\Common\ProductReviewed'
-
-  apsis_one.event.customer-is-subscriber.schema:
-    class: 'Apsis\One\Model\Event\Schema\Customer\CustomerIsSubscriber'
+  apsis_one.event.customer-optout-offers.schema:
+    class: 'Apsis\One\Model\Event\Schema\CustomerUnsubscribesOffers'
 
   apsis_one.event.customer-login.schema:
-    class: 'Apsis\One\Model\Event\Schema\Customer\CustomerLogin'
+    class: 'Apsis\One\Model\Event\Schema\CustomerLogin'
 
   apsis_one.event.product-wished.schema:
-    class: 'Apsis\One\Model\Event\Schema\Customer\ProductWished'
+    class: 'Apsis\One\Model\Event\Schema\ProductWished'
 
-  apsis_one.event.guest-is-customer.schema:
-    class: 'Apsis\One\Model\Event\Schema\Guest\GuestIsCustomer'
+  apsis_one.event.newsletter-subscriber-is-customer.schema:
+    class: 'Apsis\One\Model\Event\Schema\NewsletterSubscriberIsCustomer'
 
-  apsis_one.event.guest-is-subscriber.schema:
-    class: 'Apsis\One\Model\Event\Schema\Guest\GuestIsSubscriber'
+  apsis_one.event.newsletter-guest-optin.schema:
+    class: 'Apsis\One\Model\Event\Schema\GuestSubscribesToNewsletter'
 
-  apsis_one.event.subscriber-is-customer.schema:
-    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberIsCustomer'
+  apsis_one.event.newsletter-guest-optout.schema:
+    class: 'Apsis\One\Model\Event\Schema\GuestUnsubscribesToNewsletter'
 
-  apsis_one.event.subscriber-is-guest.schema:
-    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberIsGuest'
+  apsis_one.event.cart-abandoned.schema:
+    class: 'Apsis\One\Model\Event\Schema\CartAbandoned'
 
-  apsis_one.event.subscriber-unsubscribe.schema:
-    class: 'Apsis\One\Model\Event\Schema\Subscriber\SubscriberUnsubscribe'
+  apsis_one.event.cart-abandoned-product.schema:
+    class: 'Apsis\One\Model\Event\Schema\CartAbandonedProduct'
+
+  apsis_one.event.order-placed.schema:
+    class: 'Apsis\One\Model\Event\Schema\OrderPlaced'
+
+  apsis_one.event.order-placed-product.schema:
+    class: 'Apsis\One\Model\Event\Schema\OrderPlacedProduct'
+
+  apsis_one.event.product-carted.schema:
+    class: 'Apsis\One\Model\Event\Schema\ProductCarted'
+
+  apsis_one.event.product-reviewed.schema:
+    class: 'Apsis\One\Model\Event\Schema\ProductReviewed'
 
   apsis_one.event.container:
     class: 'Apsis\One\Model\Event\DataProvider'

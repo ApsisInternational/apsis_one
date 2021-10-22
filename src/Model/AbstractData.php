@@ -131,25 +131,23 @@ abstract class AbstractData implements DataInterface
             /** @var SchemaInterface $itemSchema */
             $itemSchema = $this->helper->getService($definition[SchemaInterface::KEY_SCHEMA]);
             /** @var DataInterface $itemContainer */
-            $itemContainer = $this->helper->getService($definition[SchemaInterface::KEY_PROVIDER]);
-            $items = [];
+            $itemContainer = $this->helper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
+            $itemsDataArr = [];
             foreach ($this->objectData[SchemaInterface::KEY_ITEMS] as $item) {
-                $items[] = $itemContainer->setObjectData($item, $itemSchema)->getDataArr();
+                $itemsDataArr[] = $itemContainer->setObjectData($item, $itemSchema)->getDataArr();
             }
-            return $items;
+            return $itemsDataArr;
         }
 
         $data = [];
         foreach ($definition as $schemaItem) {
             try {
                 $logicalName = $schemaItem[SchemaInterface::SCHEMA_KEY_LOGICAL_NAME];
-                $data[] = [
-                    $logicalName => $this->getValue(
-                        $logicalName,
-                        $schemaItem[SchemaInterface::SCHEMA_KEY_TYPE],
-                        $schemaItem[SchemaInterface::SCHEMA_KEY_VALIDATE]
-                    )
-                ];
+                $data[$logicalName] = $this->getValue(
+                    $logicalName,
+                    $schemaItem[SchemaInterface::SCHEMA_KEY_TYPE],
+                    $schemaItem[SchemaInterface::SCHEMA_KEY_VALIDATE]
+                );
             } catch (Throwable $e) {
                 $this->helper->logErrorMsg(__METHOD__, $e);
             }

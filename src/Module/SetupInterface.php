@@ -69,6 +69,8 @@ interface SetupInterface
         self::APSIS_CONFIG_TAB => 'ApsisOneModuleConfigController'
     ];
 
+    const PS_T_WISHLIST_PRODUCT = 'wishlist_product';
+    const PS_T_PRODUCT_COMMENT = 'product_comment';
     const PS_T_CUSTOMER = 'customer';
     const PS_T_NEWSLETTER = 'emailsubscription';
     const PS_T_CUSTOMER_ALIAS = 'pc';
@@ -111,6 +113,11 @@ interface SetupInterface
     const T_PROFILE_MIGRATE_DATA_FROM_TABLES = [
         self::PS_T_CUSTOMER => self::PS_T_CUSTOMER_ALIAS,
         self::PS_T_NEWSLETTER => self::PS_T_NEWSLETTER_ALIAS
+    ];
+
+    const T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL = [
+        self::PS_T_WISHLIST_PRODUCT => EI::EVENT_DATA_SQL_WISHLIST_PRODUCT,
+        self::PS_T_PRODUCT_COMMENT => EI::EVENT_DATA_SQL_REVIEW_PRODUCT
     ];
 
     /**

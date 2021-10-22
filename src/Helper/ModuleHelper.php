@@ -5,13 +5,13 @@ namespace Apsis\One\Helper;
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Module\AbstractSetup;
 use Apsis\One\Module\SetupInterface;
-use Context;
-use Module;
-use Db;
 use PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer;
 use PrestaShop\PrestaShop\Adapter\ContainerFinder;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Context;
+use Module;
+use Db;
 use Throwable;
 
 class ModuleHelper extends LoggerHelper
@@ -22,10 +22,10 @@ class ModuleHelper extends LoggerHelper
     public function getAllAvailableHooks(): array
     {
         return array_merge(
+            [self::CUSTOMER_HOOK_DISPLAY_ACCOUNT],
             self::CUSTOMER_HOOKS,
             self::EMAIL_SUBSCRIPTION_HOOKS,
             self::ENTITY_ADDRESS_HOOKS,
-            self::ENTITY_GDPR_HOOKS,
             self::PRODUCT_COMMENT_HOOKS,
             self::WISHLIST_HOOKS,
             self::ORDER_HOOKS,
@@ -38,12 +38,10 @@ class ModuleHelper extends LoggerHelper
      */
     public function getAllHooksForProfileEntity(): array
     {
-        return [
-            self::CUSTOMER_HOOK_ADD_AFTER,
-            self::CUSTOMER_HOOK_UPDATE_AFTER,
-            self::CUSTOMER_HOOK_DELETE_AFTER,
-            self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER
-        ];
+        return array_merge(
+            $this->getAllCustomerHooks(),
+            $this->getAllEmailSubscriptionHooks()
+        );
     }
 
     /**
@@ -51,11 +49,8 @@ class ModuleHelper extends LoggerHelper
      */
     public function getAllCustomerHooks(): array
     {
-        return [
-            self::CUSTOMER_HOOK_ADD_AFTER,
-            self::CUSTOMER_HOOK_UPDATE_AFTER,
-            self::CUSTOMER_HOOK_DELETE_AFTER
-        ];
+        $customerHooks = self::CUSTOMER_HOOKS;
+        return array_merge($customerHooks, self::ENTITY_ADDRESS_HOOKS);
     }
 
     /**
@@ -63,7 +58,7 @@ class ModuleHelper extends LoggerHelper
      */
     public function getAllEmailSubscriptionHooks(): array
     {
-        return [self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER];
+        return self::EMAIL_SUBSCRIPTION_HOOKS;
     }
 
     /**
@@ -71,14 +66,12 @@ class ModuleHelper extends LoggerHelper
      */
     public function getAllHooksForEventEntity(): array
     {
-        return [
-            self::CUSTOMER_HOOK_AUTH,
-            self::PRODUCT_COMMENT_HOOK_VALIDATE,
-            self::WISHLIST_HOOK_ADD_PRODUCT,
-            self::ORDER_HOOK_VALIDATE,
-            self::ORDER_HOOK_ADD_AFTER,
-            self::CART_HOOK_UPDATE_QTY_BEFORE
-        ];
+        return array_merge(
+            self::PRODUCT_COMMENT_HOOKS,
+            self::WISHLIST_HOOKS,
+            self::ORDER_HOOKS,
+            self::CART_HOOKS
+        );
     }
 
     /**
@@ -142,7 +135,7 @@ class ModuleHelper extends LoggerHelper
      *
      * @return array
      */
-    public function getStoreIdArrFromGivenContext(?int $idShopGroup = null, ?int $idShop = null): array
+    public function getStoreIdArrFromContext(?int $idShopGroup = null, ?int $idShop = null): array
     {
         if ($idShop) {
             return [$idShop];

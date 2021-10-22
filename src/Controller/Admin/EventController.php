@@ -3,7 +3,6 @@
 namespace Apsis\One\Controller\Admin;
 
 use Apsis\One\Grid\Search\Filters\EventFilters;
-use PrestaShopBundle\Component\CsvResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use PrestaShopBundle\Security\Annotation\AdminSecurity;
@@ -29,10 +28,66 @@ class EventController extends AbstractController
      * @param Request $request
      * @param EventFilters $filter
      *
-     * @return CsvResponse
+     * @return Response
      */
-    public function exportAction(Request $request, EventFilters $filter): CsvResponse
+    public function exportAction(Request $request, EventFilters $filter): Response
     {
         return $this->processExport($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param EventFilters $filter
+     *
+     * @return Response
+     */
+    public function deleteAction(Request $request, EventFilters $filter): Response
+    {
+        return parent::processDelete($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param EventFilters $filter
+     *
+     * @return Response
+     */
+    public function resetAction(Request $request, EventFilters $filter): Response
+    {
+        return parent::processReset($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['delete'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param EventFilters $filter
+     *
+     * @return Response
+     */
+    public function deleteBulkAction(Request $request, EventFilters $filter): Response
+    {
+        return parent::processDeleteBulk($request, $filter);
+    }
+
+    /**
+     *
+     * @AdminSecurity("is_granted(['update'], request.get('_legacy_controller'))", message="Access denied.")
+     *
+     * @param Request $request
+     * @param EventFilters $filter
+     *
+     * @return Response
+     */
+    public function resetBulkAction(Request $request, EventFilters $filter): Response
+    {
+        return parent::processResetBulkAction($request, $filter);
     }
 }

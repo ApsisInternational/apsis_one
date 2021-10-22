@@ -106,7 +106,7 @@ class Install extends AbstractSetup
         $this->module->helper->logInfoMsg(__METHOD__);
 
         try {
-            return $this->populateProfileTable();
+            return $this->populateProfileTable() && $this->populateEventTable();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -166,7 +166,7 @@ class Install extends AbstractSetup
                 `' . EI::C_IS_NEWSLETTER . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_IS_OFFERS . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_PROFILE_DATA . '` text NOT NULL,
-                `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'0\',
+                `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'1\',
                 `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
                 `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`' . EI::C_ID_PROFILE . '`),
@@ -210,7 +210,7 @@ class Install extends AbstractSetup
                 `' . EI::C_EVENT_TYPE . '` smallint(6) unsigned NOT NULL,
                 `' . EI::C_EVENT_DATA . '` text NOT NULL,
                 `' . EI::C_SUB_EVENT_DATA . '` text NOT NULL DEFAULT \'\',
-                `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'0\',
+                `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'1\',
                 `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
                 `' . EI::C_DATE_ADD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -346,7 +346,7 @@ class Install extends AbstractSetup
                     $selectFromPs->where($cond);
                 }
 
-                $check = Db::getInstance()->execute(
+                $status = $status && Db::getInstance()->execute(
                     sprintf(
                         "INSERT INTO `%s` (\n%s\n)\n%s",
                         $this->getTableWithDbPrefix(EI::T_PROFILE),
@@ -354,10 +354,34 @@ class Install extends AbstractSetup
                         str_replace('SELECT ', "SELECT\n", $selectFromPs->build())
                     )
                 );
-                if (! $check) {
-                    $status = false;
+            }
+            return $status;
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return false;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    protected function populateEventTable(): bool
+    {
+        $this->module->helper->logInfoMsg(__METHOD__);
+
+        try {
+            $status = true;
+
+            foreach (self::T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL as $table => $sql) {
+                if ($table === self::PS_T_WISHLIST_PRODUCT) {
+                    $status = $status && Db::getInstance()
+                            ->execute(sprintf($sql, EI::ET_PRODUCT_WISHED, EI::SS_JUSTIN));
+                } elseif ($table === self::PS_T_PRODUCT_COMMENT) {
+                    $status = $status && Db::getInstance()
+                            ->execute(sprintf($sql, EI::ET_PRODUCT_REVIEWED, EI::SS_JUSTIN));
                 }
             }
+
             return $status;
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);

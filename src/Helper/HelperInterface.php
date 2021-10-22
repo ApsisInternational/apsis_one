@@ -20,8 +20,7 @@ interface HelperInterface
         self::CUSTOMER_HOOK_ADD_AFTER,
         self::CUSTOMER_HOOK_UPDATE_AFTER,
         self::CUSTOMER_HOOK_DELETE_AFTER,
-        self::CUSTOMER_HOOK_AUTH,
-        self::CUSTOMER_HOOK_DISPLAY_ACCOUNT
+        self::CUSTOMER_HOOK_AUTH
     ];
 
     /** SUBSCRIPTION ENTITY HOOKS  */
@@ -29,10 +28,14 @@ interface HelperInterface
     const EMAIL_SUBSCRIPTION_HOOKS = [self::EMAIL_SUBSCRIPTION_HOOK_REGISTER_AFTER];
 
     /** ADDRESS ENTITY HOOKS  */
-    const ENTITY_ADDRESS_HOOKS = [];
-
-    /** GDPR ENTITY HOOKS  */
-    const ENTITY_GDPR_HOOKS = [];
+    const ADDRESS_HOOK_ADD_AFTER = 'actionObjectAddressAddAfter';
+    const ADDRESS_HOOK_UPDATE_AFTER = 'actionObjectAddressUpdateAfter';
+    const ADDRESS_HOOK_DELETE_AFTER = 'actionObjectAddressDeleteAfter';
+    const ENTITY_ADDRESS_HOOKS = [
+        self::ADDRESS_HOOK_ADD_AFTER,
+        self::ADDRESS_HOOK_UPDATE_AFTER,
+        self::ADDRESS_HOOK_DELETE_AFTER
+    ];
 
     /** PRODUCT COMMENT ENTITY HOOKS  */
     const PRODUCT_COMMENT_HOOK_VALIDATE = 'actionObjectProductCommentValidateAfter';
@@ -44,8 +47,7 @@ interface HelperInterface
 
     /** ORDER ENTITY HOOKS  */
     const ORDER_HOOK_VALIDATE = 'actionValidateOrder';
-    const ORDER_HOOK_ADD_AFTER = 'actionObjectOrderAddAfter';
-    const ORDER_HOOKS = [self::ORDER_HOOK_VALIDATE, self::ORDER_HOOK_ADD_AFTER];
+    const ORDER_HOOKS = [self::ORDER_HOOK_VALIDATE];
 
     /** CART ENTITY HOOKS  */
     const CART_HOOK_UPDATE_QTY_BEFORE = 'actionCartUpdateQuantityBefore';
@@ -80,18 +82,19 @@ interface HelperInterface
     const SERVICE_ABANDONED_CART_CONTAINER = 'apsis_one.abandoned-cart.container';
     /** EVENT */
     const SERVICE_EVENT_CONTAINER = 'apsis_one.event.container';
-    const SERVICE_EVENT_CUSTOMER_IS_SUBSCRIBER_SCHEMA = 'apsis_one.event.customer-is-subscriber.schema';
+    const SERVICE_EVENT_CUSTOMER_OPTIN_NEWSLETTER_SCHEMA = 'apsis_one.event.customer-optin-newsletter.schema';
+    const SERVICE_EVENT_CUSTOMER_OPTOUT_NEWSLETTER_SCHEMA = 'apsis_one.event.customer-optout-newsletter.schema';
+    const SERVICE_EVENT_CUSTOMER_OPTIN_OFFERS_SCHEMA = 'apsis_one.event.customer-optin-offers.schema';
+    const SERVICE_EVENT_CUSTOMER_OPTOUT_OFFERS_SCHEMA = 'apsis_one.event.customer-optout-offers.schema';
+    const SERVICE_EVENT_NEWSLETTER_SUB_IS_CUSTOMER_SCHEMA = 'apsis_one.event.newsletter-subscriber-is-customer.schema';
+    const SERVICE_EVENT_NEWSLETTER_GUEST_OPTIN_SCHEMA = 'apsis_one.event.newsletter-guest-optin.schema';
+    const SERVICE_EVENT_NEWSLETTER_GUEST_OPTOUT_SCHEMA = 'apsis_one.event.newsletter-guest-optin.schema';
     const SERVICE_EVENT_CUSTOMER_LOGIN_SCHEMA = 'apsis_one.event.customer-login.schema';
     const SERVICE_EVENT_CUSTOMER_PRODUCT_WISHED_SCHEMA = 'apsis_one.event.product-wished.schema';
-    const SERVICE_EVENT_GUEST_IS_CUSTOMER_SCHEMA = 'apsis_one.event.guest-is-customer.schema';
-    const SERVICE_EVENT_GUEST_IS_SUBSCRIBER_SCHEMA = 'apsis_one.event.guest-is-subscriber.schema';
-    const SERVICE_EVENT_SUBSCRIBER_IS_GUEST_SCHEMA = 'apsis_one.event.subscriber-is-guest.schema';
-    const SERVICE_EVENT_SUBSCRIBER_IS_CUSTOMER_SCHEMA = 'apsis_one.event.subscriber-is-customer.schema';
-    const SERVICE_EVENT_SUBSCRIBER_UNSUBSCRIBE_SCHEMA = 'apsis_one.event.subscriber-unsubscribe.schema';
     const SERVICE_EVENT_COMMON_PRODUCT_CARTED_SCHEMA = 'apsis_one.event.product-carted.schema';
     const SERVICE_EVENT_COMMON_PRODUCT_REVIEWED_SCHEMA = 'apsis_one.event.product-reviewed.schema';
-    const SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA = 'apsis_one.event.cart-order-placed.schema';
-    const SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA = 'apsis_one.event.cart-order-placed-product.schema';
+    const SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA = 'apsis_one.event.order-placed.schema';
+    const SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA = 'apsis_one.event.order-placed-product.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
     const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 

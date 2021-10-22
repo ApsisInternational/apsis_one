@@ -1,6 +1,6 @@
 <?php
 
-namespace Apsis\One\Model\Event\Schema\Common;
+namespace Apsis\One\Model\Event\Schema;
 
 use Apsis\One\Model\AbstractSchema;
 
@@ -12,7 +12,7 @@ class ProductCarted extends AbstractSchema
     public function __construct()
     {
         $this->definition = [
-            self::EVENT_COMMON_PRODUCT_CARTED_DISCRIMINATOR => array_merge(
+            self::KEY_MAIN => array_merge(
                 self::SCHEMA_FIELD_CART_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GUEST_ID,
@@ -23,6 +23,6 @@ class ProductCarted extends AbstractSchema
                 self::SCHEMA_FIELD_CURRENCY_CODE
             )
         ];
-        $this->definitionTypes = [self::EVENT_COMMON_PRODUCT_CARTED_DISCRIMINATOR];
+        $this->definitionTypes = [self::KEY_MAIN];
     }
 }
