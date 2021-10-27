@@ -210,7 +210,15 @@ class Apsis_one extends Module implements SetupInterface
     /**
      * @param array $hookArgs
      */
-    public function hookActionValidateOrder(array $hookArgs): void
+    public function hookActionObjectOrderAddAfter(array $hookArgs): void
+    {
+        $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
+    }
+
+    /**
+     * @param array $hookArgs
+     */
+    public function hookActionObjectOrderUpdateAfter(array $hookArgs): void
     {
         $this->getHookProcessor()->processHook(__FUNCTION__, $hookArgs);
     }

@@ -221,9 +221,9 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalDiscounts(string $type): ?float
+    protected function getTotalDiscountsTaxIncl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_discounts', $type);
+        return $this->getFormattedValueByType('total_discounts_tax_incl', $type);
     }
 
     /**
@@ -231,9 +231,9 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalPaid(string $type): ?float
+    protected function getTotalDiscountsTaxExcl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_paid', $type);
+        return $this->getFormattedValueByType('total_discounts_tax_excl', $type);
     }
 
     /**
@@ -241,9 +241,9 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalPaidReal(string $type): ?float
+    protected function getTotalPaidTaxIncl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_paid_real', $type);
+        return $this->getFormattedValueByType('total_paid_tax_incl', $type);
     }
 
     /**
@@ -251,9 +251,9 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalWrapping(string $type): ?float
+    protected function getTotalPaidTaxExcl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_wrapping', $type);
+        return $this->getFormattedValueByType('total_paid_tax_excl', $type);
     }
 
     /**
@@ -261,9 +261,9 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalProducts(string $type): ?float
+    protected function getTotalWrappingTaxIncl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_products', $type);
+        return $this->getFormattedValueByType('total_wrapping_tax_incl', $type);
     }
 
     /**
@@ -271,9 +271,59 @@ class DataProvider extends AbstractDataProvider
      *
      * @return float|null
      */
-    protected function getTotalShipping(string $type): ?float
+    protected function getTotalWrappingTaxExcl(string $type): ?float
     {
-        return $this->getFormattedValueByType('total_shipping', $type);
+        return $this->getFormattedValueByType('total_wrapping_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalProductsTaxIncl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_products_tax_incl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalProductsTaxExcl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_products_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalShippingTaxIncl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_shipping_tax_incl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalShippingTaxExcl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_shipping_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getShippingTaxRate(string $type): ?float
+    {
+        return $this->getFormattedValueByType('shipping_tax_rate', $type);
     }
 
     /**
@@ -294,6 +344,46 @@ class DataProvider extends AbstractDataProvider
     protected function getUnitPriceTaxExcl(string $type): ?float
     {
         return $this->getFormattedValueByType('unit_price_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalPriceTaxIncl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_price_tax_incl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalPriceTaxExcl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_price_tax_excl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalShippingPriceTaxIncl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_shipping_price_tax_incl', $type);
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return float|null
+     */
+    protected function getTotalShippingPriceTaxExcl(string $type): ?float
+    {
+        return $this->getFormattedValueByType('total_shipping_price_tax_excl', $type);
     }
 
     /**

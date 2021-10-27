@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Model;
 
+use Apsis\One\Helper\EntityHelper;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Helper\ModuleHelper;
 use libphonenumber\PhoneNumberUtil;
@@ -87,19 +88,18 @@ abstract class AbstractData implements DataInterface
             $value = null;
         }
 
-        return $this->validate($value, $type, $validate);
+        return $this->validate($value, $validate);
     }
 
     /**
      * @param mixed $value
-     * @param string $type
      * @param string $validate
      *
      * @return mixed
      *
      * @throws Throwable
      */
-    private function validate($value, string $type, string $validate)
+    private function validate($value, string $validate)
     {
         if (in_array($validate, SchemaInterface::NOT_NULL_VALIDATIONS) && empty($value)) {
             $msg = __METHOD__ . " - Invalid value (" . var_export($value, true) . ") for validation ($validate)";
@@ -120,23 +120,11 @@ abstract class AbstractData implements DataInterface
     private function getDataByDefinitionType(string $definitionType, array $definition)
     {
         if ($definitionType === SchemaInterface::PROFILE_SCHEMA_TYPE_ENTRY) {
-            return $this->getValue(
-                SchemaInterface::SCHEMA_ENTRY_ID_FIELD_NAME,
-                $definition[SchemaInterface::SCHEMA_KEY_TYPE],
-                $definition[SchemaInterface::SCHEMA_KEY_VALIDATE]
-            );
-        }
-
-        if ($definitionType === SchemaInterface::KEY_ITEMS && isset($this->objectData[SchemaInterface::KEY_ITEMS])) {
-            /** @var SchemaInterface $itemSchema */
-            $itemSchema = $this->helper->getService($definition[SchemaInterface::KEY_SCHEMA]);
-            /** @var DataInterface $itemContainer */
-            $itemContainer = $this->helper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
-            $itemsDataArr = [];
-            foreach ($this->objectData[SchemaInterface::KEY_ITEMS] as $item) {
-                $itemsDataArr[] = $itemContainer->setObjectData($item, $itemSchema)->getDataArr();
-            }
-            return $itemsDataArr;
+            return $this->getDataByDefinitionTypeEntry($definition);
+        } elseif ($definitionType === SchemaInterface::KEY_ITEMS) {
+            return $this->getDataByDefinitionTypeItems($definition);
+        } elseif ($definitionType === SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS) {
+            return $this->getDataByDefinitionTypeEvents();
         }
 
         $data = [];
@@ -221,7 +209,7 @@ abstract class AbstractData implements DataInterface
                     $type = ! empty($value) && is_string($value) ? $type : 'null';
                     break;
                 case SchemaInterface::DATA_TYPE_BOOLEAN:
-                    $value = isset($value) && (is_bool($value) || in_array($value, [0, 1])) ? $type : 'null';
+                    $value = isset($value) && (is_bool($value) || in_array($value, [0, 1])) ? $value : 'null';
                     break;
                 default:
                     $type = 'null';
@@ -278,5 +266,109 @@ abstract class AbstractData implements DataInterface
         }
 
         return $formattedNumber;
+    }
+
+    /**
+     * @param array $definition
+     *
+     * @return array
+     *
+     * @throws Throwable
+     */
+    private function getDataByDefinitionTypeItems(array $definition): array
+    {
+        $itemsDataArr = [];
+        if (empty($this->objectData[SchemaInterface::KEY_ITEMS])) {
+            return $itemsDataArr;
+        }
+
+        /** @var SchemaInterface $itemSchema */
+        $itemSchema = $this->helper->getService($definition[SchemaInterface::KEY_SCHEMA]);
+        /** @var DataInterface $itemContainer */
+        $itemContainer = $this->helper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
+        foreach ($this->objectData[SchemaInterface::KEY_ITEMS] as $key => $item) {
+            $itemsDataArr[$key] = $itemContainer->setObjectData($item, $itemSchema)->getDataArr();
+        }
+        return $itemsDataArr;
+    }
+
+    /**
+     * @param array $definition
+     *
+     * @return string|null
+     *
+     * @throws Throwable
+     */
+    private function getDataByDefinitionTypeEntry(array $definition): ?string
+    {
+        return (string) $this->getValue(
+            SchemaInterface::SCHEMA_ENTRY_ID_FIELD_NAME,
+            $definition[SchemaInterface::SCHEMA_KEY_TYPE],
+            $definition[SchemaInterface::SCHEMA_KEY_VALIDATE]
+        );
+    }
+
+    /**
+     * @return array
+     */
+    private function getDataByDefinitionTypeEvents(): array
+    {
+        $eventsArr = [];
+        try {
+            if (empty($this->objectData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS])) {
+                return $eventsArr;
+            }
+
+            /** @var EntityHelper $entityHelper */
+            $entityHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+
+            /** @var Event $event */
+            foreach ($this->objectData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] as $event) {
+                try {
+                    $eventDataArr = $entityHelper->getEventDataArrForExport(
+                        json_decode($event->getEventData(), true),
+                        $event->getEventType()
+                    );
+
+                    if (empty($eventDataArr[SchemaInterface::KEY_MAIN])) {
+                        continue;
+                    }
+
+                    if (isset($eventDataArr[SchemaInterface::KEY_ITEMS])) {
+                        $subEvents = $eventDataArr[SchemaInterface::KEY_ITEMS];
+                        unset($eventDataArr[SchemaInterface::KEY_ITEMS]);
+                    }
+
+                    $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
+                    $eventsArr[] = [
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $event->getDateAdd(),
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
+                            is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
+                    ];
+
+                    if (is_array($discriminator) && ! empty($subEvents)) {
+                        foreach ($subEvents as $subEvent) {
+                            if (empty($subEvent[SchemaInterface::KEY_MAIN])) {
+                                continue;
+                            }
+
+                            $eventsArr[] = [
+                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $event->getDateAdd(),
+                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
+                                    $discriminator[SchemaInterface::KEY_ITEMS],
+                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
+                            ];
+                        }
+                    }
+                } catch (Throwable $e) {
+                    $this->helper->logErrorMsg(__METHOD__, $e);
+                    continue;
+                }
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+        return $eventsArr;
     }
 }

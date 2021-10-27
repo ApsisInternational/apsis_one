@@ -2,13 +2,14 @@
 
 namespace Apsis\One\Command;
 
-use Symfony\Component\Console\Command\Command;
+use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-abstract class AbstractCommand extends Command implements CommandInterface
+abstract class AbstractCommand extends ContainerAwareCommand implements CommandInterface
 {
     use LockableTrait;
 
@@ -61,6 +62,11 @@ abstract class AbstractCommand extends Command implements CommandInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
+        /** @var LegacyContextLoader $legacyContextLoader */
+        $legacyContextLoader = $this->getContainer()->get('prestashop.adapter.legacy_context_loader');
+        //@toDo load real shopId and shopGroupId for each sync
+        $legacyContextLoader->loadGenericContext(null, null, null, 1, 1);
+
         $output->writeln($this->processorMsg);
 
         if (! $this->lock()) {

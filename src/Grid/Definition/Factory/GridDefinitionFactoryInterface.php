@@ -77,7 +77,6 @@ interface GridDefinitionFactoryInterface extends FilterableGridDefinitionFactory
         EI::C_ID_ENTITY_PS,
         EI::C_PROFILE_DATA,
         EI::C_EVENT_DATA,
-        EI::C_SUB_EVENT_DATA,
         EI::C_CART_DATA
     ];
 

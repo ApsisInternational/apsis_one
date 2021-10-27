@@ -201,16 +201,20 @@ class HookProcessor extends AbstractSetup
         try {
             $this->module->helper->logInfoMsg(__METHOD__);
 
-            if ($hookName === HI::CART_HOOK_UPDATE_QTY_BEFORE) {
-                $this->entityHelper->registerProductCartedEvent($hookArgs);
-            }
-
-            if ($hookName === HI::PRODUCT_COMMENT_HOOK_VALIDATE) {
-                $this->entityHelper->registerProductReviewEvent($hookArgs);
-            }
-
-            if ($hookName === HI::WISHLIST_HOOK_ADD_PRODUCT) {
-                $this->entityHelper->registerProductWishedEvent($hookArgs);
+            switch ($hookName) {
+                case HI::CART_HOOK_UPDATE_QTY_BEFORE:
+                    $this->entityHelper->registerProductCartedEvent($hookArgs);
+                    break;
+                case HI::PRODUCT_COMMENT_HOOK_VALIDATE:
+                    $this->entityHelper->registerProductReviewEvent($hookArgs);
+                    break;
+                case HI::WISHLIST_HOOK_ADD_PRODUCT:
+                    $this->entityHelper->registerProductWishedEvent($hookArgs);
+                    break;
+                case HI::ORDER_HOOK_ADD_AFTER:
+                case HI::ORDER_HOOK_UPDATE_AFTER:
+                    $this->entityHelper->registerOrderPlacedEvent($hookArgs);
+                    break;
             }
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);

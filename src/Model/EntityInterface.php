@@ -51,7 +51,6 @@ interface EntityInterface extends PsEntityInterface
     const C_ERROR_MSG = 'error_message';
     const C_PROFILE_DATA = 'profile_data';
     const C_EVENT_DATA = 'event_data';
-    const C_SUB_EVENT_DATA = 'sub_event_data';
     const C_CART_DATA = 'cart_data';
     const C_DATE_ADD = 'date_add';
     const C_DATE_UPD = 'date_upd';
@@ -77,7 +76,6 @@ interface EntityInterface extends PsEntityInterface
     const C_ERROR_MSG_LABEL = 'Error';
     const C_PROFILE_DATA_LABEL = 'Profile Data';
     const C_EVENT_DATA_LABEL = 'Event Data';
-    const C_SUB_EVENT_DATA_LABEL = 'Sub Event Data';
     const C_CART_DATA_LABEL = 'Cart Data';
     const C_DATE_ADD_LABEL = 'Added At';
     const C_DATE_UPD_LABEL = 'Updated At';
@@ -142,7 +140,6 @@ interface EntityInterface extends PsEntityInterface
     const CD_TOKEN = self::CD_TYPE_STRING_UUID;
     const CD_PROFILE_DATA = self::CD_TYPE_STRING_JSON;
     const CD_EVENT_DATA = self::CD_TYPE_STRING_JSON;
-    const CD_SUB_EVENT_DATA = self::CD_TYPE_STRING_JSON_DEFAULT_EMPTY;
     const CD_CART_DATA = self::CD_TYPE_STRING_JSON;
     const CD_DATE_ADD = self::CD_TYPE_DATE;
     const CD_DATE_UPD = self::CD_TYPE_DATE;
@@ -184,7 +181,6 @@ interface EntityInterface extends PsEntityInterface
     const ET_PRODUCT_CARTED = 10;
     const ET_PRODUCT_REVIEWED = 11;
     const ET_ORDER_PLACED = 12;
-    const ET_CART_ABANDONED = 13;
 
     /** MAPPINGS */
     const T_LABEL_MAPPINGS = [
@@ -218,7 +214,6 @@ interface EntityInterface extends PsEntityInterface
         self::C_ERROR_MSG => self::C_ERROR_MSG_LABEL,
         self::C_PROFILE_DATA => self::C_PROFILE_DATA_LABEL,
         self::C_EVENT_DATA => self::C_EVENT_DATA_LABEL,
-        self::C_SUB_EVENT_DATA => self::C_SUB_EVENT_DATA_LABEL,
         self::C_CART_DATA => self::C_CART_DATA_LABEL,
         self::C_DATE_ADD => self::C_DATE_ADD_LABEL,
         self::C_DATE_UPD => self::C_DATE_UPD_LABEL,
@@ -246,7 +241,6 @@ interface EntityInterface extends PsEntityInterface
             self::C_ID_ENTITY_PS => self::CD_ID_ENTITY_PS,
             self::C_EVENT_TYPE => self::CD_EVENT_TYPE,
             self::C_EVENT_DATA => self::CD_EVENT_DATA,
-            self::C_SUB_EVENT_DATA => self::CD_SUB_EVENT_DATA,
             self::C_SYNC_STATUS => self::CD_SYNC_STATUS,
             self::C_ERROR_MSG => self::CD_ERROR_MSG,
             self::C_DATE_ADD => self::CD_DATE_ADD,
@@ -289,8 +283,7 @@ interface EntityInterface extends PsEntityInterface
         self::ET_PRODUCT_WISHED => 'Product Wished',
         self::ET_PRODUCT_CARTED => 'Product Carted',
         self::ET_PRODUCT_REVIEWED => 'Product Commented',
-        self::ET_ORDER_PLACED => 'Order Placed',
-        self::ET_CART_ABANDONED => 'Cart Abandoned'
+        self::ET_ORDER_PLACED => 'Order Placed'
     ];
 
     const PS_TABLE_SHOP = 'shop';
@@ -331,7 +324,7 @@ interface EntityInterface extends PsEntityInterface
                             "average_order_value", SUM(o.`total_paid_tax_incl`) / COUNT(*)
                         )
                     FROM `' . _DB_PREFIX_ . 'orders` o
-                    LEFT JOIN `' . _DB_PREFIX_ . 'order_state` os
+                    INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
                         ON (o.`current_state` = os.`id_order_state`)
                     WHERE o.`id_customer` = c.`id_customer`
                         AND o.`id_shop` = c.`id_shop`
@@ -344,7 +337,7 @@ interface EntityInterface extends PsEntityInterface
                             "id_address_delivery", o.`id_address_delivery`
                         )
                     FROM `' . _DB_PREFIX_ . 'orders` o
-                    LEFT JOIN `' . _DB_PREFIX_ . 'order_state` os
+                    INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
                         ON (o.`current_state` = os.`id_order_state`)
                     WHERE o.`id_customer` = c.`id_customer`
                         AND o.`id_shop` = c.`id_shop`
@@ -368,11 +361,11 @@ interface EntityInterface extends PsEntityInterface
                             )
                         )
                     FROM `' . _DB_PREFIX_ . 'address` a
-                    LEFT JOIN `' . _DB_PREFIX_ . 'country` c
+                    INNER JOIN `' . _DB_PREFIX_ . 'country` c
                         ON (c.`id_country` = a.`id_country`)
-                    LEFT JOIN `' . _DB_PREFIX_ . 'country_lang` cl
+                    INNER JOIN `' . _DB_PREFIX_ . 'country_lang` cl
                         ON (cl.`id_country` = a.`id_country`)
-                    LEFT JOIN `' . _DB_PREFIX_ . 'state` s
+                    INNER JOIN `' . _DB_PREFIX_ . 'state` s
                         ON (s.`id_state` = a.`id_state`)
                     WHERE cl.`id_lang` = c.`id_lang`
                         AND a.`id_customer` = c.`id_customer`
@@ -381,13 +374,13 @@ interface EntityInterface extends PsEntityInterface
                 )
             )
         FROM `' . _DB_PREFIX_ . 'customer` c
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop` s
+        INNER JOIN `' . _DB_PREFIX_ . 'shop` s
             ON (c.`id_shop` = s.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+        INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
             ON (c.`id_shop_group` = sg.`id_shop_group`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'lang` l
+        INNER JOIN `' . _DB_PREFIX_ . 'lang` l
             ON (c.`id_lang` = l.`id_lang`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'group_lang` gl
+        INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
             ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
         WHERE c.`id_customer` = %s';
 
@@ -405,11 +398,11 @@ interface EntityInterface extends PsEntityInterface
                 "language_name", l.`name`
             )
         FROM `' . _DB_PREFIX_ . 'emailsubscription` en
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop` s
+        INNER JOIN `' . _DB_PREFIX_ . 'shop` s
             ON (en.`id_shop` = s.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+        INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
             ON (en.`id_shop_group` = sg.`id_shop_group`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'lang` l
+        INNER JOIN `' . _DB_PREFIX_ . 'lang` l
             ON (en.`id_lang` = l.`id_lang`)
         WHERE en.`id` = %s';
 
@@ -441,25 +434,25 @@ interface EntityInterface extends PsEntityInterface
                 "currency_code", cr.`iso_code`
             ) as event_data,
             %d as sync_status,
-            w.`date_add` as date_add
+            w.`date_add`
         FROM `' . _DB_PREFIX_ . 'wishlist_product` wp
-        LEFT JOIN `' . _DB_PREFIX_ . 'wishlist` w
+        INNER JOIN `' . _DB_PREFIX_ . 'wishlist` w
             ON (w.`id_wishlist` = wp.`id_wishlist`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'customer` c
+        INNER JOIN `' . _DB_PREFIX_ . 'customer` c
             ON (c.`id_customer` = w.`id_customer`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'apsis_profile` ap
+        INNER JOIN `' . _DB_PREFIX_ . 'apsis_profile` ap
             ON (ap.`id_customer` = c.`id_customer`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop` s
+        INNER JOIN `' . _DB_PREFIX_ . 'shop` s
             ON (s.`id_shop` = w.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+        INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
             ON (sg.`id_shop_group` = w.`id_shop_group`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'currency_shop` crs
+        INNER JOIN `' . _DB_PREFIX_ . 'currency_shop` crs
             ON (crs.`id_shop` = w.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'currency` cr
+        INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
             ON (cr.`id_currency` = crs.`id_currency`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'product` p
+        INNER JOIN `' . _DB_PREFIX_ . 'product` p
             ON (p.`id_product` = wp.`id_product`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'product_lang` pl
+        INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, w.`id_shop`, c.`id_lang`) ';
 
     const EVENT_DATA_SQL_WISHLIST_PRODUCT_COND = '
@@ -500,27 +493,103 @@ interface EntityInterface extends PsEntityInterface
                 "review_author", pc.`customer_name`
             ) as event_data,
             %d as sync_status,
-            pc.`date_add` as date_add
+            pc.`date_add`
         FROM `' . _DB_PREFIX_ . 'product_comment` pc
-        LEFT JOIN `' . _DB_PREFIX_ . 'customer` c
+        INNER JOIN `' . _DB_PREFIX_ . 'customer` c
             ON (c.`id_customer` = pc.`id_customer`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'apsis_profile` ap
+        INNER JOIN `' . _DB_PREFIX_ . 'apsis_profile` ap
             ON (ap.`id_customer` = c.`id_customer`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop` s
+        INNER JOIN `' . _DB_PREFIX_ . 'shop` s
             ON (s.`id_shop` = c.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+        INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
             ON (sg.`id_shop_group` = s.`id_shop_group`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'currency_shop` crs
+        INNER JOIN `' . _DB_PREFIX_ . 'currency_shop` crs
             ON (crs.`id_shop` = c.`id_shop`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'currency` cr
+        INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
             ON (cr.`id_currency` = crs.`id_currency`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'product` p
+        INNER JOIN `' . _DB_PREFIX_ . 'product` p
             ON (p.`id_product` = pc.`id_product`)
-        LEFT JOIN `' . _DB_PREFIX_ . 'product_lang` pl
+        INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, s.`id_shop`, c.`id_lang`)
         WHERE pc.`deleted` = 0 AND pc.`validate` = 1 ';
 
     const EVENT_DATA_SQL_REVIEW_PRODUCT_COND = 'AND pc.`id_product_comment` = %d LIMIT 1';
+
+    const EVENT_DATA_SQL_ORDER = '
+        INSERT INTO `' . _DB_PREFIX_ . 'apsis_event`
+            (`id_apsis_profile`, `id_shop`, `id_entity_ps`, `event_type`, `event_data`, `sync_status`, `date_add`)
+        SELECT
+            ap.`id_apsis_profile`,
+            o.`id_shop`,
+            o.`id_order` as id_entity_ps,
+            %d as event_type,
+            JSON_OBJECT(
+                "id_order", o.`id_order`,
+                "id_lang", o.`id_lang`,
+                "order_reference", o.`reference`,
+                "id_cart", o.`id_cart`,
+                "id_customer", o.`id_customer`,
+                "id_shop", o.`id_shop`,
+                "id_shop_group", o.`id_shop_group`,
+                "shop_name", s.`name`,
+                "shop_group_name", sg.`name`,
+                "currency_code", cr.`iso_code`,
+                "payment_method", o.`payment`,
+                "total_discounts_tax_incl", o.`total_discounts_tax_incl`,
+                "total_discounts_tax_excl", o.`total_discounts_tax_excl`,
+                "total_paid_tax_incl", o.`total_paid_tax_incl`,
+                "total_paid_tax_excl", o.`total_paid_tax_excl`,
+                "total_products_tax_incl", o.`total_products_wt`,
+                "total_products_tax_excl", o.`total_products`,
+                "total_shipping_tax_incl", o.`total_shipping_tax_incl`,
+                "total_shipping_tax_excl", o.`total_shipping_tax_excl`,
+                "shipping_tax_rate", o.`carrier_tax_rate`,
+                "total_wrapping_tax_incl", o.`total_wrapping_tax_incl`,
+                "total_wrapping_tax_excl", o.`total_wrapping_tax_excl`,
+                "is_recyclable", o.`recyclable`,
+                "is_gift", o.`gift`,
+                "items", (SELECT
+                            JSON_OBJECTAGG(
+                                od.`id_order_detail`, JSON_OBJECT(
+                                    "id_order", od.`id_order`,
+                                    "id_product", od.`product_id`,
+                                    "product_name", od.`product_name`,
+                                    "product_reference", od.`product_reference`,
+                                    "product_image_url", null,
+                                    "product_url", null,
+                                    "product_qty", od.`product_quantity`,
+                                    "unit_price_tax_incl", od.`unit_price_tax_incl`,
+                                    "unit_price_tax_excl", od.`unit_price_tax_excl`,
+                                    "total_price_tax_incl", od.`total_price_tax_incl`,
+                                    "total_price_tax_excl", od.`total_price_tax_excl`,
+                                    "total_shipping_price_tax_incl", od.`total_shipping_price_tax_incl`,
+                                    "total_shipping_price_tax_excl", od.`total_shipping_price_tax_excl`
+                                )
+                            )
+                        FROM `' . _DB_PREFIX_ . 'order_detail` od
+                        WHERE od.`id_order` = o.`id_order`)
+            ) as event_data,
+            %d as sync_status,
+            o.`date_add`
+        FROM `' . _DB_PREFIX_ . 'orders` o
+        INNER JOIN `' . _DB_PREFIX_ . 'apsis_profile` ap
+            ON (ap.`id_customer` = o.`id_customer`)
+        INNER JOIN `' . _DB_PREFIX_ . 'shop` s
+            ON (s.`id_shop` = o.`id_shop`)
+        INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+            ON (sg.`id_shop_group` = o.`id_shop_group`)
+        INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
+            ON (cr.`id_currency` = o.`id_currency`)
+        INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
+            ON (os.`id_order_state` = o.`current_state`)
+        WHERE o.valid = 1 AND os.`invoice` = 1 ';
+
+    const EVENT_DATA_SQL_ORDER_COND = '
+        AND NOT EXISTS(
+            SELECT id_apsis_event
+            FROM `' . _DB_PREFIX_ . 'apsis_event` ae
+            WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = event_type
+        ) AND o.`id_order` = %d LIMIT 1';
 
     /**
      * @return string

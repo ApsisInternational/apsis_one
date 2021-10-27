@@ -20,7 +20,6 @@ class OrderPlaced extends AbstractSchema
                 self::SCHEMA_FIELD_GROUP_SHOP,
                 self::SCHEMA_FIELD_CURRENCY_CODE,
                 self::SCHEMA_FIELD_GROUP_SALES,
-                self::SCHEMA_FIELD_IS_GUEST,
                 self::SCHEMA_FIELD_GROUP_ORDER
             ),
             self::KEY_ITEMS => [

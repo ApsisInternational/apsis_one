@@ -165,7 +165,7 @@ class Install extends AbstractSetup
                 `' . EI::C_IS_GUEST . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_IS_NEWSLETTER . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
                 `' . EI::C_IS_OFFERS . '` tinyint(1) unsigned NOT NULL DEFAULT \'0\',
-                `' . EI::C_PROFILE_DATA . '` text NOT NULL,
+                `' . EI::C_PROFILE_DATA . '` JSON NOT NULL,
                 `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'1\',
                 `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
                 `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -208,8 +208,7 @@ class Install extends AbstractSetup
                 `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
                 `' . EI::C_ID_ENTITY_PS . '` int(10) unsigned NOT NULL,
                 `' . EI::C_EVENT_TYPE . '` smallint(6) unsigned NOT NULL,
-                `' . EI::C_EVENT_DATA . '` text NOT NULL,
-                `' . EI::C_SUB_EVENT_DATA . '` text NOT NULL DEFAULT \'\',
+                `' . EI::C_EVENT_DATA . '` JSON NOT NULL,
                 `' . EI::C_SYNC_STATUS . '` smallint(6) unsigned NOT NULL DEFAULT \'1\',
                 `' . EI::C_ERROR_MSG . '` varchar(255) NOT NULL DEFAULT \'\',
                 `' . EI::C_DATE_ADD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -247,7 +246,7 @@ class Install extends AbstractSetup
                     `' . EI::C_ID_PROFILE . '` int(10) unsigned NOT NULL,
                     `' . EI::C_ID_SHOP . '` int(11) unsigned NOT NULL,
                     `' . EI::C_ID_CART . '` int(10) unsigned NOT NULL,
-                    `' . EI::C_CART_DATA . '` text NOT NULL,
+                    `' . EI::C_CART_DATA . '` JSON NOT NULL,
                     `' . EI::C_TOKEN . '` varchar(36) NOT NULL,
                     `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     PRIMARY KEY (`' . EI::C_ID_AC . '`),
@@ -371,17 +370,22 @@ class Install extends AbstractSetup
 
         try {
             $status = true;
-
             foreach (self::T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL as $table => $sql) {
-                if ($table === self::PS_T_WISHLIST_PRODUCT) {
-                    $status = $status && Db::getInstance()
-                            ->execute(sprintf($sql, EI::ET_PRODUCT_WISHED, EI::SS_JUSTIN));
-                } elseif ($table === self::PS_T_PRODUCT_COMMENT) {
-                    $status = $status && Db::getInstance()
-                            ->execute(sprintf($sql, EI::ET_PRODUCT_REVIEWED, EI::SS_JUSTIN));
+                switch ($table) {
+                    case self::PS_T_WISHLIST_PRODUCT:
+                        $status = $status && Db::getInstance()
+                                ->execute(sprintf($sql, EI::ET_PRODUCT_WISHED, EI::SS_JUSTIN));
+                        break;
+                    case self::PS_T_PRODUCT_COMMENT:
+                        $status = $status && Db::getInstance()
+                                ->execute(sprintf($sql, EI::ET_PRODUCT_REVIEWED, EI::SS_JUSTIN));
+                        break;
+                    case self::PS_T_ORDERS:
+                        $status = $status && Db::getInstance()
+                                ->execute(sprintf($sql, EI::ET_ORDER_PLACED, EI::SS_JUSTIN));
+                        break;
                 }
             }
-
             return $status;
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);

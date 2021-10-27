@@ -46,8 +46,9 @@ interface HelperInterface
     const WISHLIST_HOOKS = [self::WISHLIST_HOOK_ADD_PRODUCT];
 
     /** ORDER ENTITY HOOKS  */
-    const ORDER_HOOK_VALIDATE = 'actionValidateOrder';
-    const ORDER_HOOKS = [self::ORDER_HOOK_VALIDATE];
+    const ORDER_HOOK_ADD_AFTER = 'actionObjectOrderAddAfter';
+    const ORDER_HOOK_UPDATE_AFTER = 'actionObjectOrderUpdateAfter';
+    const ORDER_HOOKS = [self::ORDER_HOOK_ADD_AFTER, self::ORDER_HOOK_UPDATE_AFTER];
 
     /** CART ENTITY HOOKS  */
     const CART_HOOK_UPDATE_QTY_BEFORE = 'actionCartUpdateQuantityBefore';
@@ -95,8 +96,6 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_PRODUCT_REVIEWED_SCHEMA = 'apsis_one.event.product-reviewed.schema';
     const SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA = 'apsis_one.event.order-placed.schema';
     const SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA = 'apsis_one.event.order-placed-product.schema';
-    const SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA = 'apsis_one.event.cart-abandoned.schema';
-    const SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA = 'apsis_one.event.cart-abandoned-product.schema';
 
     /**
      * ROUTES

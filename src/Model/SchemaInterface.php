@@ -32,12 +32,14 @@ interface SchemaInterface
     const VALIDATE_FORMAT_NAME = 'isNullOrCustomerName';
     const VALIDATE_FORMAT_GENERIC_STRING = 'isNullOrGenericString';
     const VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL = 'isGenericString';
+    const VALIDATE_FORMAT_JSON_NOT_NULL = 'isJson';
     const VALIDATE_FORMAT_ADDRESS = 'isNullOrAddress';
     const VALIDATE_FORMAT_POSTCODE = 'isNullOrPostCode';
     const VALIDATE_FORMAT_CITY = 'isNullOrCityName';
     const VALIDATE_FORMAT_PHONE = 'isNullOrPhoneNumber';
     const VALIDATE_FORMAT_EMAIL_NOT_NULL = 'isEmail';
     const VALIDATE_FORMAT_DATE_TIMESTAMP = 'isNullOrDateFormatTimestamp';
+    const VALIDATE_FORMAT_DATE_TIMESTAMP_NOT_NULL = 'dateFormatTimestamp';
     const VALIDATE_FORMAT_PROFILE_UUID_NOT_NULL = 'isIntegrationProfileId';
     const VALIDATE_FORMAT_SALES_VALUE = 'isNullOrSalesValue';
     const VALIDATE_FORMAT_BOOLEAN = 'isNullOrBoolean';
@@ -58,15 +60,18 @@ interface SchemaInterface
         self::VALIDATE_FORMAT_EMAIL_NOT_NULL,
         self::VALIDATE_FORMAT_PROFILE_UUID_NOT_NULL,
         self::VALIDATE_FORMAT_URL_NOT_NULL,
-        self::VALIDATE_FORMAT_ISO_4217_CODE_NOT_NULL
+        self::VALIDATE_FORMAT_ISO_4217_CODE_NOT_NULL,
+        self::VALIDATE_FORMAT_JSON_NOT_NULL,
+        self::VALIDATE_FORMAT_DATE_TIMESTAMP_NOT_NULL
     ];
 
     /**
      * Profile schema types
      */
     const PROFILE_SCHEMA_TYPE_ENTRY = 'entry_id';
-    const PROFILE_SCHEMA_TYPE_FIELD = 'fields';
-    const PROFILE_SCHEMA_TYPE_CONSENT = 'consents';
+    const PROFILE_SCHEMA_TYPE_FIELDS = 'fields';
+    const PROFILE_SCHEMA_TYPE_CONSENTS = 'consents';
+    const PROFILE_SCHEMA_TYPE_EVENTS = 'events';
 
     /**
      * Profile schema field keys
@@ -93,8 +98,6 @@ interface SchemaInterface
     const EVENT_PRODUCT_REVIEWED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.product-reviewed';
     const EVENT_ORDER_PLACED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.order-placed';
     const EVENT_ORDER_PLACED_PRODUCT_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.order-placed-product';
-    const EVENT_CART_ABANDONED_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.cart-abandoned';
-    const EVENT_CART_ABANDONED_PRODUCT_DISCRIMINATOR = 'com.apsis1.integrations.prestashop.events.cart-abandoned-product';
 
     /**
      * Schema Fields
@@ -205,16 +208,39 @@ interface SchemaInterface
     ];
     const SCHEMA_PROFILE_CONSENT = [
         [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletterSubscription',
+            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletter',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Email Newsletter Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
         [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffersSubscription',
+            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffers',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
+        ]
+    ];
+    const SCHEMA_PROFILE_EVENT_ITEM_TIME = 'eventTime';
+    const SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR = 'eventDiscriminator';
+    const SCHEMA_PROFILE_EVENT_ITEM_DATA = 'eventData';
+    const SCHEMA_PROFILE_EVENT = [
+        'eventTime' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_PROFILE_EVENT_ITEM_TIME,
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Event Time',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP_NOT_NULL
+        ],
+        'eventDiscriminator' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR,
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Event Discriminator',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING_NOT_NULL
+        ],
+        'eventData' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_PROFILE_EVENT_ITEM_DATA,
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Event Data',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_JSON_NOT_NULL
         ]
     ];
     const SCHEMA_PROFILE_ENTRY = [
@@ -324,50 +350,74 @@ interface SchemaInterface
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
-        'totalDiscounts' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalDiscounts',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Discounts',
+        'totalDiscountsTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalDiscountsTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Discounts Tax Incl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
-        'totalPaid' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaid',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid',
+        'totalDiscountsTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalDiscountsTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Discounts Tax Excl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
-        'totalPaidReal' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaidReal',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid Real',
+        'totalPaidTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaidTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid Tax Incl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
-        'totalProducts' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalProducts',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products',
+        'totalPaidTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPaidTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Paid Tax Excl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
-        'totalShipping' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalShipping',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping',
+        'totalProductsTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalProductsTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products Tax Incl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ],
-        'totalWrapping' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'totalWrapping',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Wrapping',
+        'totalProductsTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalProductsTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products Tax Excl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalShippingTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalShippingTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping Tax Incl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalShippingTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalShippingTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping Tax Excl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'shippingTaxRate' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'shippingTaxRate',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Shipping Tax Rate',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalWrappingTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalWrappingTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Wrapping Tax Incl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalWrappingTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalWrappingTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Wrapping Tax Excl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ]
     ];
     const SCHEMA_FIELD_GROUP_ORDER_PRODUCT = [
-        'productPrice' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'productPrice',
-            self::SCHEMA_KEY_DISPLAY_NAME => 'Product Price',
-            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
-        ],
         'unitPriceTaxIncl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'unitPriceTaxIncl',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Unit Price Tax Incl',
@@ -377,6 +427,30 @@ interface SchemaInterface
         'unitPriceTaxExcl' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'unitPriceTaxExcl',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Unit Price Tax Excl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalPriceTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPriceTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Price Tax Incl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalPriceTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalPriceTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Price Tax Excl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalShippingPriceTaxIncl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalShippingPriceTaxIncl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping Price Tax Incl',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalShippingPriceTaxExcl' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalShippingPriceTaxExcl',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Shipping Price Tax Excl',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
         ]
@@ -420,7 +494,7 @@ interface SchemaInterface
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP
         ],
-        'isSubscribedToPartnerOffers' => [
+        'partnerOffers' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffers',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers?',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
@@ -606,11 +680,7 @@ interface SchemaInterface
         EI::ET_ORDER_PLACED => [
             self::KEY_MAIN => self::EVENT_ORDER_PLACED_DISCRIMINATOR,
             self::KEY_ITEMS => self::EVENT_ORDER_PLACED_PRODUCT_DISCRIMINATOR
-        ],
-        EI::ET_CART_ABANDONED => [
-            self::KEY_MAIN => self::EVENT_CART_ABANDONED_DISCRIMINATOR,
-            self::KEY_ITEMS => self::EVENT_CART_ABANDONED_PRODUCT_DISCRIMINATOR
-        ],
+        ]
     ];
     const EVENT_TYPE_TO_SCHEMA_MAP = [
         EI::ET_CUST_LOGIN => HI::SERVICE_EVENT_CUSTOMER_LOGIN_SCHEMA,
@@ -624,14 +694,13 @@ interface SchemaInterface
         EI::ET_PRODUCT_WISHED => HI::SERVICE_EVENT_CUSTOMER_PRODUCT_WISHED_SCHEMA,
         EI::ET_PRODUCT_CARTED => HI::SERVICE_EVENT_COMMON_PRODUCT_CARTED_SCHEMA,
         EI::ET_PRODUCT_REVIEWED => HI::SERVICE_EVENT_COMMON_PRODUCT_REVIEWED_SCHEMA,
-        EI::ET_ORDER_PLACED => [
-            self::KEY_MAIN => HI::SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA,
-            self::KEY_ITEMS => HI::SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA
-        ],
-        EI::ET_CART_ABANDONED => [
-            self::KEY_MAIN => HI::SERVICE_EVENT_COMMON_CART_ABANDONED_SCHEMA,
-            self::KEY_ITEMS => HI::SERVICE_EVENT_COMMON_CART_ABANDONED_PRODUCT_SCHEMA
-        ]
+        EI::ET_ORDER_PLACED => HI::SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA
+    ];
+    const EVENTS_CONTAINING_PRODUCT = [
+        EI::ET_PRODUCT_REVIEWED,
+        EI::ET_PRODUCT_WISHED,
+        EI::ET_PRODUCT_CARTED,
+        EI::ET_ORDER_PLACED
     ];
 
     /**

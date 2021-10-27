@@ -6,6 +6,9 @@ use Apsis\One\Context\LinkContext;
 use Apsis\One\Context\ShopContext;
 use Cart;
 use Currency;
+use mysqli;
+use Order;
+use PDOStatement;
 use PrestaShop\PrestaShop\Adapter\CoreException;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager;
 use PrestaShop\PrestaShop\Adapter\ServiceLocator;
@@ -282,25 +285,17 @@ class EntityHelper extends LoggerHelper
     public function registerSubsEventsForSubscriber(int $profileId, int $subscriberId, int $eventType): void
     {
         try {
-            if (isset(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType])) {
-                $shopId = $this->shopContext->getCurrentShopId();
-                $shopGroupId = $this->shopContext->getCurrentShopGroupId();
-                $dataArr = $this->getEventDataArrForExport(
-                    [
-                        'id_subscriber' => $subscriberId,
-                        'id_shop' => $shopId,
-                        'id_shop_group' => $shopGroupId,
-                        'shop_name' => $this->shopContext->getShopNameById($shopId),
-                        'shop_group_name' => $this->shopContext->getShopGroupNameById($shopGroupId),
-                        'ipRegistrationNewsletter' => $this->getIpAddressFromEmailSubscription($subscriberId),
-                    ],
-                    SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]
-                );
-                if (! empty($dataArr[SchemaInterface::KEY_MAIN])) {
-                    $jsonData = json_encode($dataArr[SchemaInterface::KEY_MAIN]);
-                    $this->registerEvent($profileId, $shopId, $subscriberId, $eventType, $jsonData);
-                }
-            }
+            $shopId = $this->shopContext->getCurrentShopId();
+            $shopGroupId = $this->shopContext->getCurrentShopGroupId();
+            $jsonData = json_encode([
+                'id_subscriber' => $subscriberId,
+                'id_shop' => $shopId,
+                'id_shop_group' => $shopGroupId,
+                'shop_name' => $this->shopContext->getShopNameById($shopId),
+                'shop_group_name' => $this->shopContext->getShopGroupNameById($shopGroupId),
+                'ipRegistrationNewsletter' => $this->getIpAddressFromEmailSubscription($subscriberId),
+            ]);
+            $this->registerEvent($profileId, $shopId, $subscriberId, $eventType, $jsonData);
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
@@ -315,24 +310,16 @@ class EntityHelper extends LoggerHelper
     public function registerEventForCustomer(Customer $customer, int $profileId, int $eventType, int $subscriberId = 0): void
     {
         try {
-            if (isset(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType])) {
-                $dataArr = $this->getEventDataArrForExport(
-                    [
-                        'id_customer' => $customer->id,
-                        'id_subscriber' => $subscriberId,
-                        'id_shop' => $customer->id_shop,
-                        'id_shop_group' => $customer->id_shop_group,
-                        'shop_name' => $this->shopContext->getShopNameById($customer->id_shop),
-                        'shop_group_name' => $this->shopContext->getShopGroupNameById($customer->id_shop_group),
-                        'ipRegistrationNewsletter' => $customer->ip_registration_newsletter,
-                    ],
-                    SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]
-                );
-                if (! empty($dataArr[SchemaInterface::KEY_MAIN])) {
-                    $jsonData = json_encode($dataArr[SchemaInterface::KEY_MAIN]);
-                    $this->registerEvent($profileId, $customer->id_shop, $customer->id, $eventType, $jsonData);
-                }
-            }
+            $jsonData = json_encode([
+                'id_customer' => $customer->id,
+                'id_subscriber' => $subscriberId,
+                'id_shop' => $customer->id_shop,
+                'id_shop_group' => $customer->id_shop_group,
+                'shop_name' => $this->shopContext->getShopNameById($customer->id_shop),
+                'shop_group_name' => $this->shopContext->getShopGroupNameById($customer->id_shop_group),
+                'ipRegistrationNewsletter' => $customer->ip_registration_newsletter,
+            ]);
+            $this->registerEvent($profileId, $customer->id_shop, $customer->id, $eventType, $jsonData);
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
@@ -356,64 +343,33 @@ class EntityHelper extends LoggerHelper
                 if ($cart instanceof Cart && $product instanceof Product && $shop instanceof Shop &&
                     $profile = $this->getProfileRepository()->findOneByCustomerId($cart->id_customer)
                 ) {
-                    $dataArr = $this->getEventDataArrForExport(
-                        [
-                            'id_cart' => $cart->id,
-                            'id_customer' => $cart->id_customer,
-                            'guest_id' => $cart->id_guest,
-                            'id_shop' => $cart->id_shop,
-                            'id_shop_group' => $cart->id_shop_group,
-                            'id_product' => $product->id,
-                            'shop_name' => $shop->name,
-                            'shop_group_name' => $this->shopContext->getShopGroupNameById($cart->id_shop_group),
-                            'product_reference' => $product->reference,
-                            'product_name' => $product->name,
-                            'product_qty' => (int) $hookArgs['quantity'],
-                            'product_url' => $product->getLink(),
-                            'product_image_url' => $this->linkContext->getProductCoverImage($product),
-                            'currency_code' => $this->getCurrencyIsoCodeById($cart->id_currency),
-                            'product_price_amount_incl_tax' => $product->getPrice(),
-                            'product_price_amount_excl_tax' => $product->getPrice(false)
-                        ],
-                        SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[EI::ET_PRODUCT_CARTED]
+                    $jsonData = json_encode([
+                        'id_cart' => $cart->id,
+                        'id_lang' => $cart->id_lang,
+                        'id_customer' => $cart->id_customer,
+                        'guest_id' => $cart->id_guest,
+                        'id_shop' => $cart->id_shop,
+                        'id_shop_group' => $cart->id_shop_group,
+                        'id_product' => $product->id,
+                        'shop_name' => $shop->name,
+                        'shop_group_name' => $this->shopContext->getShopGroupNameById($cart->id_shop_group),
+                        'product_reference' => $product->reference,
+                        'product_name' => $product->name,
+                        'product_qty' => (int) $hookArgs['quantity'],
+                        'currency_code' => $this->getCurrencyIsoCodeById($cart->id_currency)
+                    ]);
+                    $this->registerEvent(
+                        $profile->getId(),
+                        $cart->id_shop,
+                        $cart->id_customer,
+                        EI::ET_PRODUCT_CARTED,
+                        $jsonData
                     );
-                    if (! empty($dataArr[SchemaInterface::KEY_MAIN])) {
-                        $this->registerEvent(
-                            $profile->getId(),
-                            $cart->id_shop,
-                            $cart->id_customer,
-                            EI::ET_PRODUCT_CARTED,
-                            json_encode($dataArr[SchemaInterface::KEY_MAIN])
-                        );
-                    }
                 }
             }
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
-    }
-
-    /**
-     * @param array $arr
-     *
-     * @return array
-     */
-    public function setProductDataInArr(array $arr): array
-    {
-        try {
-            if (! empty($arr) && ! empty($arr['id_product']) && ! empty($arr['id_shop']) && ! empty($arr['id_lang'])) {
-                $product = new Product($arr['id_product'], true, $arr['id_lang'], $arr['id_shop']);
-                if (Validate::isLoadedObject($product)) {
-                    $arr['product_image_url'] = $this->linkContext->getProductCoverImage($product);
-                    $arr['product_url'] = $product->getLink();
-                    $arr['product_price_amount_incl_tax'] = $product->getPrice();
-                    $arr['product_price_amount_excl_tax'] = $product->getPrice(false);
-                }
-            }
-        } catch (Throwable $e) {
-            $this->logErrorMsg(__METHOD__, $e);
-        }
-        return $arr;
     }
 
     /**
@@ -445,10 +401,10 @@ class EntityHelper extends LoggerHelper
         $this->logInfoMsg(__METHOD__);
 
         try {
-            if (isset($hookArgs['idWishlist']) &&
-                isset($hookArgs['customerId']) &&
-                isset($hookArgs['idProduct']) &&
-                isset($hookArgs['idProductAttribute'])
+            if (! empty($hookArgs['idWishlist']) &&
+                ! empty($hookArgs['customerId']) &&
+                ! empty($hookArgs['idProduct']) &&
+                ! empty($hookArgs['idProductAttribute'])
             ) {
                 $partSql = sprintf(EI::EVENT_DATA_SQL_WISHLIST_PRODUCT,EI::ET_PRODUCT_WISHED, EI::SS_PENDING);
                 $where = sprintf(
@@ -467,30 +423,31 @@ class EntityHelper extends LoggerHelper
     }
 
     /**
-     * @param array $data
-     * @param int $eventType
-     *
-     * @return array
+     * @param array $hookArgs
      */
-    protected function getEventDataArrContainingProductDataForExport(array $data, int $eventType): array
+    public function registerOrderPlacedEvent(array $hookArgs): void
     {
+        $this->logInfoMsg(__METHOD__);
+
         try {
-            if (! empty($data[EI::C_EVENT_DATA]) && ! empty($data[EI::C_ID_PROFILE]) &&
-                ! empty($data[EI::C_ID_SHOP] && ! empty($data[EI::C_ID_ENTITY_PS]))
+            if (! empty($object = array_shift($hookArgs)) && Validate::isLoadedObject($object) &&
+                $object instanceof Order &&
+                ! empty($profile = $this->getProfileRepository()->findOneByCustomerId($object->id_customer)) &&
+                $profile instanceof Profile
             ) {
-                $dataArr = $this->getEventDataArrForExport(
-                    $this->setProductDataInArr(json_decode($data[EI::C_EVENT_DATA], true)),
-                    SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]
-                );
-                if (! empty($dataArr[SchemaInterface::KEY_MAIN])) {
-                    return $dataArr[SchemaInterface::KEY_MAIN];
+                $partSql = sprintf(EI::EVENT_DATA_SQL_ORDER,EI::ET_ORDER_PLACED, EI::SS_PENDING);
+                $where = sprintf(EI::EVENT_DATA_SQL_ORDER_COND, (int) $object->id);
+                $result = Db::getInstance()->query($partSql . $where);
+
+                if (($result instanceof PDOStatement && $result->rowCount()) ||
+                    ($result instanceof mysqli && $result->affected_rows)
+                ) {
+                    $this->updateProfileForCustomerEntity($profile, new Customer($object->id_customer));
                 }
             }
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
-
-        return $data;
     }
 
     /**
@@ -499,15 +456,13 @@ class EntityHelper extends LoggerHelper
      * @param int $psEntityId
      * @param int $eventType
      * @param string $eventData
-     * @param string $subEventData
      */
     public function registerEvent(
         int $profileId,
         int $shopId,
         int $psEntityId,
         int $eventType,
-        string $eventData,
-        string $subEventData = ''
+        string $eventData
     ) {
         try {
             $event = new Event();
@@ -516,7 +471,6 @@ class EntityHelper extends LoggerHelper
                 ->setIdEntityPs($psEntityId)
                 ->setEventType($eventType)
                 ->setEventData($eventData)
-                ->setSubEventData($subEventData)
                 ->add();
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
@@ -530,17 +484,20 @@ class EntityHelper extends LoggerHelper
      */
     public function getProfileDataArrForExport(Profile $profile): ?array
     {
-        $profileData = $profile->getProfileDataArr();
-        if (empty($profileData)) {
-            return null;
-        }
-
-        /** @var SchemaInterface $schemaProvider */
-        $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_PROFILE_SCHEMA);
-        /** @var DataInterface $dataProvider */
-        $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_PROFILE_CONTAINER);
-
         try {
+            $profileData = $profile->getProfileDataArr();
+            if (empty($profileData)) {
+                return null;
+            }
+
+            $profileData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] = $this->getEventRepository()
+                ->findByProfileIdAndSyncStatus($profile->getId(), [EI::SS_JUSTIN]);
+
+            /** @var SchemaInterface $schemaProvider */
+            $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_PROFILE_SCHEMA);
+            /** @var DataInterface $dataProvider */
+            $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_PROFILE_CONTAINER);
+
             return $dataProvider->setObjectData($profileData, $schemaProvider)->getDataArr();
         } catch (Throwable $e) {
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
@@ -550,18 +507,22 @@ class EntityHelper extends LoggerHelper
 
     /**
      * @param array $eventData
-     * @param string $schemaServiceId
+     * @param int $eventType
      *
      * @return array|null
      */
-    public function getEventDataArrForExport(array $eventData, string $schemaServiceId): ?array
+    public function getEventDataArrForExport(array $eventData, int $eventType): ?array
     {
-        if (empty($eventData) || empty($schemaServiceId)) {
+        if (empty($eventData) || empty($eventType)) {
             return null;
         }
 
+        if (in_array($eventType, SchemaInterface::EVENTS_CONTAINING_PRODUCT)) {
+            $eventData = $this->setProductDataInArr($eventData);
+        }
+
         /** @var SchemaInterface $schemaProvider */
-        $schemaProvider = $this->moduleHelper->getService($schemaServiceId);
+        $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]);
         /** @var DataInterface $dataProvider */
         $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
 
@@ -571,6 +532,38 @@ class EntityHelper extends LoggerHelper
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;
         }
+    }
+
+    /**
+     * @param array $arr
+     *
+     * @return array
+     */
+    public function setProductDataInArr(array $arr): array
+    {
+        try {
+            if (isset($arr['id_product'], $arr['id_lang'], $arr['id_shop'])) {
+                $product = new Product($arr['id_product'], true, $arr['id_lang'], $arr['id_shop']);
+                if (Validate::isLoadedObject($product)) {
+                    $arr['product_image_url'] = $this->linkContext->getProductCoverImage($product);
+                    $arr['product_url'] = $product->getLink();
+                    $arr['product_price_amount_incl_tax'] = $product->getPrice();
+                    $arr['product_price_amount_excl_tax'] = $product->getPrice(false);
+                }
+            } elseif (isset($arr[SchemaInterface::KEY_ITEMS]) && is_array($arr[SchemaInterface::KEY_ITEMS])) {
+                foreach ($arr[SchemaInterface::KEY_ITEMS] as $key => $itemArr) {
+                    if (isset($arr['id_lang'], $arr['id_shop'])) {
+                        $itemArr['id_lang'] = $arr['id_lang'];
+                        $itemArr['id_shop'] = $arr['id_shop'];
+                        $arr[SchemaInterface::KEY_ITEMS][$key] = $this->setProductDataInArr($itemArr);
+                    }
+                }
+            }
+
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+        }
+        return $arr;
     }
 
     /**

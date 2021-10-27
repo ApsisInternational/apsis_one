@@ -7,7 +7,9 @@ use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Repository\ProfileRepository;
 use Apsis_one;
+use Context;
 use ModuleFrontController;
+use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
 use WebserviceRequest;
 use Validate;
 use Tools;
@@ -289,6 +291,9 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             if (count($contextIds) === 2 && is_numeric($contextIds[0]) && is_numeric($contextIds[1])) {
                 $this->groupId = (int) $contextIds[0];
                 $this->shopId = (int) $contextIds[1];
+
+                $legacyContextLoader = new LegacyContextLoader(Context::getContext());
+                $legacyContextLoader->loadGenericContext(get_class($this), null, null, $this->shopId, $this->groupId);
             } else {
                 $msg = 'Invalid context ids string.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);

@@ -29,12 +29,6 @@ services:
   apsis_one.event.newsletter-guest-optout.schema:
     class: 'Apsis\One\Model\Event\Schema\GuestUnsubscribesToNewsletter'
 
-  apsis_one.event.cart-abandoned.schema:
-    class: 'Apsis\One\Model\Event\Schema\CartAbandoned'
-
-  apsis_one.event.cart-abandoned-product.schema:
-    class: 'Apsis\One\Model\Event\Schema\CartAbandonedProduct'
-
   apsis_one.event.order-placed.schema:
     class: 'Apsis\One\Model\Event\Schema\OrderPlaced'
 

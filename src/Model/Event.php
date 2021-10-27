@@ -29,11 +29,6 @@ class Event extends AbstractEntity
     /**
      * @var string
      */
-    public $sub_event_data = self::EMPTY;
-
-    /**
-     * @var string
-     */
     public $date_add;
 
     /**
@@ -126,25 +121,6 @@ class Event extends AbstractEntity
     public function setEventData(string $data): Event
     {
         $this->event_data = $data;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getSubEventData(): string
-    {
-        return (string) $this->sub_event_data;
-    }
-
-    /**
-     * @param string $data
-     *
-     * @return $this
-     */
-    public function setSubEventData(string $data = self::EMPTY): Event
-    {
-        $this->sub_event_data = $data;
         return $this;
     }
 

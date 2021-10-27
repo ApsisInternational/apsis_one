@@ -29,26 +29,6 @@ class DataProvider extends AbstractDataProvider
     /**
      * @param string $type
      *
-     * @return bool|null
-     */
-    protected function getEmailNewsletterSubscription(string $type): ?bool
-    {
-        return $this->getEmailNewsletter($type);
-    }
-
-    /**
-     * @param string $type
-     *
-     * @return bool|null
-     */
-    protected function getPartnerOffersSubscription(string $type): ?bool
-    {
-        return $this->getPartnerOffers($type);
-    }
-
-    /**
-     * @param string $type
-     *
      * @return string|null
      */
     protected function getCustomerGroupName(string $type): ?string
