@@ -157,7 +157,7 @@ class HookProcessor extends AbstractSetup
             // Unsubscribed
             } elseif ($action === self::ACT_UNSUB) {
 
-                // Non Customer, record exist with active = 0. @todo Guest user could be unsubscribed using direct SQL.
+                // Non Customer, record exist with active = 0.
                 if ($emailSubscriptionId > 0 && $profile instanceof Profile) {
                     $this->entityHelper->updateProfileForEmailSubscriptionEntity($profile, $emailSubscriptionId, EI::NO);
 

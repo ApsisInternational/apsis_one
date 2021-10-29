@@ -278,15 +278,46 @@ class EntityHelper extends LoggerHelper
     }
 
     /**
+     * @param array $rows
+     *
+     * @return int
+     */
+    public function registerSubsEventsForSubscribers(array $rows): int
+    {
+        $eventsCreated = 0;
+        foreach ($rows as $row) {
+            try {
+                if (isset($row['id_newsletter'], $row['newsletter'], $row['id_apsis_profile'], $row['id_shop'])) {
+                    $this->registerSubsEventsForSubscriber(
+                        $row['id_apsis_profile'],
+                        $row['id_newsletter'],
+                        (1 === (int) $row['newsletter']) ? EI::ET_NEWS_GUEST_OPTIN : EI::ET_NEWS_GUEST_OPTOUT,
+                        $row['id_shop']
+                    );
+                    $eventsCreated++;
+                }
+            } catch (Throwable $e) {
+                $this->logErrorMsg(__METHOD__, $e);
+                continue;
+            }
+        }
+        return $eventsCreated;
+    }
+
+    /**
      * @param int $profileId
      * @param int $subscriberId
      * @param int $eventType
+     * @param int|null $shopId
      */
-    public function registerSubsEventsForSubscriber(int $profileId, int $subscriberId, int $eventType): void
+    public function registerSubsEventsForSubscriber(int $profileId, int $subscriberId, int $eventType, ?int $shopId = null): void
     {
         try {
-            $shopId = $this->shopContext->getCurrentShopId();
-            $shopGroupId = $this->shopContext->getCurrentShopGroupId();
+            if (is_null($shopId)) {
+                $shopId = $this->shopContext->getCurrentShopId();
+            }
+
+            $shopGroupId = $this->shopContext->getGroupIdFromShopId($shopId);
             $jsonData = json_encode([
                 'id_subscriber' => $subscriberId,
                 'id_shop' => $shopId,
@@ -299,6 +330,32 @@ class EntityHelper extends LoggerHelper
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
         }
+    }
+
+    /**
+     * @param array $rows
+     *
+     * @return int
+     */
+    public function registerSubsEventsForCustomers(array $rows): int
+    {
+        $eventsCreated = 0;
+        foreach ($rows as $row) {
+            try {
+                if (isset($row['id_customer'], $row['newsletter'], $row['id_apsis_profile'])) {
+                    $this->registerEventForCustomer(
+                        new Customer((int) $row['id_customer']),
+                        $row['id_apsis_profile'],
+                        (1 === (int) $row['newsletter']) ? EI::ET_CUST_SUB_NEWS : EI::ET_CUST_UNSUB_NEWS
+                    );
+                    $eventsCreated++;
+                }
+            } catch (Throwable $e) {
+                $this->logErrorMsg(__METHOD__, $e);
+                continue;
+            }
+        }
+        return $eventsCreated;
     }
 
     /**

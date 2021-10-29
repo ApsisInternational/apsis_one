@@ -113,8 +113,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     {
         $filterCollection = new FilterCollection();
         $filters = array_merge(
-            static::getAllowedGridFilters($this->getId()),
-            [self::COLUMN_TYPE_ACTIONS => SearchAndResetType::class]
+            static::getAllowedGridFilters($this->getId()), [self::COLUMN_TYPE_ACTIONS => SearchAndResetType::class]
         );
 
         if (isset($filters[EI::C_ID_SHOP])) {
@@ -264,7 +263,9 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
     public static function getAllowedGridFilters(string $gridId): array
     {
         $allowedFilters = [];
-        foreach (static::getAllowedColumns(EI::T_COLUMNS_MAPPINGS[$gridId]) as $name => $definition) {
+        $columns = EI::T_COLUMNS_MAPPINGS[$gridId];
+        $primaryColumn = [EI::T_PRIMARY_MAPPINGS[$gridId] => EI::C_PRIMARY_DEF[EI::T_PRIMARY_MAPPINGS[$gridId]]];
+        foreach (static::getAllowedColumns(array_merge($columns, $primaryColumn)) as $name => $definition) {
             $allowedFilters[$name] = self::FILTER_TYPE_MAPPINGS[$definition['validate']];
         }
         return $allowedFilters;
@@ -348,7 +349,7 @@ abstract class AbstractGridDefinitionFactory extends AbstractFilterableGridDefin
         if ($type === NumberType::class || $type === TextType::class) {
             $filter->setTypeOptions([
                 'attr' => [
-                    'placeholder' => $this->getLabel($name, true)
+                    'placeholder' => 'Search'
                 ],
                 'required' => false
             ]);

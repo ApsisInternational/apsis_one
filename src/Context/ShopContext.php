@@ -80,6 +80,23 @@ class ShopContext extends AbstractContext
     }
 
     /**
+     * @param int $shopId
+     *
+     * @return int|null
+     */
+    public function getGroupIdFromShopId(int $shopId): ?int
+    {
+        try {
+            if (is_numeric($groupId = $this->getContextObject()->getGroupFromShop($shopId, true))) {
+                return (int) $groupId;
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+        return null;
+    }
+
+    /**
      * @return array
      */
     public function getShopListGroupedByGroup(): array

@@ -2,14 +2,17 @@
 
 namespace Apsis\One\Command;
 
+use Context;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Apsis\One\Helper\EntityHelper;
+use Throwable;
 
-abstract class AbstractCommand extends ContainerAwareCommand implements CommandInterface
+abstract class AbstractCommand extends Command implements CommandInterface
 {
     use LockableTrait;
 
@@ -39,6 +42,16 @@ abstract class AbstractCommand extends ContainerAwareCommand implements CommandI
     protected $processorMsg;
 
     /**
+     * @var EntityHelper
+     */
+    protected $entityHelper;
+
+    /**
+     * @var LegacyContextLoader
+     */
+    protected $legacyContextLoader;
+
+    /**
      * @param InputInterface $input
      * @param OutputInterface $output
      *
@@ -47,14 +60,33 @@ abstract class AbstractCommand extends ContainerAwareCommand implements CommandI
     abstract protected function processCommand(InputInterface $input, OutputInterface $output): ?int;
 
     /**
+     * @param null $name
+     */
+    public function __construct($name = null)
+    {
+        $this->entityHelper = new EntityHelper();
+        $this->legacyContextLoader = new LegacyContextLoader(Context::getContext());
+
+        // Load generic context to start with.
+        // @toDo load real shopId and shopGroupId for each sync
+        //$this->legacyContextLoader->loadGenericContext();
+
+        parent::__construct($name);
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-        $this->setName($this->commandName)
-            ->addArgument(self::ARG_REQ_JOB, InputArgument::REQUIRED, $this->argumentReqDesc)
-            ->setDescription($this->commandDesc)
-            ->setHelp($this->commandHelp);
+        try {
+            $this->setName($this->commandName)
+                ->addArgument(self::ARG_REQ_JOB, InputArgument::REQUIRED, $this->argumentReqDesc)
+                ->setDescription($this->commandDesc)
+                ->setHelp($this->commandHelp);
+        } catch (Throwable $e) {
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+        }
     }
 
     /**
@@ -62,20 +94,21 @@ abstract class AbstractCommand extends ContainerAwareCommand implements CommandI
      */
     protected function execute(InputInterface $input, OutputInterface $output): ?int
     {
-        /** @var LegacyContextLoader $legacyContextLoader */
-        $legacyContextLoader = $this->getContainer()->get('prestashop.adapter.legacy_context_loader');
-        //@toDo load real shopId and shopGroupId for each sync
-        $legacyContextLoader->loadGenericContext(null, null, null, 1, 1);
+        try {
+            $output->writeln($this->processorMsg);
 
-        $output->writeln($this->processorMsg);
+            if (! $this->lock()) {
+                $output->writeln(sprintf(self::MSG_ALREADY_RUNNING, $this->commandName));
 
-        if (! $this->lock()) {
-            $output->writeln(sprintf(self::MSG_ALREADY_RUNNING, $this->commandName));
+                return 0;
+            }
 
+            return $this->processCommand($input, $output);
+        } catch (Throwable $e) {
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+            $output->writeln($e->getMessage());
             return 0;
         }
-
-        return $this->processCommand($input, $output);
     }
 
     /**
@@ -86,7 +119,12 @@ abstract class AbstractCommand extends ContainerAwareCommand implements CommandI
      */
     protected function outputSuccessMsg(OutputInterface $output, string $type): void
     {
-        $output->writeln(sprintf(self::MSG_SUCCESS , $type));
+        try {
+            $output->writeln(sprintf(self::MSG_SUCCESS , $type));
+        } catch (Throwable $e) {
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+            $output->writeln($e->getMessage());
+        }
     }
 
     /**
@@ -97,6 +135,11 @@ abstract class AbstractCommand extends ContainerAwareCommand implements CommandI
      */
     protected function outputErrorMsg(InputInterface $input, OutputInterface $output): void
     {
-        $output->writeln(sprintf(self::MSG_ERROR, (string) $input->getArgument(self::ARG_REQ_JOB)));
+        try {
+            $output->writeln(sprintf(self::MSG_ERROR, (string) $input->getArgument(self::ARG_REQ_JOB)));
+        } catch (Throwable $e) {
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+            $output->writeln($e->getMessage());
+        }
     }
 }
