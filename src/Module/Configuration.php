@@ -48,12 +48,10 @@ class Configuration extends AbstractSetup
             $eventSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_EVENT_SYNC_FLAG);
             $trackingScript = (string) Tools::getValue(self::CONFIG_KEY_TRACKING_CODE);
             $profileSyncSize = (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_SIZE, self::DEFAULT_SYNC_SIZE);
-            $dbCleanUpAfter = (int) Tools::getValue(self::CONFIG_KEY_DB_CLEANUP_AFTER, self::DEFAULT_DB_CLEANUP_AFTER);
             return $this->configs->saveProfileSyncFlag($profileSyncEnabled) &&
                 $this->configs->saveEventSyncFlag($eventSyncEnabled) &&
                 $this->configs->saveTrackingCode($trackingScript) &&
-                $this->configs->saveProfileSynSize($profileSyncSize) &&
-                $this->configs->saveDbCleanUpAfter($dbCleanUpAfter);
+                $this->configs->saveProfileSynSize($profileSyncSize);
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -78,7 +76,6 @@ class Configuration extends AbstractSetup
             $helper->fields_value[self::READ_ONLY_FILED_BASE_URL] = $context->getBaseUrl();
             $helper->fields_value[self::CONFIG_KEY_GLOBAL_KEY] = $this->configs->getGlobalKey();
             $helper->fields_value[self::CONFIG_KEY_PROFILE_SYNC_SIZE] = $this->configs->getProfileSynSize();
-            $helper->fields_value[self::CONFIG_KEY_DB_CLEANUP_AFTER] = $this->configs->getDbCleanUpAfter();
 
             $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] =
                 empty($this->configs->getInstallationConfigs()) ? 'NOT CONNECTED' : 'CONNECTED';
@@ -232,25 +229,6 @@ class Configuration extends AbstractSetup
                         'label' => 'Tracking Script',
                         'desc' => 'If left empty feature is automatically disabled.',
                         'name' => self::CONFIG_KEY_TRACKING_CODE,
-                    ],
-                    [
-                        'type' => 'select',
-                        'label' => 'DB Cleanup - After',
-                        'name' => self::CONFIG_KEY_DB_CLEANUP_AFTER,
-                        'required' => true,
-                        'options' => [
-                            'query' => [
-                                ['id' => 7, 'name' => '7 Days'],
-                                ['id' => 14, 'name' => '14 Days'],
-                                ['id' => 30, 'name' => '30 Days'],
-                                ['id' => 60, 'name' => '60 Days'],
-                                ['id' => 90, 'name' => '90 Days'],
-                                ['id' => 180, 'name' => '180 Days'],
-                            ],
-                            'id' => 'id',
-                            'name' => 'name',
-                        ],
-                        'desc' => 'Cleanup cronjob will remove entries from DB tables older then set value.',
                     ],
                 ],
                 'submit' => [

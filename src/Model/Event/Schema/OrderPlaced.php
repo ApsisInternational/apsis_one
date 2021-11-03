@@ -23,7 +23,8 @@ class OrderPlaced extends AbstractSchema
                 self::SCHEMA_FIELD_GROUP_ORDER
             ),
             self::KEY_ITEMS => [
-                self::KEY_SCHEMA => HelperInterface::SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA
+                self::KEY_SCHEMA => HelperInterface::SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA,
+                self::KEY_CONTAINER => HelperInterface::SERVICE_EVENT_CONTAINER
             ]
         ];
         $this->definitionTypes = [self::KEY_MAIN, self::KEY_ITEMS];

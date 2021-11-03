@@ -27,11 +27,6 @@ class Event extends AbstractEntity
     public $event_data;
 
     /**
-     * @var string
-     */
-    public $date_add;
-
-    /**
      * {@inheritdoc}
      */
     public static $definition = [
@@ -121,25 +116,6 @@ class Event extends AbstractEntity
     public function setEventData(string $data): Event
     {
         $this->event_data = $data;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDateAdd(): string
-    {
-        return (string) $this->date_add;
-    }
-
-    /**
-     * @param string $date
-     *
-     * @return $this
-     */
-    public function setDateAdd(string $date): Event
-    {
-        $this->date_add = $date;
         return $this;
     }
 }

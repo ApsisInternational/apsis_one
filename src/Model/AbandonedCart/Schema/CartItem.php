@@ -14,7 +14,6 @@ class CartItem extends AbstractSchema
     {
         $this->definition = [
             HelperInterface::SERVICE_ABANDONED_CART_ITEM_SCHEMA => array_merge(
-                self::SCHEMA_FIELD_CART_ID,
                 self::SCHEMA_FIELD_GROUP_PRODUCT,
                 self::SCHEMA_FIELD_PRODUCT_QTY,
                 self::SCHEMA_FIELD_GROUP_PRODUCT_PRICE

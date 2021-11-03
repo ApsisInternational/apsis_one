@@ -13,6 +13,7 @@ interface SchemaInterface
     const KEY_MAIN = 'main';
     const KEY_ITEMS = 'items';
     const KEY_SCHEMA = 'schema';
+    const KEY_CONTAINER = 'container';
 
     /**
      * Data types
@@ -48,7 +49,7 @@ interface SchemaInterface
     const VALIDATE_FORMAT_IP_ADDRESS = 'isNullOrIpAddress';
     const VALIDATE_FORMAT_ISO_4217_CODE_NOT_NULL = 'IsCurrencyCode';
 
-    const VALID_GENERIC_NAME_PATTERN = '/^[a-zA-Z0-9.,_-]+$/';
+    const VALID_STRING_PATTERN = '/^[a-zA-Z0-9:.,_-]+$/';
 
     /**
      * Array containing validations which should always have a value
@@ -335,6 +336,32 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Is Gift',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
+        ]
+    ];
+    const SCHEMA_FIELD_GROUP_CART = [
+        'totalProductsInclTax' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalProductsInclTax',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products Incl Tax',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'totalProductsExclTax' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'totalProductsExclTax',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Total Products Excl Tax',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_DOUBLE,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_SALES_VALUE
+        ],
+        'cartToken' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'cartToken',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Cart Token',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
+        ],
+        'itemsCount' => [
+            self::SCHEMA_KEY_LOGICAL_NAME => 'itemsCount',
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Items Count',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_UNSIGNED_INT
         ]
     ];
     const SCHEMA_FIELD_GROUP_ORDER = [

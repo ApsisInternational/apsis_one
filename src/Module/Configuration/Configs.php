@@ -530,63 +530,6 @@ class Configs implements SetupInterface
     }
 
     /**
-     * @param int $size
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
-     *
-     * @return bool
-     */
-    public function saveDbCleanUpAfter(int $size, ?int $idShopGroup = null, ?int $idShop = null): bool
-    {
-        try {
-            $this->logValueChange(__METHOD__, $this->getDbCleanUpAfter($idShopGroup, $idShop), $size);
-
-            return Configuration::updateValue(
-                self::CONFIG_KEY_DB_CLEANUP_AFTER,
-                $size,
-                true,
-                $idShopGroup,
-                $idShop
-            );
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return false;
-        }
-    }
-
-    /**
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
-     *
-     * @return int
-     */
-    public function getDbCleanUpAfter(?int $idShopGroup = null, ?int $idShop = null): int
-    {
-        try {
-            $value = (int) Configuration::get(self::CONFIG_KEY_DB_CLEANUP_AFTER, null, $idShopGroup, $idShop);
-            return ($value) ?: self::DEFAULT_DB_CLEANUP_AFTER;
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return self::DEFAULT_DB_CLEANUP_AFTER;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteDbCleanUpAfterFromAllContext(): bool
-    {
-        try {
-            $this->module->helper->logInfoMsg(__METHOD__);
-
-            return Configuration::deleteByName(self::CONFIG_KEY_DB_CLEANUP_AFTER);
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return false;
-        }
-    }
-
-    /**
      * @param string $key
      * @param int|null $idLang
      * @param int|null $idShopGroup

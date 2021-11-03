@@ -397,8 +397,8 @@ class EntityHelper extends LoggerHelper
                 $product = $hookArgs['product'];
                 $shop = $hookArgs['shop'];
 
-                if ($cart instanceof Cart && $product instanceof Product && $shop instanceof Shop &&
-                    $profile = $this->getProfileRepository()->findOneByCustomerId($cart->id_customer)
+                if ($cart instanceof Cart && $product instanceof Product && $shop instanceof Shop && $cart->id_customer
+                    && $profile = $this->getProfileRepository()->findOneByCustomerId($cart->id_customer)
                 ) {
                     $jsonData = json_encode([
                         'id_cart' => $cart->id,
@@ -536,10 +536,11 @@ class EntityHelper extends LoggerHelper
 
     /**
      * @param Profile $profile
+     * @param bool $fetchEvents
      *
      * @return array|null
      */
-    public function getProfileDataArrForExport(Profile $profile): ?array
+    public function getProfileDataArrForExport(Profile $profile, bool $fetchEvents): ?array
     {
         try {
             $profileData = $profile->getProfileDataArr();
@@ -547,8 +548,11 @@ class EntityHelper extends LoggerHelper
                 return null;
             }
 
-            $profileData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] = $this->getEventRepository()
-                ->findByProfileIdAndSyncStatus($profile->getId(), [EI::SS_JUSTIN]);
+            if ($fetchEvents) {
+                $events = $this->getEventRepository()
+                    ->findByProfileIdAndSyncStatus($profile->getId(), [EI::SS_JUSTIN]);
+                $profileData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] = is_null($events) ? [] : $events;
+            }
 
             /** @var SchemaInterface $schemaProvider */
             $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_PROFILE_SCHEMA);
@@ -570,21 +574,49 @@ class EntityHelper extends LoggerHelper
      */
     public function getEventDataArrForExport(array $eventData, int $eventType): ?array
     {
-        if (empty($eventData) || empty($eventType)) {
+        try {
+            if (empty($eventData) || empty($eventType)) {
+                return null;
+            }
+
+            if (in_array($eventType, SchemaInterface::EVENTS_CONTAINING_PRODUCT)) {
+                $eventData = $this->setProductDataInArr($eventData);
+            }
+
+            /** @var SchemaInterface $schemaProvider */
+            $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]);
+
+            /** @var DataInterface $dataProvider */
+            $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
+
+            return $dataProvider->setObjectData($eventData, $schemaProvider)->getDataArr();
+        } catch (Throwable $e) {
+            $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;
         }
+    }
 
-        if (in_array($eventType, SchemaInterface::EVENTS_CONTAINING_PRODUCT)) {
-            $eventData = $this->setProductDataInArr($eventData);
-        }
-
-        /** @var SchemaInterface $schemaProvider */
-        $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]);
-        /** @var DataInterface $dataProvider */
-        $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
-
+    /**
+     * @param AbandonedCart $abandonedCart
+     *
+     * @return array|null
+     */
+    public function getAbandonedCartDataArrForExport(AbandonedCart $abandonedCart): ?array
+    {
         try {
-            return $dataProvider->setObjectData($eventData, $schemaProvider)->getDataArr();
+            if (empty($dataArr = $abandonedCart->getCartData())) {
+                return null;
+            }
+
+            $dataArr = $this->setProductDataInArr(json_decode($dataArr, true));
+
+            /** @var SchemaInterface $schemaProvider */
+            $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_ABANDONED_CART_SCHEMA);
+
+            /** @var DataInterface $dataProvider */
+            $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_ABANDONED_CART_CONTAINER);
+
+            return $dataProvider->setObjectData($dataArr, $schemaProvider)->getDataArr();
         } catch (Throwable $e) {
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;
@@ -608,11 +640,18 @@ class EntityHelper extends LoggerHelper
                     $arr['product_price_amount_excl_tax'] = $product->getPrice(false);
                 }
             } elseif (isset($arr[SchemaInterface::KEY_ITEMS]) && is_array($arr[SchemaInterface::KEY_ITEMS])) {
+                $arr['items_count'] = count($arr[SchemaInterface::KEY_ITEMS]);
+                $arr['total_product_incl_tax'] = $arr['total_product_excl_tax'] = 0;
                 foreach ($arr[SchemaInterface::KEY_ITEMS] as $key => $itemArr) {
                     if (isset($arr['id_lang'], $arr['id_shop'])) {
                         $itemArr['id_lang'] = $arr['id_lang'];
                         $itemArr['id_shop'] = $arr['id_shop'];
-                        $arr[SchemaInterface::KEY_ITEMS][$key] = $this->setProductDataInArr($itemArr);
+
+                        $itemArr = $this->setProductDataInArr($itemArr);
+
+                        $arr[SchemaInterface::KEY_ITEMS][$key] = $itemArr;
+                        $arr['total_product_incl_tax'] += $itemArr['product_price_amount_incl_tax'];
+                        $arr['total_product_excl_tax'] += $itemArr['product_price_amount_excl_tax'];
                     }
                 }
             }

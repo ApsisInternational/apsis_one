@@ -40,6 +40,11 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     /**
      * @var string
      */
+    public $date_add;
+
+    /**
+     * @var string
+     */
     public $date_upd;
 
     /**
@@ -263,6 +268,25 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     public function setErrorMessage(string $errorMessage = self::EMPTY): AbstractEntity
     {
         $this->error_message = $errorMessage;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateAdd(): string
+    {
+        return (string) $this->date_add;
+    }
+
+    /**
+     * @param string $date
+     *
+     * @return $this
+     */
+    public function setDateAdd(string $date): Event
+    {
+        $this->date_add = $date;
         return $this;
     }
 

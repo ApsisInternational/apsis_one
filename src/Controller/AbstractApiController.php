@@ -378,7 +378,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             try {
                 switch ($type) {
                     case self::DATA_TYPE_STRING:
-                        $isValid = preg_match(SchemaInterface::VALID_GENERIC_NAME_PATTERN, $data);
+                        $isValid = preg_match(SchemaInterface::VALID_STRING_PATTERN, $data);
                         break;
                     case self::DATA_TYPE_INT:
                         $isValid = is_numeric($data);
@@ -430,18 +430,20 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     }
 
     /**
-     * @param int $httpCode
+     * @param int $code
      * @param array $data
      * @param string $msg
+     * @param bool $outputEmpty
      *
      * @return array
      */
-    protected function generateResponse(int $httpCode, array $data = [], string $msg = ''): array
+    protected function generateResponse(int $code, array $data = [], string $msg = '', bool $outputEmpty = false): array
     {
-        $response = ['httpCode' => $httpCode];
-        if (! empty($data)) {
+        $response = ['httpCode' => $code];
+        if (! empty($data) || $outputEmpty) {
             $response['data'] = $data;
         }
+
         if (strlen($msg)) {
             $response['message'] = $msg;
         }

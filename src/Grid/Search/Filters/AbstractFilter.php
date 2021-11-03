@@ -2,15 +2,11 @@
 
 namespace Apsis\One\Grid\Search\Filters;
 
+use Apsis\One\Model\EntityInterface as EI;
 use PrestaShop\PrestaShop\Core\Search\Filters;
 
 abstract class AbstractFilter extends Filters implements FilterInterface
 {
-    /**
-     * @return string
-     */
-    abstract static protected function getOrderByColumn(): string;
-
     /**
      * {@inheritdoc}
      */
@@ -19,7 +15,7 @@ abstract class AbstractFilter extends Filters implements FilterInterface
         return [
             'limit' => 50,
             'offset' => 0,
-            'orderBy' => static::getOrderByColumn(),
+            'orderBy' => EI::T_PRIMARY_MAPPINGS[static::GRID_ID],
             'sortOrder' => 'DESC',
             'filters' => [],
         ];

@@ -252,7 +252,7 @@ interface EntityInterface extends PsEntityInterface
             self::C_ID_CART => self::CD_ID_CART,
             self::C_CART_DATA => self::CD_CART_DATA,
             self::C_TOKEN => self::CD_TOKEN,
-            self::C_DATE_UPD => self::CD_DATE_UPD,
+            self::C_DATE_ADD => self::CD_DATE_ADD,
         ]
     ];
     const T_PRIMARY_MAPPINGS = [
@@ -282,7 +282,7 @@ interface EntityInterface extends PsEntityInterface
         self::ET_CUST_UNSUB_NEWS => 'Customer Unsubscribes From Newsletter',
         self::ET_PRODUCT_WISHED => 'Product Wished',
         self::ET_PRODUCT_CARTED => 'Product Carted',
-        self::ET_PRODUCT_REVIEWED => 'Product Commented',
+        self::ET_PRODUCT_REVIEWED => 'Product Reviewed',
         self::ET_ORDER_PLACED => 'Order Placed'
     ];
 
@@ -402,95 +402,94 @@ interface EntityInterface extends PsEntityInterface
             ap.`is_newsletter` = c.`newsletter`,
             ap.`sync_status` = ' . self::SS_PENDING . ',
             ap.`error_message` = "",
-            ap.`profile_data` =
-                (
-                    SELECT
-                        JSON_OBJECT(
-                            "id_customer", c.`id_customer`,
-                            "id_shop", c.`id_shop`,
-                            "id_shop_group", c.`id_shop_group`,
-                            "optin", c.`optin`,
-                            "newsletter", c.`newsletter`,
-                            "newsletter_date_add", UNIX_TIMESTAMP(c.`newsletter_date_add`),
-                            "email", c.`email`,
-                            "firstname", c.`firstname`,
-                            "lastname", c.`lastname`,
-                            "birthday", UNIX_TIMESTAMP(c.`birthday`),
-                            "company", c.`company`,
-                            "date_add", UNIX_TIMESTAMP(c.`date_add`),
-                            "shop_name", s.`name`,
-                            "shop_group_name", sg.`name`,
-                            "language_name", l.`name`,
-                            "default_group_name", gl.`name`,
-                            "sales_columns", (
-                                SELECT
-                                    JSON_OBJECT(
-                                        "lifetime_total_orders", COUNT(*),
-                                        "lifetime_total_spent", SUM(o.`total_paid_tax_incl`),
-                                        "average_order_value", SUM(o.`total_paid_tax_incl`) / COUNT(*)
+            ap.`profile_data` = (
+                SELECT
+                    JSON_OBJECT(
+                        "id_customer", c.`id_customer`,
+                        "id_shop", c.`id_shop`,
+                        "id_shop_group", c.`id_shop_group`,
+                        "optin", c.`optin`,
+                        "newsletter", c.`newsletter`,
+                        "newsletter_date_add", UNIX_TIMESTAMP(c.`newsletter_date_add`),
+                        "email", c.`email`,
+                        "firstname", c.`firstname`,
+                        "lastname", c.`lastname`,
+                        "birthday", UNIX_TIMESTAMP(c.`birthday`),
+                        "company", c.`company`,
+                        "date_add", UNIX_TIMESTAMP(c.`date_add`),
+                        "shop_name", s.`name`,
+                        "shop_group_name", sg.`name`,
+                        "language_name", l.`name`,
+                        "default_group_name", gl.`name`,
+                        "sales_columns", (
+                            SELECT
+                                JSON_OBJECT(
+                                    "lifetime_total_orders", COUNT(*),
+                                    "lifetime_total_spent", SUM(o.`total_paid_tax_incl`),
+                                    "average_order_value", SUM(o.`total_paid_tax_incl`) / COUNT(*)
+                                )
+                            FROM `' . _DB_PREFIX_ . 'orders` o
+                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
+                                ON (o.`current_state` = os.`id_order_state`)
+                            WHERE o.`id_customer` = c.`id_customer`
+                                AND o.`id_shop` = c.`id_shop`
+                                AND os.`invoice` = 1
+                        ),
+                        "order_address_ids", (
+                            SELECT
+                                JSON_OBJECT(
+                                    "id_address_invoice", o.`id_address_invoice`,
+                                    "id_address_delivery", o.`id_address_delivery`
+                                )
+                            FROM `' . _DB_PREFIX_ . 'orders` o
+                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
+                                ON (o.`current_state` = os.`id_order_state`)
+                            WHERE o.`id_customer` = c.`id_customer`
+                                AND o.`id_shop` = c.`id_shop`
+                                AND os.`invoice` = 1
+                            ORDER BY o.`id_order` DESC
+                            LIMIT 1
+                        ),
+                        "address_collection", (
+                            SELECT
+                                JSON_OBJECTAGG(
+                                    a.`id_address`, JSON_OBJECT(
+                                        "address1", a.`address1`,
+                                        "address2", a.`address2`,
+                                        "postcode", a.`postcode`,
+                                        "city", a.`city`,
+                                        "state", s.name,
+                                        "country", cl.`name`,
+                                        "country_code", c.`iso_code`,
+                                        "phone", a.`phone`,
+                                        "phone_mobile", a.`phone_mobile`
                                     )
-                                FROM `' . _DB_PREFIX_ . 'orders` o
-                                INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-                                    ON (o.`current_state` = os.`id_order_state`)
-                                WHERE o.`id_customer` = c.`id_customer`
-                                    AND o.`id_shop` = c.`id_shop`
-                                    AND os.`invoice` = 1
-                            ),
-                            "order_address_ids", (
-                                SELECT
-                                    JSON_OBJECT(
-                                        "id_address_invoice", o.`id_address_invoice`,
-                                        "id_address_delivery", o.`id_address_delivery`
-                                    )
-                                FROM `' . _DB_PREFIX_ . 'orders` o
-                                INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-                                    ON (o.`current_state` = os.`id_order_state`)
-                                WHERE o.`id_customer` = c.`id_customer`
-                                    AND o.`id_shop` = c.`id_shop`
-                                    AND os.`invoice` = 1
-                                ORDER BY o.`id_order` DESC
-                                LIMIT 1
-                            ),
-                            "address_collection", (
-                                SELECT
-                                    JSON_OBJECTAGG(
-                                        a.`id_address`, JSON_OBJECT(
-                                            "address1", a.`address1`,
-                                            "address2", a.`address2`,
-                                            "postcode", a.`postcode`,
-                                            "city", a.`city`,
-                                            "state", s.name,
-                                            "country", cl.`name`,
-                                            "country_code", c.`iso_code`,
-                                            "phone", a.`phone`,
-                                            "phone_mobile", a.`phone_mobile`
-                                        )
-                                    )
-                                FROM `' . _DB_PREFIX_ . 'address` a
-                                INNER JOIN `' . _DB_PREFIX_ . 'country` c
-                                    ON (c.`id_country` = a.`id_country`)
-                                INNER JOIN `' . _DB_PREFIX_ . 'country_lang` cl
-                                    ON (cl.`id_country` = a.`id_country`)
-                                INNER JOIN `' . _DB_PREFIX_ . 'state` s
-                                    ON (s.`id_state` = a.`id_state`)
-                                WHERE cl.`id_lang` = c.`id_lang`
-                                    AND a.`id_customer` = c.`id_customer`
-                                    AND a.`deleted` = 0
-                                    AND a.`active` = 1
-                            )
+                                )
+                            FROM `' . _DB_PREFIX_ . 'address` a
+                            INNER JOIN `' . _DB_PREFIX_ . 'country` c
+                                ON (c.`id_country` = a.`id_country`)
+                            INNER JOIN `' . _DB_PREFIX_ . 'country_lang` cl
+                                ON (cl.`id_country` = a.`id_country`)
+                            INNER JOIN `' . _DB_PREFIX_ . 'state` s
+                                ON (s.`id_state` = a.`id_state`)
+                            WHERE cl.`id_lang` = c.`id_lang`
+                                AND a.`id_customer` = c.`id_customer`
+                                AND a.`deleted` = 0
+                                AND a.`active` = 1
                         )
-                    FROM `' . _DB_PREFIX_ . 'customer` c
-                    INNER JOIN `' . _DB_PREFIX_ . 'shop` s
-                        ON (c.`id_shop` = s.`id_shop`)
-                    INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
-                        ON (c.`id_shop_group` = sg.`id_shop_group`)
-                    INNER JOIN `' . _DB_PREFIX_ . 'lang` l
-                        ON (c.`id_lang` = l.`id_lang`)
-                    INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
-                        ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
-                    WHERE c.`id_customer` = ap.`id_customer`
-                    LIMIT 1
-                )
+                    )
+                FROM `' . _DB_PREFIX_ . 'customer` c
+                INNER JOIN `' . _DB_PREFIX_ . 'shop` s
+                    ON (c.`id_shop` = s.`id_shop`)
+                INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+                    ON (c.`id_shop_group` = sg.`id_shop_group`)
+                INNER JOIN `' . _DB_PREFIX_ . 'lang` l
+                    ON (c.`id_lang` = l.`id_lang`)
+                INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
+                    ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
+                WHERE c.`id_customer` = ap.`id_customer`
+                LIMIT 1
+            )
         WHERE
             ap.`id_customer` = c.`id_customer` AND
             ap.`is_newsletter` != c.`newsletter`';
@@ -706,26 +705,28 @@ interface EntityInterface extends PsEntityInterface
                 "total_wrapping_tax_excl", o.`total_wrapping_tax_excl`,
                 "is_recyclable", o.`recyclable`,
                 "is_gift", o.`gift`,
-                "items", (SELECT
-                            JSON_OBJECTAGG(
-                                od.`id_order_detail`, JSON_OBJECT(
-                                    "id_order", od.`id_order`,
-                                    "id_product", od.`product_id`,
-                                    "product_name", od.`product_name`,
-                                    "product_reference", od.`product_reference`,
-                                    "product_image_url", null,
-                                    "product_url", null,
-                                    "product_qty", od.`product_quantity`,
-                                    "unit_price_tax_incl", od.`unit_price_tax_incl`,
-                                    "unit_price_tax_excl", od.`unit_price_tax_excl`,
-                                    "total_price_tax_incl", od.`total_price_tax_incl`,
-                                    "total_price_tax_excl", od.`total_price_tax_excl`,
-                                    "total_shipping_price_tax_incl", od.`total_shipping_price_tax_incl`,
-                                    "total_shipping_price_tax_excl", od.`total_shipping_price_tax_excl`
-                                )
+                "items", (
+                    SELECT
+                        JSON_OBJECTAGG(
+                            od.`id_order_detail`, JSON_OBJECT(
+                                "id_order", od.`id_order`,
+                                "id_product", od.`product_id`,
+                                "product_name", od.`product_name`,
+                                "product_reference", od.`product_reference`,
+                                "product_image_url", null,
+                                "product_url", null,
+                                "product_qty", od.`product_quantity`,
+                                "unit_price_tax_incl", od.`unit_price_tax_incl`,
+                                "unit_price_tax_excl", od.`unit_price_tax_excl`,
+                                "total_price_tax_incl", od.`total_price_tax_incl`,
+                                "total_price_tax_excl", od.`total_price_tax_excl`,
+                                "total_shipping_price_tax_incl", od.`total_shipping_price_tax_incl`,
+                                "total_shipping_price_tax_excl", od.`total_shipping_price_tax_excl`
                             )
-                        FROM `' . _DB_PREFIX_ . 'order_detail` od
-                        WHERE od.`id_order` = o.`id_order`)
+                        )
+                    FROM `' . _DB_PREFIX_ . 'order_detail` od
+                    WHERE od.`id_order` = o.`id_order`
+                )
             ) as event_data,
             %d as sync_status,
             o.`date_add`
@@ -740,7 +741,7 @@ interface EntityInterface extends PsEntityInterface
             ON (cr.`id_currency` = o.`id_currency`)
         INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
             ON (os.`id_order_state` = o.`current_state`)
-        WHERE o.valid = 1 AND os.`invoice` = 1 ';
+        WHERE o.`valid` = 1 AND os.`invoice` = 1 ';
 
     const EVENT_DATA_SQL_ORDER_COND = '
         AND NOT EXISTS(
@@ -748,6 +749,69 @@ interface EntityInterface extends PsEntityInterface
             FROM `' . _DB_PREFIX_ . 'apsis_event` ae
             WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = event_type
         ) AND o.`id_order` = %d LIMIT 1';
+
+    const ABANDONED_CART_DATA_SQL = '
+        INSERT INTO `' . _DB_PREFIX_ . self::T_ABANDONED_CART . '`
+            (`id_apsis_profile`, `id_shop`, `id_cart`, `cart_data`, `token`, `date_add`)
+        SELECT *
+        FROM
+        (
+            SELECT
+                ap.`id_apsis_profile`,
+                c.`id_shop`,
+                c.`id_cart`,
+                JSON_OBJECT(
+                    "id_cart", c.`id_cart`,
+                    "id_customer", c.`id_customer`,
+                    "id_guest", c.`id_guest`,
+                    "id_shop", c.`id_shop`,
+                    "id_shop_group", c.`id_shop_group`,
+                    "shop_name", s.`name`,
+                    "shop_group_name", sg.`name`,
+                    "currency_code", cr.`iso_code`,
+                    "total_product_incl_tax", null,
+                    "total_product_excl_tax", null,
+                    "is_recyclable", c.`recyclable`,
+                    "is_gift", c.`gift`,
+                    "id_lang", c.`id_lang`,
+                    "items", (
+                        SELECT
+                            JSON_OBJECTAGG(
+                                cp.`id_product`, JSON_OBJECT(
+                                    "id_product", cp.`id_product`,
+                                    "product_name", pl.`name`,
+                                    "product_reference", p.`reference`,
+                                    "product_qty", cp.`quantity`,
+                                    "product_image_url", null,
+                                    "product_url", null,
+                                    "product_price_amount_incl_tax", null,
+                                    "product_price_amount_excl_tax", null
+                                )
+                            )
+                        FROM `' . _DB_PREFIX_ . 'cart_product` cp
+                        INNER JOIN `' . _DB_PREFIX_ . 'product` p
+                            ON (p.`id_product` = cp.`id_product`)
+                        INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
+                            ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, cp.`id_shop`, `id_lang`)
+                        WHERE cp.`id_cart` = c.`id_cart`
+                    )
+                ) as cart_data,
+                UUID() as token,
+                c.`date_upd` as date_add
+            FROM `' . _DB_PREFIX_ . 'cart` c
+            INNER JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` ap
+                ON (ap.`id_customer` = c.`id_customer`)
+            INNER JOIN `' . _DB_PREFIX_ . 'shop` s
+                ON (s.`id_shop` = c.`id_shop`)
+            INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+                ON (sg.`id_shop_group` = c.`id_shop_group`)
+            INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
+                ON (cr.`id_currency` = c.`id_currency`)
+            WHERE
+                c.`id_customer` != 0 AND
+                c.`date_upd` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME)
+        ) AS s
+        WHERE JSON_EXTRACT(cart_data, "$.items") IS NOT NULL ';
 
     /**
      * @return string

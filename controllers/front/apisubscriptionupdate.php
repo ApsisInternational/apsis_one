@@ -57,10 +57,7 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
     {
         try {
             if (strlen($PK)) {
-                $repository = $this->getProfileRepository();
-                if ($profile = $repository->findOneByIntegrationId($PK)) {
-                    return $profile;
-                }
+                return $this->getProfileRepository()->findOneByIntegrationId($PK);
             }
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

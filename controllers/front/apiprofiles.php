@@ -80,7 +80,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
     protected function createResponseBody(): array
     {
         try {
-            $afterIdFromRequest = (int) Tools::getValue(self::QUERY_PARAM_AFTER_ID);
+            $afterIdFromRequest = isset($this->queryParams[self::QUERY_PARAM_AFTER_ID]) ?
+                (int) $this->queryParams[self::QUERY_PARAM_AFTER_ID] : 0;
             $profilesDataArr = $this->getProfilesDataArr($afterIdFromRequest);
             $afterIdFromDataArr = $profilesDataArr[self::QUERY_PARAM_AFTER_ID];
 
@@ -146,10 +147,15 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                     $afterId
                 );
 
-            foreach ($profiles as $profile) {
-                $item = $entityHelper->getProfileDataArrForExport($profile);
-                if (! empty($item)) {
-                    $items[$profile->getId()] = $item;
+            if (is_array($profiles)) {
+                foreach ($profiles as $profile) {
+                    $item = $entityHelper->getProfileDataArrForExport(
+                        $profile,
+                        $this->configs->getEventSyncFlag($this->groupId, $this->shopId)
+                    );
+                    if (! empty($item)) {
+                        $items[$profile->getId()] = $item;
+                    }
                 }
             }
 

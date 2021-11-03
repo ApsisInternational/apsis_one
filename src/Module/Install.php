@@ -248,12 +248,12 @@ class Install extends AbstractSetup
                     `' . EI::C_ID_CART . '` int(10) unsigned NOT NULL,
                     `' . EI::C_CART_DATA . '` JSON NOT NULL,
                     `' . EI::C_TOKEN . '` varchar(36) NOT NULL,
-                    `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    `' . EI::C_DATE_ADD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     PRIMARY KEY (`' . EI::C_ID_AC . '`),
                     KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_PROFILE) . '` (`' . EI::C_ID_PROFILE . '`),
                     KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
                     KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_ID_CART) . '` (`' . EI::C_ID_CART . '`),
-                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_DATE_UPD) . '` (`' . EI::C_DATE_UPD . '`)
+                    KEY `' . $this->getIndex(EI::T_ABANDONED_CART, EI::C_DATE_ADD) . '` (`' . EI::C_DATE_ADD . '`)
                 ) ENGINE=' . _MYSQL_ENGINE_ . ' default CHARSET=utf8';
             return $db->execute($sql);
         } catch (Throwable $e) {

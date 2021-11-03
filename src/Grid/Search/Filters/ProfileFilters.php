@@ -2,21 +2,14 @@
 
 namespace Apsis\One\Grid\Search\Filters;
 
-use Apsis\One\Model\EntityInterface as EI;
 use Apsis\One\Grid\Definition\Factory\ProfileGridDefinitionFactory;
 
 class ProfileFilters extends AbstractFilter
 {
-    /**
-     * {@inheritdoc}
-     */
-    protected $filterId = ProfileGridDefinitionFactory::GRID_ID;
+    const GRID_ID = ProfileGridDefinitionFactory::GRID_ID;
 
     /**
      * {@inheritdoc}
      */
-    protected static function getOrderByColumn(): string
-    {
-        return EI::C_DATE_UPD;
-    }
+    protected $filterId = self::GRID_ID;
 }

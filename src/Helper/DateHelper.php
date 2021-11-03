@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Helper;
 
+use Configuration;
 use DateTime;
 use DateTimeZone;
 use Throwable;
@@ -108,6 +109,32 @@ class DateHelper extends LoggerHelper
     public function getDateTimeFromTime(string $time = 'now'): DateTime
     {
         return new DateTime($time);
+    }
+
+    /**
+     * @param string $datetime
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     * @param string $format
+     *
+     * @return string|null
+     *
+     * @throws Throwable
+     */
+    public function convertDatetimeToStoreTimezoneAndFormat(
+        string $datetime,
+        ?int $idShopGroup = null,
+        ?int $idShop = null,
+        string $format = 'Y-m-d H:i:s'
+    ): ?string {
+        if (empty($datetime) || empty($format)) {
+            return null;
+        }
+
+        $default = 'Europe/Stockholm';
+        return $this->getDateTimeFromTime($datetime)
+            ->setTimezone(new DateTimeZone(Configuration::get('PS_TIMEZONE', null, $idShopGroup, $idShop, $default)))
+            ->format($format);
     }
 
     /**

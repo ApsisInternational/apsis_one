@@ -45,7 +45,6 @@ class Uninstall extends AbstractSetup
                 $this->configs->deleteInstallationConfigsFromAllContext() &&
                 $this->configs->deleteApiTokenFromAllContext() &&
                 $this->configs->deleteApiTokenExpiryFromAllContext() &&
-                $this->configs->deleteDbCleanUpAfterFromAllContext() &&
                 $this->configs->deleteProfileSynSizeFromAllContext();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);

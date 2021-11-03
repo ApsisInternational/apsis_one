@@ -25,6 +25,8 @@ interface ApiControllerInterface
     const QUERY_PARAM_RESET = 'reset';
     const QUERY_PARAM_SCHEMA = 'schema';
     const QUERY_PARAM_AFTER_ID = 'after_id';
+    const QUERY_PARAM_AFTER_DATETIME = 'after_datetime';
+    const QUERY_PARAM_BEFORE_DATETIME = 'before_datetime';
 
     /** BODY PARAMS */
     const JSON_BODY_PARAM_ITEMS = 'items';

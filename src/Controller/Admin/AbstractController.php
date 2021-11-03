@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Apsis\One\Grid\Search\Filters\FilterInterface;
 use Apsis\One\Model\EntityInterface as EI;
 use Apsis\One\Grid\Definition\Factory\GridDefinitionFactoryInterface as GDFI;
+use Apsis\One\Helper\LoggerHelper;
 use Throwable;
 
 abstract class AbstractController extends FrameworkBundleAdminController implements ControllerInterface
@@ -26,12 +27,18 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
     protected $redirectRoute;
 
     /**
+     * @var LoggerHelper
+     */
+    protected $logger;
+
+    /**
      * {@inheritdoc}
      */
     public function __construct(GridFactoryInterface $gridFactory, string $redirectRoute)
     {
         $this->redirectRoute = $redirectRoute;
         $this->gridFactory = $gridFactory;
+        $this->logger = new LoggerHelper();
         parent::__construct();
     }
 
@@ -51,7 +58,8 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             );
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
-            return $this->redirectToRoute($this->redirectRoute);
+            $this->logger->logErrorMsg(__METHOD__, $e);
+            return $this->redirect('admin_dashboard');
         }
     }
 
@@ -86,6 +94,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
                 ->setFileName($grid->getDefinition()->getId() . '_' . date('Y-m-d_His') . '.csv');
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
             return $this->redirectToRoute($this->redirectRoute);
         }
     }
@@ -102,6 +111,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             $this->resetSelection($this->getArrForResetDelete($request, $filter));
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
         }
 
         return $this->redirectToRoute($this->redirectRoute);
@@ -119,6 +129,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             $this->resetSelection($this->getArrForResetDelete($request, $filter, true));
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
         }
 
         return $this->redirectToRoute($this->redirectRoute);
@@ -136,6 +147,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             $this->deleteSelection($this->getArrForResetDelete($request, $filter));
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
         }
 
         return $this->redirectToRoute($this->redirectRoute);
@@ -153,6 +165,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             $this->deleteSelection($this->getArrForResetDelete($request, $filter, true));
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
         }
 
         return $this->redirectToRoute($this->redirectRoute);
@@ -182,6 +195,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             ];
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
             return [];
         }
     }
@@ -199,6 +213,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             }
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
             return;
         }
 
@@ -218,6 +233,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             }
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());
+            $this->logger->logErrorMsg(__METHOD__, $e);
             return;
         }
 

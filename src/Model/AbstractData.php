@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Model;
 
+use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\EntityHelper;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Helper\ModuleHelper;
@@ -285,7 +286,7 @@ abstract class AbstractData implements DataInterface
         /** @var SchemaInterface $itemSchema */
         $itemSchema = $this->helper->getService($definition[SchemaInterface::KEY_SCHEMA]);
         /** @var DataInterface $itemContainer */
-        $itemContainer = $this->helper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
+        $itemContainer = $this->helper->getService($definition[SchemaInterface::KEY_CONTAINER]);
         foreach ($this->objectData[SchemaInterface::KEY_ITEMS] as $key => $item) {
             $itemsDataArr[$key] = $itemContainer->setObjectData($item, $itemSchema)->getDataArr();
         }
@@ -321,6 +322,8 @@ abstract class AbstractData implements DataInterface
 
             /** @var EntityHelper $entityHelper */
             $entityHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+            /** @var DateHelper $dateHelper */
+            $dateHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
             /** @var Event $event */
             foreach ($this->objectData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] as $event) {
@@ -341,7 +344,8 @@ abstract class AbstractData implements DataInterface
 
                     $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
                     $eventsArr[] = [
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $event->getDateAdd(),
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
+                            $dateHelper->getTimeStamp($event->getDateAdd()),
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                             is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
@@ -354,7 +358,8 @@ abstract class AbstractData implements DataInterface
                             }
 
                             $eventsArr[] = [
-                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $event->getDateAdd(),
+                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
+                                    $dateHelper->getTimeStamp($event->getDateAdd()),
                                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                                     $discriminator[SchemaInterface::KEY_ITEMS],
                                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]

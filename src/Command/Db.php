@@ -45,9 +45,6 @@ class Db extends AbstractCommand
     {
         try {
             switch ($input->getArgument(self::ARG_REQ_JOB)) {
-                case self::JOB_TYPE_CLEANUP:
-                    $this->outputSuccessMsg($output, self::JOB_TYPE_CLEANUP);
-                    break;
                 case self::JOB_TYPE_AC:
                     $this->outputSuccessMsg($output, self::JOB_TYPE_AC);
                     break;
