@@ -2,6 +2,8 @@
 
 namespace Apsis\One\Command;
 
+use Apsis\One\Context\ShopContext;
+use Apsis\One\Helper\DateHelper;
 use Context;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
 use Symfony\Component\Console\Command\Command;
@@ -47,6 +49,16 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected $entityHelper;
 
     /**
+     * @var DateHelper
+     */
+    protected $dateHelper;
+
+    /**
+     * @var ShopContext
+     */
+    protected $shopContext;
+
+    /**
      * @var LegacyContextLoader
      */
     protected $legacyContextLoader;
@@ -65,6 +77,8 @@ abstract class AbstractCommand extends Command implements CommandInterface
     public function __construct($name = null)
     {
         $this->entityHelper = new EntityHelper();
+        $this->dateHelper = new DateHelper();
+        $this->shopContext = new ShopContext($this->dateHelper);
         $this->legacyContextLoader = new LegacyContextLoader(Context::getContext());
 
         // Load generic context to start with.
@@ -114,13 +128,14 @@ abstract class AbstractCommand extends Command implements CommandInterface
     /**
      * @param OutputInterface $output
      * @param string $type
+     * @param string $msg
      *
      * @return void
      */
-    protected function outputSuccessMsg(OutputInterface $output, string $type): void
+    protected function outputSuccessMsg(OutputInterface $output, string $type, string $msg): void
     {
         try {
-            $output->writeln(sprintf(self::MSG_SUCCESS , $type));
+            $output->writeln(sprintf(self::MSG_SUCCESS , $type, $msg));
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $output->writeln($e->getMessage());

@@ -23,16 +23,22 @@ interface CommandInterface
     const COMMAND_NAME_DB = 'apsis-one:db';
     const COMMAND_DESC_DB = 'Run APSIS database operations.';
     const COMMAND_TEXT_DB = 'This commands allows you to ' . self::COMMAND_DESC_DB;
-    const COMMAND_HELP_DESC_DB = self::COMMAND_TEXT_DB . ' ' . self::AC_DESC . ' ' . self::SUBS_UPDATE_DESC;
-    const ARG_REQ_DESC_DB = self::ARG_REQ_TEXT . " '" . self::JOB_TYPE_SCAN_SUBS_UPDATE . "' / '" . self::JOB_TYPE_AC . "'";
+    const COMMAND_HELP_DESC_DB = self::COMMAND_TEXT_DB . ' ' . self::AC_DESC . ' ' . self::SUBS_UPDATE_DESC . ' ' .
+        self::MISSING_PROFILES_DESC;
+    const ARG_REQ_DESC_DB = self::ARG_REQ_TEXT . " '" . self::JOB_TYPE_SCAN_SUBS_UPDATE . "' / '" .
+        self::JOB_TYPE_SCAN_AC . "'" . "' / '" . self::JOB_TYPE_SCAN_MISSING_PROFILES . "'";
     const MSG_PROCESSOR_DB = ['===================', 'APSIS DB Operations', '===================', ''];
-    const JOB_TYPE_AC = 'abandoned-carts';
+    const JOB_TYPE_SCAN_AC = 'scan-abandoned-carts';
+    const JOB_TYPE_SCAN_MISSING_PROFILES = 'scan-missing-profiles';
     const JOB_TYPE_SCAN_SUBS_UPDATE = 'scan-subs-updates';
-    const AC_DESC = "Database operation '" . self::JOB_TYPE_AC . "' to find abandoned carts.";
-    const SUBS_UPDATE_DESC = "Database operation '" . self::JOB_TYPE_SCAN_SUBS_UPDATE . "' to find missing subscription updates.";
+    const AC_DESC = "Database operation '" . self::JOB_TYPE_SCAN_AC . "' to find abandoned carts.";
+    const MISSING_PROFILES_DESC = "Database operation '" . self::JOB_TYPE_SCAN_MISSING_PROFILES .
+        "' to find missing Profiles.";
+    const SUBS_UPDATE_DESC = "Database operation '" . self::JOB_TYPE_SCAN_SUBS_UPDATE .
+        "' to find missing subscription updates.";
 
     // Messages
-    const MSG_SUCCESS = '<info>Successfully executed job with jobCode: %s.</info>';
+    const MSG_SUCCESS = '<info>Successfully executed job with jobCode: %s. %s</info>';
     const MSG_ERROR = '<error>Error. Invalid job with jobCode: %s.</error>';
     const MSG_ALREADY_RUNNING = '<info>The command %s is already running in another process.</info>';
 }

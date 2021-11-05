@@ -7,6 +7,8 @@ use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Repository\ProfileRepository;
 use Apsis_one;
+use apsis_OneApiinstallationconfigModuleFrontController;
+use apsis_OneApistoresModuleFrontController;
 use Context;
 use ModuleFrontController;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
@@ -119,6 +121,9 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             //Check if module is enabled
             $this->validateModuleStatus();
 
+            // Check if module is connected to a JUSTIN installation
+            $this->validateIntegrationConnected();
+
             //Check|set body params if http method allows it
             if (in_array($this->validRequestMethod, self::REQUEST_BODY_FOR_HTTP_METHOD)) {
                 $this->setBodyParams();
@@ -138,7 +143,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         try {
             if ($this->validRequestMethod !== $_SERVER['REQUEST_METHOD']) {
-                $msg = $_SERVER['REQUEST_METHOD'] . ': method not allowed to this endpoint.';
+                $msg =  sprintf('%s: method not allowed to this endpoint.', $_SERVER['REQUEST_METHOD']);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_405, [], $msg));
@@ -158,7 +163,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             if (empty($headers['Authorization']) ||
                 $headers['Authorization'] !== $this->configs->getGlobalKey()
             ) {
-                $msg = 'Invalid key for authorization header.';
+                $msg = sprintf('Invalid key %s for authorization header.', $headers['Authorization']);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
@@ -175,12 +180,40 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         try {
             if ($this->module->helper->isModuleEnabledForContext($this->groupId, $this->shopId) === false) {
-                $msg = 'Module is disabled.';
+                $msg = sprintf(
+                    'Module is disabled for given context. Group Id: %d, Shop Id: %d',
+                    $this->groupId,
+                    $this->shopId
+                );
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
-                $this->exitWithResponse(
-                    $this->generateResponse(self::HTTP_CODE_403, [], $msg)
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_403, [], $msg));
+            }
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
+        }
+    }
+
+    /**
+     * @return void
+     */
+    protected function validateIntegrationConnected(): void
+    {
+        try {
+            $assert = ! in_array(
+                get_class($this),
+                [apsis_OneApiinstallationconfigModuleFrontController::class, apsis_OneApistoresModuleFrontController::class]
+            );
+
+            if ($assert && empty($this->configs->getInstallationConfigs($this->groupId, $this->shopId))) {
+                $msg = sprintf(
+                    'Module is not connected to any JUSTIN installation for given context. Group Id: %d, Shop Id: %d',
+                    $this->groupId,
+                    $this->shopId
                 );
+                $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
+
+                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_403, [], $msg));
             }
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
@@ -199,7 +232,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                 }
 
                 if (! Tools::getIsset($queryParam)) {
-                    $msg = "Missing query param: " . $queryParam;
+                    $msg = "Missing query param: $queryParam" ;
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -222,10 +255,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         try {
             foreach ($this->optionalQueryParamIgnoreRelations as $param => $typeList) {
-                if (key_exists($param, $this->queryParams) &&
-                    isset($typeList[$paramType]) &&
-                    ! empty($list = $typeList[$paramType]) &&
-                    in_array($compulsoryParam, $list)
+                if (key_exists($param, $this->queryParams) && isset($typeList[$paramType]) &&
+                    ! empty($list = $typeList[$paramType]) && in_array($compulsoryParam, $list)
                 ) {
                     return true;
                 }
@@ -262,9 +293,9 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function setQueryParam(string $queryParam, string $dataType): void
     {
         try {
-            $value = htmlspecialchars_decode(Tools::getValue($queryParam, false));
+            $value = Tools::getValue($queryParam, false);
             if (! $this->isDataValid($value, $dataType)) {
-                $msg = "Invalid value for query param: " . $queryParam;
+                $msg = "Invalid value $value for query param: $queryParam";
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -295,7 +326,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                 $legacyContextLoader = new LegacyContextLoader(Context::getContext());
                 $legacyContextLoader->loadGenericContext(get_class($this), null, null, $this->shopId, $this->groupId);
             } else {
-                $msg = 'Invalid context ids string.';
+                $msg = "Invalid context ids string: $contextIdsString";
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -316,7 +347,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             } else {
                 $body = file_get_contents('php://input');
                 if (empty($body) || ! Validate::isJson($body)) {
-                    $msg = 'Invalid payload.';
+                    $msg = "Invalid payload.\n $body";
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -344,9 +375,9 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function validateBodyParams(): void
     {
         try {
-            $bodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
-            if (! empty($bodyParams)) {
-                $msg = 'Incomplete payload. Missing body param ' . implode(', ', $bodyParams);
+            $missingBodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
+            if (! empty($missingBodyParams)) {
+                $msg = sprintf('Incomplete payload. Missing body param %s', implode(', ', $missingBodyParams));
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -354,7 +385,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
             foreach ($this->bodyParams as $param => $value) {
                 if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
-                    $msg = $param . ': is invalid.';
+                    $msg = "Value: $value for Param: $param is invalid.";
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -400,7 +431,11 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function validateProfileSyncFeature(): void
     {
         if ($this->configs->getProfileSyncFlag($this->groupId, $this->shopId) === false) {
-            $msg = 'Profile sync feature is disable for context.';
+            $msg = sprintf(
+                'Profile sync feature is disable for given context. Group Id: %d, Shop Id: %d.',
+                $this->groupId,
+                $this->shopId
+            );
             $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
             $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_403, [], $msg));
@@ -457,42 +492,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
      */
     protected function getStatusText(int $httpCode): string
     {
-        $statusText = '';
-        switch ($httpCode) {
-            case self::HTTP_CODE_200:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_200 . ' OK';
-
-                break;
-            case self::HTTP_CODE_204:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_204 . ' No Content';
-
-                break;
-            case self::HTTP_CODE_400:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_400 . ' Bad Request';
-
-                break;
-            case self::HTTP_CODE_401:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_401 . ' Unauthorized';
-
-                break;
-            case self::HTTP_CODE_403:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_403 . ' Forbidden';
-
-                break;
-            case self::HTTP_CODE_404:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_404 . ' Not Found';
-
-                break;
-            case self::HTTP_CODE_405:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_405 . ' Method Not Allowed';
-
-                break;
-            case self::HTTP_CODE_500:
-                $statusText = $_SERVER['SERVER_PROTOCOL'] . ' ' . self::HTTP_CODE_500 . ' Internal Server Error';
-
-                break;
-        }
-        return $statusText;
+        return sprintf('%s %d %s', $_SERVER['SERVER_PROTOCOL'], $httpCode, self::HTTP_CODE_TO_TEXT_MAP[$httpCode]);
     }
 
     /**

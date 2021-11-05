@@ -438,9 +438,9 @@ class EntityHelper extends LoggerHelper
 
         try {
             if (Validate::isLoadedObject($object = $hookArgs['object']) && $object->validate) {
-                $partSql = sprintf(EI::EVENT_DATA_SQL_REVIEW_PRODUCT,EI::ET_PRODUCT_REVIEWED, EI::SS_PENDING);
+                $partSql = sprintf(EI::EVENT_REVIEW_PRODUCT_SQL,EI::ET_PRODUCT_REVIEWED, EI::SS_PENDING);
                 $partWhere = sprintf(
-                    EI::EVENT_DATA_SQL_REVIEW_PRODUCT_COND,
+                    EI::EVENT_REVIEW_PRODUCT_SQL_COND,
                     (int) $object->id
                 );
                 Db::getInstance()->query($partSql . $partWhere);
@@ -463,9 +463,9 @@ class EntityHelper extends LoggerHelper
                 ! empty($hookArgs['idProduct']) &&
                 ! empty($hookArgs['idProductAttribute'])
             ) {
-                $partSql = sprintf(EI::EVENT_DATA_SQL_WISHLIST_PRODUCT,EI::ET_PRODUCT_WISHED, EI::SS_PENDING);
+                $partSql = sprintf(EI::EVENT_WISHLIST_PRODUCT_SQL,EI::ET_PRODUCT_WISHED, EI::SS_PENDING);
                 $where = sprintf(
-                    EI::EVENT_DATA_SQL_WISHLIST_PRODUCT_COND,
+                    EI::EVENT_WISHLIST_PRODUCT_SQL_COND,
                     (int) $hookArgs['idWishlist'],
                     (int) $hookArgs['idProduct'],
                     (int) $hookArgs['idProductAttribute'],
@@ -492,8 +492,8 @@ class EntityHelper extends LoggerHelper
                 ! empty($profile = $this->getProfileRepository()->findOneByCustomerId($object->id_customer)) &&
                 $profile instanceof Profile
             ) {
-                $partSql = sprintf(EI::EVENT_DATA_SQL_ORDER,EI::ET_ORDER_PLACED, EI::SS_PENDING);
-                $where = sprintf(EI::EVENT_DATA_SQL_ORDER_COND, (int) $object->id);
+                $partSql = sprintf(EI::EVENT_ORDER_INSERT_SQL,EI::ET_ORDER_PLACED, EI::SS_PENDING);
+                $where = sprintf(EI::EVENT_ORDER_INSERT_SQL_COND, (int) $object->id);
                 $result = Db::getInstance()->query($partSql . $where);
 
                 if (($result instanceof PDOStatement && $result->rowCount()) ||
@@ -609,14 +609,28 @@ class EntityHelper extends LoggerHelper
             }
 
             $dataArr = $this->setProductDataInArr(json_decode($dataArr, true));
+            $dataArr[EI::C_TOKEN] = $abandonedCart->getToken();
 
             /** @var SchemaInterface $schemaProvider */
             $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_ABANDONED_CART_SCHEMA);
-
             /** @var DataInterface $dataProvider */
             $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_ABANDONED_CART_CONTAINER);
 
-            return $dataProvider->setObjectData($dataArr, $schemaProvider)->getDataArr();
+            $formattedDataArr = $dataProvider->setObjectData($dataArr, $schemaProvider)->getDataArr();
+            if (empty($formattedDataArr[SchemaInterface::KEY_MAIN]) ||
+                empty($formattedDataArr[SchemaInterface::KEY_ITEMS])
+            ) {
+                return null;
+            }
+
+            $sortedDataArr = $formattedDataArr[SchemaInterface::KEY_MAIN];
+            foreach ($formattedDataArr[SchemaInterface::KEY_ITEMS] as $item) {
+                if (isset($item[SchemaInterface::KEY_MAIN])) {
+                    $sortedDataArr[SchemaInterface::KEY_ITEMS][] = $item[SchemaInterface::KEY_MAIN];
+                }
+            }
+
+            return $sortedDataArr;
         } catch (Throwable $e) {
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;

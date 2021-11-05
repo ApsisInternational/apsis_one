@@ -128,6 +128,19 @@ class ShopContext extends AbstractContext
     }
 
     /**
+     * @return array
+     */
+    public function getAllActiveShopsList(): array
+    {
+        try {
+            return $this->getContextObject()->getShops();
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+            return [];
+        }
+    }
+
+    /**
      * @param int|null $idShopGroup
      * @param int|null $idShop
      *

@@ -58,40 +58,38 @@ class apsis_OneApiabandonedcartsModuleFrontController extends AbstractApiControl
             /** @var DateHelper $dateHelper */
             $dateHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
-            $beforeDatetime = $dateHelper->convertDatetimeToStoreTimezoneAndFormat(
+            $beforeDatetime = $dateHelper->convertDatetimeToShopsTimezoneAndFormat(
                 $this->queryParams[self::QUERY_PARAM_BEFORE_DATETIME],
                 $this->groupId,
                 $this->shopId
             );
-            $afterDatetime = $dateHelper->convertDatetimeToStoreTimezoneAndFormat(
+            $afterDatetime = $dateHelper->convertDatetimeToShopsTimezoneAndFormat(
                 $this->queryParams[self::QUERY_PARAM_AFTER_DATETIME],
                 $this->groupId,
                 $this->shopId
             );
 
-            if (! empty($beforeDatetime) && ! empty($afterDatetime)) {
-                /** @var EntityHelper $entityHelper */
-                $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
-                $abandonedCarts = $entityHelper->getAbandonedCartRepository()
-                    ->findForGivenShopsFilterByDateTime(
-                        $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId),
-                        $beforeDatetime,
-                        $afterDatetime
-                    );
+            /** @var EntityHelper $entityHelper */
+            $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+            $abandonedCarts = $entityHelper->getAbandonedCartRepository()
+                ->findForGivenShopsFilterByDateTime(
+                    $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId),
+                    $beforeDatetime,
+                    $afterDatetime
+                );
 
-                if (is_array($abandonedCarts)) {
-                    foreach ($abandonedCarts as $abandonedCart) {
-                        $dataArr = $entityHelper->getAbandonedCartDataArrForExport($abandonedCart);
-                        /** @var Profile $profile */
-                        $profile = $entityHelper->getProfileRepository()
-                            ->findOneById($abandonedCart->getIdApsisProfile());
+            if (is_array($abandonedCarts)) {
+                foreach ($abandonedCarts as $abandonedCart) {
+                    $dataArr = $entityHelper->getAbandonedCartDataArrForExport($abandonedCart);
+                    /** @var Profile $profile */
+                    $profile = $entityHelper->getProfileRepository()
+                        ->findOneById($abandonedCart->getIdApsisProfile());
 
-                        if (! empty($dataArr) && $profile instanceof Profile) {
-                            $items[$abandonedCart->getId()] = [
-                                'profile_id' => $profile->getIdIntegration(),
-                                'cart_data' => $dataArr
-                            ];
-                        }
+                    if (! empty($dataArr) && $profile instanceof Profile) {
+                        $items[] = [
+                            'profile_id' => $profile->getIdIntegration(),
+                            'cart_data' => $dataArr
+                        ];
                     }
                 }
             }

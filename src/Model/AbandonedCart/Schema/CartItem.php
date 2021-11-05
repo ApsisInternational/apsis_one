@@ -2,7 +2,6 @@
 
 namespace Apsis\One\Model\AbandonedCart\Schema;
 
-use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Model\AbstractSchema;
 
 class CartItem extends AbstractSchema
@@ -13,12 +12,12 @@ class CartItem extends AbstractSchema
     public function __construct()
     {
         $this->definition = [
-            HelperInterface::SERVICE_ABANDONED_CART_ITEM_SCHEMA => array_merge(
+            self::KEY_MAIN => array_merge(
                 self::SCHEMA_FIELD_GROUP_PRODUCT,
                 self::SCHEMA_FIELD_PRODUCT_QTY,
                 self::SCHEMA_FIELD_GROUP_PRODUCT_PRICE
             )
         ];
-        $this->definitionTypes = [HelperInterface::SERVICE_ABANDONED_CART_ITEM_SCHEMA];
+        $this->definitionTypes = [self::KEY_MAIN];
     }
 }

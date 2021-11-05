@@ -68,57 +68,21 @@ interface SetupInterface
         self::APSIS_CONFIG_TAB => 'ApsisOneModuleConfigController'
     ];
 
-    const PS_T_WISHLIST_PRODUCT = 'wishlist_product';
-    const PS_T_PRODUCT_COMMENT = 'product_comment';
-    const PS_T_ORDERS = 'orders';
-    const PS_T_CUSTOMER = 'customer';
-    const PS_T_NEWSLETTER = 'emailsubscription';
-    const PS_T_CUSTOMER_ALIAS = 'pc';
-    const PS_T_NEWSLETTER_ALIAS = 'pes';
-    const T_DEF_VALUES = 'default';
-    const PS_COLUMNS_SEL = [
-        self::T_DEF_VALUES => [
-            EI::C_ID_INTEGRATION => '(SELECT UUID()) as `%s`',
-            EI::C_ID_SHOP => '`%s`',
-            EI::C_EMAIL => '`%s`',
-            EI::C_SYNC_STATUS => EI::SS_JUSTIN . ' as `%s`',
-            EI::C_ERROR_MSG => '"" as `%s`',
-            EI::C_DATE_UPD => '(SELECT NOW()) as `%s`',
-        ],
-        self::PS_T_CUSTOMER => [
-            EI::C_ID_CUSTOMER => '`%s`',
-            EI::C_ID_NEWSLETTER => EI::NO_ID . ' AS `%s`',
-            EI::C_IS_CUSTOMER => self::FLAG_YES . ' AS `%s`',
-            EI::C_IS_GUEST => '`%s`',
-            EI::C_IS_NEWSLETTER => '`newsletter` AS `%s`',
-            EI::C_IS_OFFERS => '`optin` AS `%s`',
-            EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_CUSTOMER .') AS `%s`'
-        ],
-        self::PS_T_NEWSLETTER => [
-            EI::C_ID_CUSTOMER => self::FLAG_NO . ' AS `%s`',
-            EI::C_ID_NEWSLETTER => '`id` AS `%s`',
-            EI::C_IS_CUSTOMER => self::FLAG_NO . ' AS `%s`',
-            EI::C_IS_GUEST => self::FLAG_NO . ' AS `%s`',
-            EI::C_IS_NEWSLETTER => self::FLAG_YES . ' AS `%s`',
-            EI::C_IS_OFFERS => self::FLAG_NO . ' AS `%s`',
-            EI::C_PROFILE_DATA => '(' . EI::PROFILE_DATA_SQL_SUBSCRIBER . ') AS `%s`'
-        ]
-    ];
-    const PS_WHERE_COND = [
-        self::T_DEF_VALUES => ['`email` != ""', '`email` IS NOT NULL'],
-        self::PS_T_CUSTOMER => ['`deleted` = ' . self::FLAG_NO, '`active` = ' . self::FLAG_YES],
-        self::PS_T_NEWSLETTER => ['`active` = ' . self::FLAG_YES]
-    ];
-
+    const T_CUSTOMER = 'customer';
+    const T_SUBSCRIBER = 'emailsubscriber';
     const T_PROFILE_MIGRATE_DATA_FROM_TABLES = [
-        self::PS_T_CUSTOMER => self::PS_T_CUSTOMER_ALIAS,
-        self::PS_T_NEWSLETTER => self::PS_T_NEWSLETTER_ALIAS
+        self::T_CUSTOMER => EI::PROFILE_CUSTOMER_SQL_INSERT,
+        self::T_SUBSCRIBER => EI::PROFILE_EMAIL_SUBSCRIBER_SQL_INSERT
+    ];
+    const T_DATE_COLUMN_MAP = [
+        self::T_CUSTOMER => 'date_add',
+        self::T_SUBSCRIBER => 'newsletter_date_add'
     ];
 
     const T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL = [
-        self::PS_T_WISHLIST_PRODUCT => EI::EVENT_DATA_SQL_WISHLIST_PRODUCT,
-        self::PS_T_PRODUCT_COMMENT => EI::EVENT_DATA_SQL_REVIEW_PRODUCT,
-        self::PS_T_ORDERS => EI::EVENT_DATA_SQL_ORDER
+        'wishlist_product' => EI::EVENT_WISHLIST_PRODUCT_SQL,
+        'product_comment' => EI::EVENT_REVIEW_PRODUCT_SQL,
+        'orders' => EI::EVENT_ORDER_INSERT_SQL
     ];
 
     /**

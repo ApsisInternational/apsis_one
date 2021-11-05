@@ -9,7 +9,6 @@ use Apsis\One\Context\ShopContext;
 use Apsis\One\Model\EntityInterface as EI;
 use Apsis\One\Helper\HelperInterface as HI;
 use Db;
-use DbQuery;
 use Language;
 use Tab;
 use Throwable;
@@ -171,7 +170,7 @@ class Install extends AbstractSetup
                 `' . EI::C_DATE_UPD . '` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`' . EI::C_ID_PROFILE . '`),
                 UNIQUE KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_INTEGRATION) . '` (`' . EI::C_ID_INTEGRATION . '`),
-                UNIQUE KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_EMAIL) . '` (`' . EI::C_EMAIL . '`),
+                UNIQUE KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_EMAIL . '_' . EI::C_ID_SHOP) . '` (`' . EI::C_EMAIL . '`, `' . EI::C_ID_SHOP . '`),
                 KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_CUSTOMER) . '` (`' . EI::C_ID_CUSTOMER . '`),
                 KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_NEWSLETTER) . '` (`' . EI::C_ID_NEWSLETTER . '`),
                 KEY `' . $this->getIndex(EI::T_PROFILE, EI::C_ID_SHOP) . '` (`' . EI::C_ID_SHOP . '`),
@@ -311,48 +310,8 @@ class Install extends AbstractSetup
 
         try {
             $status = true;
-            foreach (self::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $psTable => $alias) {
-                $selectFromPs = (new DbQuery())->from($psTable, $alias);
-                $selectColumns = array_merge(self::PS_COLUMNS_SEL[self::T_DEF_VALUES], self::PS_COLUMNS_SEL[$psTable]);
-                $insertColumns = [];
-
-                foreach (array_keys(EI::T_COLUMNS_MAPPINGS[EI::T_PROFILE]) as $insertColumn) {
-                    if (isset($selectColumns[$insertColumn])) {
-                        $insertColumns[] = sprintf('`%s`', $insertColumn);
-                        if ($insertColumn === EI::C_PROFILE_DATA && $psTable === self::PS_T_CUSTOMER) {
-                            $selectFromPs->select(
-                                sprintf(
-                                    $selectColumns[$insertColumn],
-                                    self::PS_T_CUSTOMER_ALIAS . '.`id_customer`',
-                                    $insertColumn
-                                )
-                            );
-                        } elseif ($insertColumn === EI::C_PROFILE_DATA && $psTable === self::PS_T_NEWSLETTER) {
-                            $selectFromPs->select(
-                                sprintf(
-                                    $selectColumns[$insertColumn],
-                                    self::PS_T_NEWSLETTER_ALIAS . '.`id`',
-                                    $insertColumn
-                                )
-                            );
-                        } else {
-                            $selectFromPs->select(sprintf($selectColumns[$insertColumn], $insertColumn));
-                        }
-                    }
-                }
-
-                foreach (array_merge(self::PS_WHERE_COND[$psTable], self::PS_WHERE_COND[self::T_DEF_VALUES]) as $cond) {
-                    $selectFromPs->where($cond);
-                }
-
-                $status = $status && Db::getInstance()->execute(
-                    sprintf(
-                        "INSERT INTO `%s` (\n%s\n)\n%s",
-                        $this->getTableWithDbPrefix(EI::T_PROFILE),
-                        implode(",\n", $insertColumns),
-                        str_replace('SELECT ', "SELECT\n", $selectFromPs->build())
-                    )
-                );
+            foreach (self::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $sql) {
+                $status = $status && Db::getInstance()->execute($sql);
             }
             return $status;
         } catch (Throwable $e) {
@@ -371,20 +330,7 @@ class Install extends AbstractSetup
         try {
             $status = true;
             foreach (self::T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL as $table => $sql) {
-                switch ($table) {
-                    case self::PS_T_WISHLIST_PRODUCT:
-                        $status = $status && Db::getInstance()
-                                ->execute(sprintf($sql, EI::ET_PRODUCT_WISHED, EI::SS_JUSTIN));
-                        break;
-                    case self::PS_T_PRODUCT_COMMENT:
-                        $status = $status && Db::getInstance()
-                                ->execute(sprintf($sql, EI::ET_PRODUCT_REVIEWED, EI::SS_JUSTIN));
-                        break;
-                    case self::PS_T_ORDERS:
-                        $status = $status && Db::getInstance()
-                                ->execute(sprintf($sql, EI::ET_ORDER_PLACED, EI::SS_JUSTIN));
-                        break;
-                }
+                $status = $status && Db::getInstance()->execute(sprintf($sql, $table, EI::SS_JUSTIN));
             }
             return $status;
         } catch (Throwable $e) {

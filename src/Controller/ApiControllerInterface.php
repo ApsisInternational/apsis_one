@@ -52,6 +52,22 @@ interface ApiControllerInterface
     const HTTP_CODE_501 = 501;
     const HTTP_CODE_503 = 503;
 
+    const HTTP_CODE_TO_TEXT_MAP = [
+        self::HTTP_CODE_200 => 'OK',
+        self::HTTP_CODE_204 => 'No Content',
+        self::HTTP_CODE_400 => 'Bad Request',
+        self::HTTP_CODE_401 => 'Unauthorized',
+        self::HTTP_CODE_403 => 'Forbidden',
+        self::HTTP_CODE_404 => 'Not Found',
+        self::HTTP_CODE_405 => 'Method Not Allowed',
+        self::HTTP_CODE_408 => 'Request Timeout',
+        self::HTTP_CODE_409 => 'Conflict',
+        self::HTTP_CODE_429 => 'Too Many Requests',
+        self::HTTP_CODE_500 => 'Internal Server Error',
+        self::HTTP_CODE_501 => 'Not Implemented',
+        self::HTTP_CODE_503 => 'Service Unavailable',
+    ];
+
     /** HTTP VERBS  */
     const VERB_GET = 'GET';
     const VERB_POST = 'POST';

@@ -13,7 +13,7 @@ class Cart extends AbstractSchema
     public function __construct()
     {
         $this->definition = [
-            HelperInterface::SERVICE_ABANDONED_CART_SCHEMA => array_merge(
+            self::KEY_MAIN => array_merge(
                 self::SCHEMA_FIELD_CART_ID,
                 self::SCHEMA_FIELD_CUSTOMER_ID,
                 self::SCHEMA_FIELD_GUEST_ID,
@@ -27,6 +27,6 @@ class Cart extends AbstractSchema
                 self::KEY_CONTAINER => HelperInterface::SERVICE_ABANDONED_CART_CONTAINER
             ]
         ];
-        $this->definitionTypes = [HelperInterface::SERVICE_ABANDONED_CART_SCHEMA, self::KEY_ITEMS];
+        $this->definitionTypes = [self::KEY_MAIN, self::KEY_ITEMS];
     }
 }

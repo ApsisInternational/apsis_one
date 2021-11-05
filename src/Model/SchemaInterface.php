@@ -49,7 +49,7 @@ interface SchemaInterface
     const VALIDATE_FORMAT_IP_ADDRESS = 'isNullOrIpAddress';
     const VALIDATE_FORMAT_ISO_4217_CODE_NOT_NULL = 'IsCurrencyCode';
 
-    const VALID_STRING_PATTERN = '/^[a-zA-Z0-9:.,_-]+$/';
+    const VALID_STRING_PATTERN = '/^[a-zA-Z0-9+:.,_-]+$/';
 
     /**
      * Array containing validations which should always have a value

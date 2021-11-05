@@ -304,7 +304,7 @@ class Configs implements SetupInterface
     {
         try {
             $configs = (array) json_decode(
-                Configuration::get(self::CONFIG_KEY_INSTALLATION_CONFIGS, null, $idShopGroup, $idShop)
+                Configuration::get(self::CONFIG_KEY_INSTALLATION_CONFIGS, null, $idShopGroup, $idShop), true
             );
 
             if (! empty($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {

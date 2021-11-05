@@ -160,6 +160,8 @@ interface EntityInterface extends PsEntityInterface
     /** BOOLEAN IS */
     const YES = true;
     const NO = false;
+    const YES_INT = 1;
+    const NO_INT = 0;
 
     /** SYNC STATUS */
     const SS_NOTHING = 0;
@@ -297,6 +299,186 @@ interface EntityInterface extends PsEntityInterface
     const NO_ID = 0;
 
     /** SQL QUERIES */
+    const PROFILE_CUSTOMER_SQL_INSERT = '
+        INSERT IGNORE INTO `' . _DB_PREFIX_ . self::T_PROFILE . '` (
+            `id_integration`,
+            `id_shop`,
+            `email`,
+            `id_customer`,
+            `id_newsletter`,
+            `is_customer`,
+            `is_guest`,
+            `is_newsletter`,
+            `is_offers`,
+            `profile_data`,
+            `sync_status`,
+            `error_message`,
+            `date_upd`
+        )
+        SELECT
+            UUID() as `id_integration`,
+            `id_shop`,
+            `email`,
+            `id_customer`,
+            ' . self::NO_ID . ' AS `id_newsletter`,
+            ' . self::YES_INT . ' AS `is_customer`,
+            `is_guest`,
+            `newsletter` AS `is_newsletter`,
+            `optin` AS `is_offers`,
+            (
+                SELECT
+                    JSON_OBJECT(
+                        "id_customer", c.`id_customer`,
+                        "id_shop", c.`id_shop`,
+                        "id_shop_group", c.`id_shop_group`,
+                        "optin", c.`optin`,
+                        "newsletter", c.`newsletter`,
+                        "newsletter_date_add", UNIX_TIMESTAMP(c.`newsletter_date_add`),
+                        "email", c.`email`,
+                        "firstname", c.`firstname`,
+                        "lastname", c.`lastname`,
+                        "birthday", UNIX_TIMESTAMP(c.`birthday`),
+                        "company", c.`company`,
+                        "date_add", UNIX_TIMESTAMP(c.`date_add`),
+                        "shop_name", s.`name`,
+                        "shop_group_name", sg.`name`,
+                        "language_name", l.`name`,
+                        "default_group_name", gl.`name`,
+                        "sales_columns", (
+                            SELECT
+                                JSON_OBJECT(
+                                    "lifetime_total_orders", COUNT(*),
+                                    "lifetime_total_spent", SUM(o.`total_paid_tax_incl`),
+                                    "average_order_value", SUM(o.`total_paid_tax_incl`) / COUNT(*)
+                                )
+                            FROM `' . _DB_PREFIX_ . 'orders` o
+                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
+                                ON (o.`current_state` = os.`id_order_state`)
+                            WHERE o.`id_customer` = c.`id_customer`
+                                AND o.`id_shop` = c.`id_shop`
+                                AND os.`invoice` = ' . self::YES_INT . '
+                        ),
+                        "order_address_ids", (
+                            SELECT
+                                JSON_OBJECT(
+                                    "id_address_invoice", o.`id_address_invoice`,
+                                    "id_address_delivery", o.`id_address_delivery`
+                                )
+                            FROM `' . _DB_PREFIX_ . 'orders` o
+                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
+                                ON (o.`current_state` = os.`id_order_state`)
+                            WHERE o.`id_customer` = c.`id_customer`
+                                AND o.`id_shop` = c.`id_shop`
+                                AND os.`invoice` = ' . self::YES_INT . '
+                            ORDER BY o.`id_order` DESC
+                            LIMIT 1
+                        ),
+                        "address_collection", (
+                            SELECT
+                                JSON_OBJECTAGG(
+                                    a.`id_address`, JSON_OBJECT(
+                                        "address1", a.`address1`,
+                                        "address2", a.`address2`,
+                                        "postcode", a.`postcode`,
+                                        "city", a.`city`,
+                                        "state", s.name,
+                                        "country", cl.`name`,
+                                        "country_code", c.`iso_code`,
+                                        "phone", a.`phone`,
+                                        "phone_mobile", a.`phone_mobile`
+                                    )
+                                )
+                            FROM `' . _DB_PREFIX_ . 'address` a
+                            INNER JOIN `' . _DB_PREFIX_ . 'country` c
+                                ON (c.`id_country` = a.`id_country`)
+                            INNER JOIN `' . _DB_PREFIX_ . 'country_lang` cl
+                                ON (cl.`id_country` = a.`id_country`)
+                            INNER JOIN `' . _DB_PREFIX_ . 'state` s
+                                ON (s.`id_state` = a.`id_state`)
+                            WHERE cl.`id_lang` = c.`id_lang`
+                                AND a.`id_customer` = c.`id_customer`
+                                AND a.`deleted` = ' . self::NO_INT . '
+                                AND a.`active` = ' . self::YES_INT . '
+                        )
+                    )
+                FROM `' . _DB_PREFIX_ . 'customer` c
+                INNER JOIN `' . _DB_PREFIX_ . 'shop` s
+                    ON (c.`id_shop` = s.`id_shop`)
+                INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+                    ON (c.`id_shop_group` = sg.`id_shop_group`)
+                INNER JOIN `' . _DB_PREFIX_ . 'lang` l
+                    ON (c.`id_lang` = l.`id_lang`)
+                INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
+                    ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
+                WHERE c.`id_customer` = pc.`id_customer`
+            ) AS `profile_data`,
+            ' . self::SS_JUSTIN . ' as `sync_status`,
+            "" as `error_message`,
+            NOW() as `date_upd`
+        FROM `' . _DB_PREFIX_ . 'customer` pc
+        WHERE
+            `deleted` = ' . self::NO_INT . ' AND
+            `active` = ' . self::YES_INT . ' AND
+            `email` != "" ';
+
+    const PROFILE_SQL_INSERT_COND =
+        'AND `%s` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME) AND `id_shop` = %d';
+
+    const PROFILE_EMAIL_SUBSCRIBER_SQL_INSERT = '
+        INSERT IGNORE INTO `' . _DB_PREFIX_ . self::T_PROFILE . '` (
+            `id_integration`,
+            `id_shop`, `email`,
+            `id_customer`,
+            `id_newsletter`,
+            `is_customer`,
+            `is_guest`,
+            `is_newsletter`,
+            `is_offers`,
+            `profile_data`,
+            `sync_status`,
+            `error_message`,
+            `date_upd`
+        )
+        SELECT
+            UUID() as `id_integration`,
+            `id_shop`,
+            `email`,
+            ' . self::NO_ID . ' AS `id_customer`,
+            `id` AS `id_newsletter`,
+            ' . self::NO_INT . ' AS `is_customer`,
+            ' . self::NO_INT . ' AS `is_guest`,
+            ' . self::YES_INT . ' AS `is_newsletter`,
+            ' . self::NO_INT . ' AS `is_offers`,
+            (
+                SELECT
+                    JSON_OBJECT(
+                        "id_subscriber", en.`id`,
+                        "newsletter", en.`active`,
+                        "id_shop", en.`id_shop`,
+                        "id_shop_group", en.`id_shop_group`,
+                        "email", en.`email`,
+                        "newsletter_date_add", UNIX_TIMESTAMP(en.`newsletter_date_add`),
+                        "shop_name", s.`name`,
+                        "shop_group_name", sg.`name`,
+                        "language_name", l.`name`
+                    )
+                FROM `' . _DB_PREFIX_ . 'emailsubscription` en
+                INNER JOIN `' . _DB_PREFIX_ . 'shop` s
+                    ON (en.`id_shop` = s.`id_shop`)
+                INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
+                    ON (en.`id_shop_group` = sg.`id_shop_group`)
+                INNER JOIN `' . _DB_PREFIX_ . 'lang` l
+                    ON (en.`id_lang` = l.`id_lang`)
+                WHERE en.`id` = pes.`id`
+            ) AS `profile_data`,
+            ' . self::SS_JUSTIN . ' as `sync_status`,
+            "" as `error_message`,
+            NOW() as `date_upd`
+        FROM `' . _DB_PREFIX_ . 'emailsubscription` pes
+        WHERE
+              `active` = ' . self::YES_INT . ' AND
+              `email` != "" ';
+
     const PROFILE_DATA_SQL_CUSTOMER = '
         SELECT
             JSON_OBJECT(
@@ -328,7 +510,7 @@ interface EntityInterface extends PsEntityInterface
                         ON (o.`current_state` = os.`id_order_state`)
                     WHERE o.`id_customer` = c.`id_customer`
                         AND o.`id_shop` = c.`id_shop`
-                        AND os.`invoice` = 1
+                        AND os.`invoice` = ' . self::YES_INT . '
                 ),
                 "order_address_ids", (
                     SELECT
@@ -341,7 +523,7 @@ interface EntityInterface extends PsEntityInterface
                         ON (o.`current_state` = os.`id_order_state`)
                     WHERE o.`id_customer` = c.`id_customer`
                         AND o.`id_shop` = c.`id_shop`
-                        AND os.`invoice` = 1
+                        AND os.`invoice` = ' . self::YES_INT . '
                     ORDER BY o.`id_order` DESC
                     LIMIT 1
                 ),
@@ -369,8 +551,8 @@ interface EntityInterface extends PsEntityInterface
                         ON (s.`id_state` = a.`id_state`)
                     WHERE cl.`id_lang` = c.`id_lang`
                         AND a.`id_customer` = c.`id_customer`
-                        AND a.`deleted` = 0
-                        AND a.`active` = 1
+                        AND a.`deleted` = ' . self::NO_INT . '
+                        AND a.`active` = ' . self::YES_INT . '
                 )
             )
         FROM `' . _DB_PREFIX_ . 'customer` c
@@ -382,7 +564,7 @@ interface EntityInterface extends PsEntityInterface
             ON (c.`id_lang` = l.`id_lang`)
         INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
             ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
-        WHERE c.`id_customer` = %s';
+        WHERE c.`id_customer` = %s ';
 
     const PROFILE_SQL_CUSTOMER_SELECT_NEEDING_UPDATE = '
         SELECT
@@ -392,7 +574,7 @@ interface EntityInterface extends PsEntityInterface
         FROM `' . _DB_PREFIX_ . 'customer` c
         LEFT JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` as ap
             ON (ap.`id_customer` = c.`id_customer`)
-        WHERE ap.`is_newsletter` != c.`newsletter`';
+        WHERE ap.`is_newsletter` != c.`newsletter` ';
 
     const PROFILE_SQL_CUSTOMER_UPDATE_NEEDING_UPDATE = '
         UPDATE
@@ -433,7 +615,7 @@ interface EntityInterface extends PsEntityInterface
                                 ON (o.`current_state` = os.`id_order_state`)
                             WHERE o.`id_customer` = c.`id_customer`
                                 AND o.`id_shop` = c.`id_shop`
-                                AND os.`invoice` = 1
+                                AND os.`invoice` = ' . self::YES_INT . '
                         ),
                         "order_address_ids", (
                             SELECT
@@ -446,7 +628,7 @@ interface EntityInterface extends PsEntityInterface
                                 ON (o.`current_state` = os.`id_order_state`)
                             WHERE o.`id_customer` = c.`id_customer`
                                 AND o.`id_shop` = c.`id_shop`
-                                AND os.`invoice` = 1
+                                AND os.`invoice` = ' . self::YES_INT . '
                             ORDER BY o.`id_order` DESC
                             LIMIT 1
                         ),
@@ -474,8 +656,8 @@ interface EntityInterface extends PsEntityInterface
                                 ON (s.`id_state` = a.`id_state`)
                             WHERE cl.`id_lang` = c.`id_lang`
                                 AND a.`id_customer` = c.`id_customer`
-                                AND a.`deleted` = 0
-                                AND a.`active` = 1
+                                AND a.`deleted` = ' . self::NO_INT . '
+                                AND a.`active` = ' . self::YES_INT . '
                         )
                     )
                 FROM `' . _DB_PREFIX_ . 'customer` c
@@ -492,7 +674,7 @@ interface EntityInterface extends PsEntityInterface
             )
         WHERE
             ap.`id_customer` = c.`id_customer` AND
-            ap.`is_newsletter` != c.`newsletter`';
+            ap.`is_newsletter` != c.`newsletter` ';
 
     const PROFILE_DATA_SQL_SUBSCRIBER = '
         SELECT
@@ -514,7 +696,7 @@ interface EntityInterface extends PsEntityInterface
             ON (en.`id_shop_group` = sg.`id_shop_group`)
         INNER JOIN `' . _DB_PREFIX_ . 'lang` l
             ON (en.`id_lang` = l.`id_lang`)
-        WHERE en.`id` = %s';
+        WHERE en.`id` = %s ';
 
     const PROFILE_SQL_SUBSCRIBER_SELECT_NEEDING_UPDATE = '
         SELECT
@@ -525,7 +707,7 @@ interface EntityInterface extends PsEntityInterface
         FROM `' . _DB_PREFIX_ . 'emailsubscription` en
         LEFT JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` as ap
             ON (ap.`id_newsletter` = en.`id`)
-        WHERE ap.`is_newsletter` != en.`active`';
+        WHERE ap.`is_newsletter` != en.`active` ';
 
     const PROFILE_SQL_SUBSCRIBER_UPDATE_NEEDING_UPDATE = '
         UPDATE
@@ -561,16 +743,23 @@ interface EntityInterface extends PsEntityInterface
                 )
         WHERE
             ap.`id_newsletter` = en.`id` AND
-            ap.`is_newsletter` != en.`active`';
+            ap.`is_newsletter` != en.`active` ';
 
-    const EVENT_DATA_SQL_WISHLIST_PRODUCT = '
-        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '`
-            (`id_apsis_profile`, `id_shop`, `id_entity_ps`, `event_type`, `event_data`, `sync_status`, `date_add`)
+    const EVENT_WISHLIST_PRODUCT_SQL = '
+        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '` (
+            `id_apsis_profile`,
+            `id_shop`,
+            `id_entity_ps`,
+            `event_type`,
+            `event_data`,
+            `sync_status`,
+            `date_add`
+        )
         SELECT
             ap.`id_apsis_profile`,
             w.`id_shop`,
-            wp.`id_wishlist_product` as id_entity_ps,
-            %d as event_type,
+            wp.`id_wishlist_product` as `id_entity_ps`,
+            %d as `event_type`,
             JSON_OBJECT(
                 "id_wishlist", wp.`id_wishlist`,
                 "wishlist_name", w.`name`,
@@ -589,8 +778,8 @@ interface EntityInterface extends PsEntityInterface
                 "product_price_amount_excl_tax", null,
                 "product_qty", wp.`quantity`,
                 "currency_code", cr.`iso_code`
-            ) as event_data,
-            %d as sync_status,
+            ) as `event_data`,
+            %d as `sync_status`,
             w.`date_add`
         FROM `' . _DB_PREFIX_ . 'wishlist_product` wp
         INNER JOIN `' . _DB_PREFIX_ . 'wishlist` w
@@ -612,21 +801,28 @@ interface EntityInterface extends PsEntityInterface
         INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, w.`id_shop`, c.`id_lang`) ';
 
-    const EVENT_DATA_SQL_WISHLIST_PRODUCT_COND = '
+    const EVENT_WISHLIST_PRODUCT_SQL_COND = '
         WHERE wp.`id_wishlist` = %d
             AND wp.`id_product` = %d
             AND wp.`id_product_attribute` = %d
             AND w.`id_customer` = %d
-        LIMIT 1';
+        LIMIT 1 ';
 
-    const EVENT_DATA_SQL_REVIEW_PRODUCT = '
-        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '`
-            (`id_apsis_profile`, `id_shop`, `id_entity_ps`, `event_type`, `event_data`, `sync_status`, `date_add`)
+    const EVENT_REVIEW_PRODUCT_SQL = '
+        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '`(
+            `id_apsis_profile`,
+            `id_shop`,
+            `id_entity_ps`,
+            `event_type`,
+            `event_data`,
+            `sync_status`,
+            `date_add`
+        )
         SELECT
             ap.`id_apsis_profile`,
             c.`id_shop`,
-            pc.`id_product_comment` as id_entity_ps,
-            %d as event_type,
+            pc.`id_product_comment` as `id_entity_ps`,
+            %d as `event_type`,
             JSON_OBJECT(
                 "id_comment", pc.`id_product_comment`,
                 "id_product", pc.`id_product`,
@@ -648,8 +844,8 @@ interface EntityInterface extends PsEntityInterface
                 "review_detail", pc.`content`,
                 "review_rating", pc.`grade`,
                 "review_author", pc.`customer_name`
-            ) as event_data,
-            %d as sync_status,
+            ) as `event_data`,
+            %d as `sync_status`,
             pc.`date_add`
         FROM `' . _DB_PREFIX_ . 'product_comment` pc
         INNER JOIN `' . _DB_PREFIX_ . 'customer` c
@@ -668,18 +864,27 @@ interface EntityInterface extends PsEntityInterface
             ON (p.`id_product` = pc.`id_product`)
         INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, s.`id_shop`, c.`id_lang`)
-        WHERE pc.`deleted` = 0 AND pc.`validate` = 1 ';
+        WHERE
+            pc.`deleted` = ' . self::NO_INT . ' AND
+            pc.`validate` = ' . self::YES_INT . ' ';
 
-    const EVENT_DATA_SQL_REVIEW_PRODUCT_COND = 'AND pc.`id_product_comment` = %d LIMIT 1';
+    const EVENT_REVIEW_PRODUCT_SQL_COND = 'AND pc.`id_product_comment` = %d LIMIT 1 ';
 
-    const EVENT_DATA_SQL_ORDER = '
-        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '`
-            (`id_apsis_profile`, `id_shop`, `id_entity_ps`, `event_type`, `event_data`, `sync_status`, `date_add`)
+    const EVENT_ORDER_INSERT_SQL = '
+        INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '` (
+            `id_apsis_profile`,
+            `id_shop`,
+            `id_entity_ps`,
+            `event_type`,
+            `event_data`,
+            `sync_status`,
+            `date_add`
+        )
         SELECT
             ap.`id_apsis_profile`,
             o.`id_shop`,
-            o.`id_order` as id_entity_ps,
-            %d as event_type,
+            o.`id_order` as `id_entity_ps`,
+            %d as `event_type`,
             JSON_OBJECT(
                 "id_order", o.`id_order`,
                 "id_lang", o.`id_lang`,
@@ -727,8 +932,8 @@ interface EntityInterface extends PsEntityInterface
                     FROM `' . _DB_PREFIX_ . 'order_detail` od
                     WHERE od.`id_order` = o.`id_order`
                 )
-            ) as event_data,
-            %d as sync_status,
+            ) as `event_data`,
+            %d as `sync_status`,
             o.`date_add`
         FROM `' . _DB_PREFIX_ . 'orders` o
         INNER JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` ap
@@ -741,18 +946,26 @@ interface EntityInterface extends PsEntityInterface
             ON (cr.`id_currency` = o.`id_currency`)
         INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
             ON (os.`id_order_state` = o.`current_state`)
-        WHERE o.`valid` = 1 AND os.`invoice` = 1 ';
+        WHERE
+            o.`valid` = ' . self::YES_INT . ' AND
+            os.`invoice` = ' . self::YES_INT . ' ';
 
-    const EVENT_DATA_SQL_ORDER_COND = '
+    const EVENT_ORDER_INSERT_SQL_COND = '
         AND NOT EXISTS(
-            SELECT id_apsis_event
+            SELECT `id_apsis_event`
             FROM `' . _DB_PREFIX_ . 'apsis_event` ae
-            WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = event_type
+            WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = `event_type`
         ) AND o.`id_order` = %d LIMIT 1';
 
-    const ABANDONED_CART_DATA_SQL = '
-        INSERT INTO `' . _DB_PREFIX_ . self::T_ABANDONED_CART . '`
-            (`id_apsis_profile`, `id_shop`, `id_cart`, `cart_data`, `token`, `date_add`)
+    const ABANDONED_CART_INSERT_SQL = '
+        INSERT INTO `' . _DB_PREFIX_ . self::T_ABANDONED_CART . '` (
+            `id_apsis_profile`,
+            `id_shop`,
+            `id_cart`,
+            `cart_data`,
+            `token`,
+            `date_add`
+        )
         SELECT *
         FROM
         (
@@ -795,9 +1008,9 @@ interface EntityInterface extends PsEntityInterface
                             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, cp.`id_shop`, `id_lang`)
                         WHERE cp.`id_cart` = c.`id_cart`
                     )
-                ) as cart_data,
-                UUID() as token,
-                c.`date_upd` as date_add
+                ) as `cart_data`,
+                UUID() as `token`,
+                c.`date_upd` as `date_add`
             FROM `' . _DB_PREFIX_ . 'cart` c
             INNER JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` ap
                 ON (ap.`id_customer` = c.`id_customer`)
@@ -808,7 +1021,8 @@ interface EntityInterface extends PsEntityInterface
             INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
                 ON (cr.`id_currency` = c.`id_currency`)
             WHERE
-                c.`id_customer` != 0 AND
+                c.`id_customer` != ' . self::NO_INT . ' AND
+                c.`id_shop` = %d AND
                 c.`date_upd` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME)
         ) AS s
         WHERE JSON_EXTRACT(cart_data, "$.items") IS NOT NULL ';

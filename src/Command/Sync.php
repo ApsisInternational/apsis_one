@@ -42,10 +42,10 @@ class Sync extends AbstractCommand
     {
         switch ($input->getArgument(self::ARG_REQ_JOB)) {
             case self::JOB_TYPE_PROFILE:
-                $this->outputSuccessMsg($output, self::JOB_TYPE_PROFILE);
+                $this->outputSuccessMsg($output, self::JOB_TYPE_PROFILE, '');
                 break;
             case self::JOB_TYPE_EVENT:
-                $this->outputSuccessMsg($output, self::JOB_TYPE_EVENT);
+                $this->outputSuccessMsg($output, self::JOB_TYPE_EVENT, '');
                 break;
             default:
                 $this->outputErrorMsg($input, $output);

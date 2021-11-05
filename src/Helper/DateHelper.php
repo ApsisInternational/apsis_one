@@ -121,7 +121,7 @@ class DateHelper extends LoggerHelper
      *
      * @throws Throwable
      */
-    public function convertDatetimeToStoreTimezoneAndFormat(
+    public function convertDatetimeToShopsTimezoneAndFormat(
         string $datetime,
         ?int $idShopGroup = null,
         ?int $idShop = null,
@@ -131,10 +131,21 @@ class DateHelper extends LoggerHelper
             return null;
         }
 
-        $default = 'Europe/Stockholm';
         return $this->getDateTimeFromTime($datetime)
-            ->setTimezone(new DateTimeZone(Configuration::get('PS_TIMEZONE', null, $idShopGroup, $idShop, $default)))
+            ->setTimezone(new DateTimeZone($this->getShopsTimezone($idShopGroup, $idShop)))
             ->format($format);
+    }
+
+    /**
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return string
+     */
+    public function getShopsTimezone(?int $idShopGroup, ?int $idShop): string
+    {
+        $default = 'Europe/Stockholm';
+        return (string) Configuration::get('PS_TIMEZONE', null, $idShopGroup, $idShop, $default);
     }
 
     /**
