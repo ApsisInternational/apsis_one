@@ -80,9 +80,9 @@ interface SetupInterface
     ];
 
     const T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL = [
-        'wishlist_product' => EI::EVENT_WISHLIST_PRODUCT_SQL,
-        'product_comment' => EI::EVENT_REVIEW_PRODUCT_SQL,
-        'orders' => EI::EVENT_ORDER_INSERT_SQL
+        EI::EVENT_WISHLIST_PRODUCT_SQL,
+        EI::EVENT_REVIEW_PRODUCT_SQL,
+        EI::EVENT_ORDER_INSERT_SQL
     ];
 
     /**

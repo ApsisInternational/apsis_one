@@ -130,12 +130,12 @@ class ModuleHelper extends LoggerHelper
     }
 
     /**
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
+     * @param int $idShopGroup
+     * @param int $idShop
      *
      * @return array
      */
-    public function getStoreIdArrFromContext(?int $idShopGroup = null, ?int $idShop = null): array
+    public function getStoreIdArrFromContext(int $idShopGroup, int $idShop): array
     {
         if ($idShop) {
             return [$idShop];

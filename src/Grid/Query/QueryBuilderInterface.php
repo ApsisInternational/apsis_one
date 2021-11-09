@@ -19,12 +19,12 @@ interface QueryBuilderInterface extends DoctrineQueryBuilderInterface
      * @param Connection $connection
      * @param string $dbPrefix
      * @param DoctrineSearchCriteriaApplicatorInterface $criteriaApplicator
-     * @param int $contextShopId
+     * @param array $contextShopIds
      */
     public function __construct(
         Connection $connection,
         string $dbPrefix,
         DoctrineSearchCriteriaApplicatorInterface $criteriaApplicator,
-        int $contextShopId
+        array $contextShopIds
     );
 }

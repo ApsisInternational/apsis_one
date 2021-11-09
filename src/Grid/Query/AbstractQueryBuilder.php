@@ -19,9 +19,9 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
     private $criteriaApplicator;
 
     /**
-     * @var int
+     * @var array
      */
-    protected $contextShopId;
+    protected $contextShopIds;
 
     /**
      * Get table name
@@ -35,10 +35,10 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
         Connection $connection,
         string $dbPrefix,
         DoctrineSearchCriteriaApplicatorInterface $criteriaApplicator,
-        int $contextShopId
+        array $contextShopIds
     ) {
         parent::__construct($connection, $dbPrefix);
-        $this->contextShopId = $contextShopId;
+        $this->contextShopIds = $contextShopIds;
         $this->criteriaApplicator = $criteriaApplicator;
     }
 
@@ -73,22 +73,20 @@ abstract class AbstractQueryBuilder extends AbstractDoctrineQueryBuilder impleme
      */
     protected function getBaseQuery(SearchCriteriaInterface $searchCriteria): QueryBuilder
     {
-        $joinCondition = $this->formatString(
-            $this->getColumn(EI::C_ID_SHOP),
-            $this->getColumn(EI::C_ID_SHOP, EI::PS_TABLE_SHOP_ALIAS),
-            ' = '
-        );
-
         $queryBuilder = $this->connection->createQueryBuilder()
             ->from($this->getTable(), $this->getAlias())
             ->leftJoin(
                 $this->getAlias(),
                 $this->getTable(EI::PS_TABLE_SHOP),
                 EI::PS_TABLE_SHOP_ALIAS,
-                $joinCondition
+                $this->formatString(
+                    $this->getColumn(EI::C_ID_SHOP),
+                    $this->getColumn(EI::C_ID_SHOP, EI::PS_TABLE_SHOP_ALIAS),
+                    ' = '
+                )
             )
-            ->where($this->formatString($this->getColumn(EI::C_ID_SHOP), EI::PS_SHOP_ID_PARAM, ' = :'))
-            ->setParameter(EI::PS_SHOP_ID_PARAM, $this->contextShopId);
+            ->where($this->formatString($this->getColumn(EI::C_ID_SHOP), '(:' . EI::PS_SHOP_ID_PARAM . ')', ' IN '))
+            ->setParameter(EI::PS_SHOP_ID_PARAM, $this->contextShopIds, Connection::PARAM_INT_ARRAY);
 
         if (static::getTableName() === EI::T_PROFILE) {
             $queryBuilder->andWhere($this->formatString($this->getColumn(EI::C_SYNC_STATUS), EI::SS_NOTHING, ' != '));

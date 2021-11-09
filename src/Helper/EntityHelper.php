@@ -437,8 +437,10 @@ class EntityHelper extends LoggerHelper
         $this->logInfoMsg(__METHOD__);
 
         try {
-            if (Validate::isLoadedObject($object = $hookArgs['object']) && $object->validate) {
-                $partSql = sprintf(EI::EVENT_REVIEW_PRODUCT_SQL,EI::ET_PRODUCT_REVIEWED, EI::SS_PENDING);
+            if (isset($hookArgs['object']) && is_object($object = $hookArgs['object']) && isset($object->id) &&
+                isset($object->validate) && $object->validate
+            ) {
+                $partSql = sprintf(EI::EVENT_REVIEW_PRODUCT_SQL, EI::SS_PENDING);
                 $partWhere = sprintf(
                     EI::EVENT_REVIEW_PRODUCT_SQL_COND,
                     (int) $object->id
@@ -460,15 +462,13 @@ class EntityHelper extends LoggerHelper
         try {
             if (! empty($hookArgs['idWishlist']) &&
                 ! empty($hookArgs['customerId']) &&
-                ! empty($hookArgs['idProduct']) &&
-                ! empty($hookArgs['idProductAttribute'])
+                ! empty($hookArgs['idProduct'])
             ) {
-                $partSql = sprintf(EI::EVENT_WISHLIST_PRODUCT_SQL,EI::ET_PRODUCT_WISHED, EI::SS_PENDING);
+                $partSql = sprintf(EI::EVENT_WISHLIST_PRODUCT_SQL, EI::SS_PENDING);
                 $where = sprintf(
                     EI::EVENT_WISHLIST_PRODUCT_SQL_COND,
                     (int) $hookArgs['idWishlist'],
                     (int) $hookArgs['idProduct'],
-                    (int) $hookArgs['idProductAttribute'],
                     (int) $hookArgs['customerId']
                 );
                 Db::getInstance()->query($partSql . $where);
@@ -487,12 +487,12 @@ class EntityHelper extends LoggerHelper
         $this->logInfoMsg(__METHOD__);
 
         try {
-            if (! empty($object = array_shift($hookArgs)) && Validate::isLoadedObject($object) &&
-                $object instanceof Order &&
+            if (isset($hookArgs['object']) && is_object($object = $hookArgs['object']) && $object instanceof Order &&
+                isset($object->id) && isset($object->id_customer) &&
                 ! empty($profile = $this->getProfileRepository()->findOneByCustomerId($object->id_customer)) &&
                 $profile instanceof Profile
             ) {
-                $partSql = sprintf(EI::EVENT_ORDER_INSERT_SQL,EI::ET_ORDER_PLACED, EI::SS_PENDING);
+                $partSql = sprintf(EI::EVENT_ORDER_INSERT_SQL, EI::SS_PENDING);
                 $where = sprintf(EI::EVENT_ORDER_INSERT_SQL_COND, (int) $object->id);
                 $result = Db::getInstance()->query($partSql . $where);
 

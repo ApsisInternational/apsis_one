@@ -326,11 +326,10 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
 
         // Set Profile Data field value
         if ($this instanceof Profile) {
-            $format = 'CAST(%d AS SIGNED)';
             if ($this->getIdCustomer()) {
-                $sql = sprintf(self::PROFILE_DATA_SQL_CUSTOMER, sprintf($format, $this->getIdCustomer()));
+                $sql = sprintf(self::PROFILE_DATA_SQL_CUSTOMER, (int) $this->getIdCustomer());
             } elseif ($this->getIdNewsletter()) {
-                $sql = sprintf(self::PROFILE_DATA_SQL_SUBSCRIBER, sprintf($format, $this->getIdNewsletter()));
+                $sql = sprintf(self::PROFILE_DATA_SQL_SUBSCRIBER, (int) $this->getIdNewsletter());
             }
 
             if (isset($sql)) {

@@ -9,6 +9,7 @@ use Apsis\One\Repository\ProfileRepository;
 use Apsis_one;
 use apsis_OneApiinstallationconfigModuleFrontController;
 use apsis_OneApistoresModuleFrontController;
+use apsis_OneApiprofilesModuleFrontController;
 use Context;
 use ModuleFrontController;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
@@ -143,7 +144,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         try {
             if ($this->validRequestMethod !== $_SERVER['REQUEST_METHOD']) {
-                $msg =  sprintf('%s: method not allowed to this endpoint.', $_SERVER['REQUEST_METHOD']);
+                $msg =  sprintf('{%s} method not allowed to this endpoint.', $_SERVER['REQUEST_METHOD']);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_405, [], $msg));
@@ -163,7 +164,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             if (empty($headers['Authorization']) ||
                 $headers['Authorization'] !== $this->configs->getGlobalKey()
             ) {
-                $msg = sprintf('Invalid key %s for authorization header.', $headers['Authorization']);
+                $msg = sprintf('Invalid key {%s} for authorization header.', $headers['Authorization']);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
@@ -181,7 +182,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         try {
             if ($this->module->helper->isModuleEnabledForContext($this->groupId, $this->shopId) === false) {
                 $msg = sprintf(
-                    'Module is disabled for given context. Group Id: %d, Shop Id: %d',
+                    'Module is disabled for given context. Group Id {%d}, Shop Id {%d}',
                     $this->groupId,
                     $this->shopId
                 );
@@ -200,14 +201,21 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function validateIntegrationConnected(): void
     {
         try {
-            $assert = ! in_array(
-                get_class($this),
-                [apsis_OneApiinstallationconfigModuleFrontController::class, apsis_OneApistoresModuleFrontController::class]
+            $thisClass = get_class($this);
+            $assertNeedsChecking = ! in_array(
+                $thisClass,
+                [
+                    apsis_OneApiinstallationconfigModuleFrontController::class,
+                    apsis_OneApistoresModuleFrontController::class,
+                    ($thisClass === apsis_OneApiprofilesModuleFrontController::class &&
+                        isset($this->queryParams[self::QUERY_PARAM_SCHEMA])) ?
+                        apsis_OneApiprofilesModuleFrontController::class : null
+                ]
             );
 
-            if ($assert && empty($this->configs->getInstallationConfigs($this->groupId, $this->shopId))) {
+            if ($assertNeedsChecking && empty($this->configs->getInstallationConfigs($this->groupId, $this->shopId))) {
                 $msg = sprintf(
-                    'Module is not connected to any JUSTIN installation for given context. Group Id: %d, Shop Id: %d',
+                    'Module is not connected to any JUSTIN installation for given context. Group Id {%d} Shop Id {%d}',
                     $this->groupId,
                     $this->shopId
                 );
@@ -232,7 +240,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                 }
 
                 if (! Tools::getIsset($queryParam)) {
-                    $msg = "Missing query param: $queryParam" ;
+                    $msg = sprintf("Missing query param {%s}", $queryParam) ;
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -295,7 +303,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         try {
             $value = Tools::getValue($queryParam, false);
             if (! $this->isDataValid($value, $dataType)) {
-                $msg = "Invalid value $value for query param: $queryParam";
+                $msg = sprintf("Invalid value {%s} for query param {%s}", $value, $queryParam);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -303,6 +311,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             $this->queryParams[$queryParam] = Tools::safeOutput($value);
 
             if ($queryParam === self::QUERY_PARAM_CONTEXT_IDS) {
+                $this->module->helper->logInfoMsg($this->queryParams[$queryParam]);
                 $this->setContextIds($this->queryParams[$queryParam]);
             }
         } catch (Throwable $e) {
@@ -320,13 +329,13 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         try {
             $contextIds = explode(',', $contextIdsString);
             if (count($contextIds) === 2 && is_numeric($contextIds[0]) && is_numeric($contextIds[1])) {
-                $this->groupId = (int) $contextIds[0];
-                $this->shopId = (int) $contextIds[1];
+                $this->groupId = ! empty((int) $contextIds[0]) ? (int) $contextIds[0] : null;
+                $this->shopId = ! empty((int) $contextIds[1]) ? (int) $contextIds[1] : null;
 
                 $legacyContextLoader = new LegacyContextLoader(Context::getContext());
                 $legacyContextLoader->loadGenericContext(get_class($this), null, null, $this->shopId, $this->groupId);
             } else {
-                $msg = "Invalid context ids string: $contextIdsString";
+                $msg = sprintf("Invalid context ids string {%s}", $contextIdsString);
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -347,7 +356,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             } else {
                 $body = file_get_contents('php://input');
                 if (empty($body) || ! Validate::isJson($body)) {
-                    $msg = "Invalid payload.\n $body";
+                    $msg = sprintf("Invalid payload.\n {%s}", $body);
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -377,7 +386,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         try {
             $missingBodyParams = array_diff(array_keys($this->validBodyParams), array_keys($this->bodyParams));
             if (! empty($missingBodyParams)) {
-                $msg = sprintf('Incomplete payload. Missing body param %s', implode(', ', $missingBodyParams));
+                $msg = sprintf('Incomplete payload. Missing body param {%s}', implode(', ', $missingBodyParams));
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -385,7 +394,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
 
             foreach ($this->bodyParams as $param => $value) {
                 if (! $this->isDataValid($value, $this->validBodyParams[$param])) {
-                    $msg = "Value: $value for Param: $param is invalid.";
+                    $msg = sprintf("Value {%s} for Param {%s} is invalid.", $value, $param);
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -409,7 +418,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             try {
                 switch ($type) {
                     case self::DATA_TYPE_STRING:
-                        $isValid = preg_match(SchemaInterface::VALID_STRING_PATTERN, $data);
+                        $isValid = is_string($data);
                         break;
                     case self::DATA_TYPE_INT:
                         $isValid = is_numeric($data);
@@ -432,7 +441,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         if ($this->configs->getProfileSyncFlag($this->groupId, $this->shopId) === false) {
             $msg = sprintf(
-                'Profile sync feature is disable for given context. Group Id: %d, Shop Id: %d.',
+                'Profile sync feature is disable for given context. Group Id {%d} Shop Id {%d}.',
                 $this->groupId,
                 $this->shopId
             );

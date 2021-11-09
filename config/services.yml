@@ -18,7 +18,7 @@ services:
     parent: 'prestashop.core.grid.abstract_query_builder'
     arguments:
       - '@prestashop.core.query.doctrine_search_criteria_applicator'
-      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+      - "@=service('prestashop.adapter.shop.context').getContextListShopID()"
     public: true
 
   apsis_one.grid.data.factory.profile_data_factory:
@@ -71,7 +71,7 @@ services:
     parent: 'prestashop.core.grid.abstract_query_builder'
     arguments:
       - '@prestashop.core.query.doctrine_search_criteria_applicator'
-      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+      - "@=service('prestashop.adapter.shop.context').getContextListShopID()"
     public: true
 
   apsis_one.grid.data.factory.event_data_factory:
@@ -116,7 +116,7 @@ services:
     parent: 'prestashop.core.grid.abstract_query_builder'
     arguments:
       - '@prestashop.core.query.doctrine_search_criteria_applicator'
-      - "@=service('prestashop.adapter.legacy.context').getContext().shop.id"
+      - "@=service('prestashop.adapter.shop.context').getContextListShopID()"
     public: true
 
   apsis_one.grid.data.factory.abandonedcart_data_factory:

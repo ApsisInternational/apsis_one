@@ -16,8 +16,8 @@ class apsis_OneApiabandonedcartsModuleFrontController extends AbstractApiControl
         $this->validRequestMethod = self::VERB_GET;
         $this->validQueryParams = [
             self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING,
-            self::QUERY_PARAM_AFTER_DATETIME => self::DATA_TYPE_STRING,
-            self::QUERY_PARAM_BEFORE_DATETIME => self::DATA_TYPE_STRING
+            self::QUERY_PARAM_AFTER_DATETIME => self::DATA_TYPE_INT,
+            self::QUERY_PARAM_BEFORE_DATETIME => self::DATA_TYPE_INT
         ];
     }
 
@@ -59,21 +59,21 @@ class apsis_OneApiabandonedcartsModuleFrontController extends AbstractApiControl
             $dateHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
             $beforeDatetime = $dateHelper->convertDatetimeToShopsTimezoneAndFormat(
-                $this->queryParams[self::QUERY_PARAM_BEFORE_DATETIME],
-                $this->groupId,
-                $this->shopId
+                '@' . $this->queryParams[self::QUERY_PARAM_BEFORE_DATETIME],
+                (int) $this->groupId,
+                (int) $this->shopId
             );
             $afterDatetime = $dateHelper->convertDatetimeToShopsTimezoneAndFormat(
-                $this->queryParams[self::QUERY_PARAM_AFTER_DATETIME],
-                $this->groupId,
-                $this->shopId
+                '@' . $this->queryParams[self::QUERY_PARAM_AFTER_DATETIME],
+                (int) $this->groupId,
+                (int) $this->shopId
             );
 
             /** @var EntityHelper $entityHelper */
             $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
             $abandonedCarts = $entityHelper->getAbandonedCartRepository()
                 ->findForGivenShopsFilterByDateTime(
-                    $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId),
+                    $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId),
                     $beforeDatetime,
                     $afterDatetime
                 );

@@ -84,7 +84,7 @@ class Db extends AbstractCommand
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $fromTime = $this->getFromDateTimeForGivenShop($shop);
                 $toTime = clone $fromTime;
-                $fromTime->sub($this->dateHelper->getDateIntervalFromIntervalSpec('PT1440M'));
+                $fromTime->sub($this->dateHelper->getDateIntervalFromIntervalSpec('PT1440M')); //24Hour
 
                 foreach (SetupInterface::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $table => $sql) {
                     $cond = sprintf(
@@ -125,7 +125,7 @@ class Db extends AbstractCommand
 
                 $sql = sprintf(
                     EI::ABANDONED_CART_INSERT_SQL,
-                    $shop[EI::C_ID_SHOP],
+                    (int) $shop[EI::C_ID_SHOP],
                     $fromTime->format('Y-m-d H:i:s'),
                     $toTime->format('Y-m-d H:i:s')
                 );

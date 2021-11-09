@@ -47,10 +47,13 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
     protected function saveInstallationConfigs(): void
     {
         try {
-            $status = $this->configs->saveInstallationConfigs($this->bodyParams, $this->groupId, $this->shopId);
+            $groupId = (int) $this->groupId;
+            $shopId = (int) $this->shopId;
+
+            $status = $this->configs->saveInstallationConfigs($this->bodyParams, $groupId, $shopId);
             if ($status) {
-                $this->configs->saveProfileSyncFlag(SetupInterface::FLAG_YES, $this->groupId, $this->shopId);
-                $this->configs->saveEventSyncFlag(SetupInterface::FLAG_YES, $this->groupId, $this->shopId);
+                $this->configs->saveProfileSyncFlag(SetupInterface::FLAG_YES, $groupId, $shopId);
+                $this->configs->saveEventSyncFlag(SetupInterface::FLAG_YES, $groupId, $shopId);
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_204));
             } else {
                 $msg = 'Unable to save some configurations.';
@@ -74,10 +77,13 @@ class apsis_OneApiinstallationconfigModuleFrontController extends AbstractApiCon
                 /** @var Profile $entity */
                 $entity = $repository->getNewEntity();
                 $where = $repository->buildWhereClause(
-                    [EI::C_ID_SHOP => $this->module->helper->getStoreIdArrFromContext($this->groupId, $this->shopId)]
+                    [EI::C_ID_SHOP => $this->module->helper->getStoreIdArrFromContext(
+                        (int) $this->groupId,
+                        (int) $this->shopId)
+                    ]
                 );
 
-                if ($this->configs->disableSyncsClearConfigs($this->groupId, $this->shopId) &&
+                if ($this->configs->disableSyncsClearConfigs((int) $this->groupId, (int) $this->shopId) &&
                     $entity->resetProfilesAndEvents($where)
                 ) {
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => 'Full reset performed.']);

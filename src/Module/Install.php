@@ -329,8 +329,8 @@ class Install extends AbstractSetup
 
         try {
             $status = true;
-            foreach (self::T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL as $table => $sql) {
-                $status = $status && Db::getInstance()->execute(sprintf($sql, $table, EI::SS_JUSTIN));
+            foreach (self::T_EVENT_MIGRATE_HISTORICAL_EVENTS_SQL as $sql) {
+                $status = $status && Db::getInstance()->execute(sprintf($sql, EI::SS_JUSTIN));
             }
             return $status;
         } catch (Throwable $e) {

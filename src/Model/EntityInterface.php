@@ -292,7 +292,7 @@ interface EntityInterface extends PsEntityInterface
     const PS_TABLE_SHOP_ALIAS = 's';
     const PS_T_SHOP_C_NAME = 'name';
     const PS_T_SHOP_C_NAME_ALIAS = 'shop_name';
-    const PS_SHOP_ID_PARAM = 'context_shop_id';
+    const PS_SHOP_ID_PARAM = 'context_shop_ids';
 
     /** OTHER */
     const EMPTY = '';
@@ -422,7 +422,7 @@ interface EntityInterface extends PsEntityInterface
             `email` != "" ';
 
     const PROFILE_SQL_INSERT_COND =
-        'AND `%s` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME) AND `id_shop` = %d';
+        ' AND `%s` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME) AND `id_shop` = %d';
 
     const PROFILE_EMAIL_SUBSCRIBER_SQL_INSERT = '
         INSERT IGNORE INTO `' . _DB_PREFIX_ . self::T_PROFILE . '` (
@@ -564,7 +564,7 @@ interface EntityInterface extends PsEntityInterface
             ON (c.`id_lang` = l.`id_lang`)
         INNER JOIN `' . _DB_PREFIX_ . 'group_lang` gl
             ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
-        WHERE c.`id_customer` = %s ';
+        WHERE c.`id_customer` = %d ';
 
     const PROFILE_SQL_CUSTOMER_SELECT_NEEDING_UPDATE = '
         SELECT
@@ -696,7 +696,7 @@ interface EntityInterface extends PsEntityInterface
             ON (en.`id_shop_group` = sg.`id_shop_group`)
         INNER JOIN `' . _DB_PREFIX_ . 'lang` l
             ON (en.`id_lang` = l.`id_lang`)
-        WHERE en.`id` = %s ';
+        WHERE en.`id` = %d ';
 
     const PROFILE_SQL_SUBSCRIBER_SELECT_NEEDING_UPDATE = '
         SELECT
@@ -759,7 +759,7 @@ interface EntityInterface extends PsEntityInterface
             ap.`id_apsis_profile`,
             w.`id_shop`,
             wp.`id_wishlist_product` as `id_entity_ps`,
-            %d as `event_type`,
+            ' . self::ET_PRODUCT_WISHED . ' as `event_type`,
             JSON_OBJECT(
                 "id_wishlist", wp.`id_wishlist`,
                 "wishlist_name", w.`name`,
@@ -804,7 +804,6 @@ interface EntityInterface extends PsEntityInterface
     const EVENT_WISHLIST_PRODUCT_SQL_COND = '
         WHERE wp.`id_wishlist` = %d
             AND wp.`id_product` = %d
-            AND wp.`id_product_attribute` = %d
             AND w.`id_customer` = %d
         LIMIT 1 ';
 
@@ -822,7 +821,7 @@ interface EntityInterface extends PsEntityInterface
             ap.`id_apsis_profile`,
             c.`id_shop`,
             pc.`id_product_comment` as `id_entity_ps`,
-            %d as `event_type`,
+            ' . self::ET_PRODUCT_REVIEWED . ' as `event_type`,
             JSON_OBJECT(
                 "id_comment", pc.`id_product_comment`,
                 "id_product", pc.`id_product`,
@@ -866,9 +865,9 @@ interface EntityInterface extends PsEntityInterface
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, s.`id_shop`, c.`id_lang`)
         WHERE
             pc.`deleted` = ' . self::NO_INT . ' AND
-            pc.`validate` = ' . self::YES_INT . ' ';
+            pc.`validate` = ' . self::YES_INT;
 
-    const EVENT_REVIEW_PRODUCT_SQL_COND = 'AND pc.`id_product_comment` = %d LIMIT 1 ';
+    const EVENT_REVIEW_PRODUCT_SQL_COND = ' AND pc.`id_product_comment` = %d LIMIT 1 ';
 
     const EVENT_ORDER_INSERT_SQL = '
         INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '` (
@@ -884,7 +883,7 @@ interface EntityInterface extends PsEntityInterface
             ap.`id_apsis_profile`,
             o.`id_shop`,
             o.`id_order` as `id_entity_ps`,
-            %d as `event_type`,
+            ' . self::ET_ORDER_PLACED . ' as `event_type`,
             JSON_OBJECT(
                 "id_order", o.`id_order`,
                 "id_lang", o.`id_lang`,
@@ -948,14 +947,17 @@ interface EntityInterface extends PsEntityInterface
             ON (os.`id_order_state` = o.`current_state`)
         WHERE
             o.`valid` = ' . self::YES_INT . ' AND
-            os.`invoice` = ' . self::YES_INT . ' ';
+            os.`invoice` = ' . self::YES_INT;
 
-    const EVENT_ORDER_INSERT_SQL_COND = '
-        AND NOT EXISTS(
-            SELECT `id_apsis_event`
-            FROM `' . _DB_PREFIX_ . 'apsis_event` ae
-            WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = `event_type`
-        ) AND o.`id_order` = %d LIMIT 1';
+    const EVENT_ORDER_INSERT_SQL_COND = ' AND
+            o.`id_order` = %d AND
+            NOT EXISTS
+            (
+                SELECT `id_apsis_event`
+                FROM `' . _DB_PREFIX_ . 'apsis_event` ae
+                WHERE ae.`id_entity_ps` = o.`id_order` AND ae.`event_type` = ' . self::ET_ORDER_PLACED . ' 
+            )
+        LIMIT 1';
 
     const ABANDONED_CART_INSERT_SQL = '
         INSERT INTO `' . _DB_PREFIX_ . self::T_ABANDONED_CART . '` (
