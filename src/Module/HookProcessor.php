@@ -42,6 +42,10 @@ class HookProcessor extends AbstractSetup
     public function processHook(string $hookName, array $hookArgs): void
     {
         try {
+            if (! $this->module->helper->isModuleEnabledForCurrentShop()) {
+                return;
+            }
+
             $hookName = lcfirst(str_replace('hook', '', $hookName));
 
             if (in_array($hookName, $this->module->helper->getAllHooksForProfileEntity())) {

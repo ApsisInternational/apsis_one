@@ -574,7 +574,9 @@ interface EntityInterface extends PsEntityInterface
         FROM `' . _DB_PREFIX_ . 'customer` c
         LEFT JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` as ap
             ON (ap.`id_customer` = c.`id_customer`)
-        WHERE ap.`is_newsletter` != c.`newsletter` ';
+        WHERE
+            ap.`is_newsletter` != c.`newsletter` AND
+            c.`id_shop` = %d ';
 
     const PROFILE_SQL_CUSTOMER_UPDATE_NEEDING_UPDATE = '
         UPDATE
@@ -674,7 +676,8 @@ interface EntityInterface extends PsEntityInterface
             )
         WHERE
             ap.`id_customer` = c.`id_customer` AND
-            ap.`is_newsletter` != c.`newsletter` ';
+            ap.`is_newsletter` != c.`newsletter` AND
+            c.`id_shop` = %d ';
 
     const PROFILE_DATA_SQL_SUBSCRIBER = '
         SELECT
@@ -707,7 +710,9 @@ interface EntityInterface extends PsEntityInterface
         FROM `' . _DB_PREFIX_ . 'emailsubscription` en
         LEFT JOIN `' . _DB_PREFIX_ . self::T_PROFILE . '` as ap
             ON (ap.`id_newsletter` = en.`id`)
-        WHERE ap.`is_newsletter` != en.`active` ';
+        WHERE
+            ap.`is_newsletter` != en.`active` AND
+            en.`id_shop` = %d ';
 
     const PROFILE_SQL_SUBSCRIBER_UPDATE_NEEDING_UPDATE = '
         UPDATE
@@ -743,7 +748,8 @@ interface EntityInterface extends PsEntityInterface
                 )
         WHERE
             ap.`id_newsletter` = en.`id` AND
-            ap.`is_newsletter` != en.`active` ';
+            ap.`is_newsletter` != en.`active` AND
+            en.`id_shop` = %d ';
 
     const EVENT_WISHLIST_PRODUCT_SQL = '
         INSERT INTO `' . _DB_PREFIX_ . self::T_EVENT . '` (

@@ -238,6 +238,10 @@ class Apsis_one extends Module implements SetupInterface
      */
     public function hookDisplayCustomerAccount(array $hookArgs): string
     {
+        if (! $this->helper->isModuleEnabledForCurrentShop()) {
+            return '';
+        }
+
         $this->helper->logInfoMsg(__METHOD__);
         return 'YES';
         /**  See Method hookDisplayAdminCustomersForm() Class ps_emailsubscription

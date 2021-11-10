@@ -4,6 +4,7 @@ namespace Apsis\One\Command;
 
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Helper\DateHelper;
+use Apsis\One\Helper\ModuleHelper;
 use Context;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
 use Symfony\Component\Console\Command\Command;
@@ -48,6 +49,8 @@ abstract class AbstractCommand extends Command implements CommandInterface
      */
     protected $entityHelper;
 
+    protected $moduleHelper;
+
     /**
      * @var DateHelper
      */
@@ -67,15 +70,16 @@ abstract class AbstractCommand extends Command implements CommandInterface
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|null
+     * @return int
      */
-    abstract protected function processCommand(InputInterface $input, OutputInterface $output): ?int;
+    abstract protected function processCommand(InputInterface $input, OutputInterface $output): int;
 
     /**
      * @param null $name
      */
     public function __construct($name = null)
     {
+        $this->moduleHelper = new ModuleHelper();
         $this->entityHelper = new EntityHelper();
         $this->dateHelper = new DateHelper();
         $this->shopContext = new ShopContext($this->dateHelper);

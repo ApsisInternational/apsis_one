@@ -45,18 +45,18 @@ class Db extends AbstractCommand
     /**
      * {@inheritdoc}
      */
-    protected function processCommand(InputInterface $input, OutputInterface $output): ?int
+    protected function processCommand(InputInterface $input, OutputInterface $output): int
     {
         try {
             switch ($input->getArgument(self::ARG_REQ_JOB)) {
                 case self::JOB_TYPE_SCAN_AC:
-                    $this->scanDbForAbandonedCarts($input, $output);
+                    $this->scanDbForAbandonedCarts($output);
                     break;
                 case self::JOB_TYPE_SCAN_SUBS_UPDATE:
-                    $this->scanDbForSilentSubscriptionUpdate($input, $output);
+                    $this->scanDbForSilentSubscriptionUpdate($output);
                     break;
                 case self::JOB_TYPE_SCAN_MISSING_PROFILES:
-                    $this->scanDbForSilentMissingProfilesFromSqlImport($input, $output);
+                    $this->scanDbForSilentMissingProfilesFromSqlImport($output);
                     break;
                 default:
                     $this->outputErrorMsg($input, $output);
@@ -72,16 +72,20 @@ class Db extends AbstractCommand
     }
 
     /**
-     * @param InputInterface $input
      * @param OutputInterface $output
      */
-    private function scanDbForSilentMissingProfilesFromSqlImport(InputInterface $input, OutputInterface $output): void
+    private function scanDbForSilentMissingProfilesFromSqlImport(OutputInterface $output): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
+                if (is_string($check = $this->validateModuleEnabledForShop((int) $shop[EI::C_ID_SHOP]))) {
+                    $message .= $check;
+                    continue;
+                }
+
                 $fromTime = $this->getFromDateTimeForGivenShop($shop);
                 $toTime = clone $fromTime;
                 $fromTime->sub($this->dateHelper->getDateIntervalFromIntervalSpec('PT1440M')); //24Hour
@@ -108,16 +112,20 @@ class Db extends AbstractCommand
     }
 
     /**
-     * @param InputInterface $input
      * @param OutputInterface $output
      */
-    private function scanDbForAbandonedCarts(InputInterface $input, OutputInterface $output): void
+    private function scanDbForAbandonedCarts(OutputInterface $output): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
+                if (is_string($check = $this->validateModuleEnabledForShop((int) $shop[EI::C_ID_SHOP]))) {
+                    $message .= $check;
+                    continue;
+                }
+
                 $fromTime = $this->getFromDateTimeForGivenShop($shop)
                     ->sub($this->dateHelper->getDateIntervalFromIntervalSpec('PT60M'));
                 $toTime = clone $fromTime;
@@ -142,27 +150,37 @@ class Db extends AbstractCommand
     }
 
     /**
-     * @param InputInterface $input
      * @param OutputInterface $output
      */
-    private function scanDbForSilentSubscriptionUpdate(InputInterface $input, OutputInterface $output): void
+    private function scanDbForSilentSubscriptionUpdate(OutputInterface $output): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $updated = $eventsCreated = 0;
+        $message = '';
 
         try {
-            $subsNeedUpd = PsDb::getInstance()->executeS(EI::PROFILE_SQL_SUBSCRIBER_SELECT_NEEDING_UPDATE);
-            if (is_array($subsNeedUpd) && ! empty($subsNeedUpd)) {
-                PsDb::getInstance()->query(EI::PROFILE_SQL_SUBSCRIBER_UPDATE_NEEDING_UPDATE);
-                $updated += count($subsNeedUpd);
-                $eventsCreated += $this->entityHelper->registerSubsEventsForSubscribers($subsNeedUpd);
-            }
+            foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
+                $shopId = (int) $shop[EI::C_ID_SHOP];
+                if (is_string($check = $this->validateModuleEnabledForShop($shopId))) {
+                    $message = $check;
+                    continue;
+                }
 
-            $customerNeedUp = PsDb::getInstance()->executeS(EI::PROFILE_SQL_CUSTOMER_SELECT_NEEDING_UPDATE);
-            if (is_array($customerNeedUp) && ! empty($customerNeedUp)) {
-                PsDb::getInstance()->query(EI::PROFILE_SQL_CUSTOMER_UPDATE_NEEDING_UPDATE);
-                $updated += count($customerNeedUp);
-                $eventsCreated += $this->entityHelper->registerSubsEventsForCustomers($customerNeedUp);
+                $subsNeedUpd = PsDb::getInstance()
+                    ->executeS(sprintf(EI::PROFILE_SQL_SUBSCRIBER_SELECT_NEEDING_UPDATE, $shopId));
+                if (is_array($subsNeedUpd) && ! empty($subsNeedUpd)) {
+                    PsDb::getInstance()->query(sprintf(EI::PROFILE_SQL_SUBSCRIBER_UPDATE_NEEDING_UPDATE, $shopId));
+                    $updated += count($subsNeedUpd);
+                    $eventsCreated += $this->entityHelper->registerSubsEventsForSubscribers($subsNeedUpd);
+                }
+
+                $customerNeedUp = PsDb::getInstance()
+                    ->executeS(sprintf(EI::PROFILE_SQL_CUSTOMER_SELECT_NEEDING_UPDATE, $shopId));
+                if (is_array($customerNeedUp) && ! empty($customerNeedUp)) {
+                    PsDb::getInstance()->query(sprintf(EI::PROFILE_SQL_CUSTOMER_UPDATE_NEEDING_UPDATE, $shopId));
+                    $updated += count($customerNeedUp);
+                    $eventsCreated += $this->entityHelper->registerSubsEventsForCustomers($customerNeedUp);
+                }
             }
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
@@ -170,7 +188,7 @@ class Db extends AbstractCommand
             return;
         }
 
-        $message = sprintf(' Updated %d Profiles. Inserted %d Events.', $updated, $eventsCreated);
+        $message = sprintf(' Updated %d Profiles. Inserted %d Events. %s', $updated, $eventsCreated, $message);
         $this->entityHelper->logInfoMsg($message);
         $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_SUBS_UPDATE, $message);
     }
@@ -213,5 +231,19 @@ class Db extends AbstractCommand
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return $e->getMessage();
         }
+    }
+
+    /**
+     * @param int $shopId
+     *
+     * @return string
+     */
+    private function validateModuleEnabledForShop(int $shopId): ?string
+    {
+        if (! $this->moduleHelper->isModuleEnabledForContext(null, $shopId)) {
+            return sprintf("\nSkipping for Shop ID {%d}, Module is disabled.", $shopId);
+        }
+
+        return null;
     }
 }

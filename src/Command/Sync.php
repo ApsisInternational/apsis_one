@@ -38,7 +38,7 @@ class Sync extends AbstractCommand
     /**
      * {@inheritdoc}
      */
-    protected function processCommand(InputInterface $input, OutputInterface $output): ?int
+    protected function processCommand(InputInterface $input, OutputInterface $output): int
     {
         switch ($input->getArgument(self::ARG_REQ_JOB)) {
             case self::JOB_TYPE_PROFILE:
