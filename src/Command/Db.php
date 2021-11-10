@@ -97,7 +97,7 @@ class Db extends AbstractCommand
                         SetupInterface::T_DATE_COLUMN_MAP[$table],
                         $fromTime->format('Y-m-d H:i:s'),
                         $toTime->format('Y-m-d H:i:s'),
-                        $shopId,
+                        $shopId
                     );
                     $entity = sprintf("Profiles (%s)", $table);
                     $message .= $this->executeQueryAndGetResultString($sql . $cond, $shopId, $entity);
