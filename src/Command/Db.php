@@ -81,7 +81,8 @@ class Db extends AbstractCommand
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
-                if (is_string($check = $this->validateModuleEnabledForShop((int) $shop[EI::C_ID_SHOP]))) {
+                $shopId = (int) $shop[EI::C_ID_SHOP];
+                if (is_string($check = $this->validateModuleEnabledForShop($shopId))) {
                     $message .= $check;
                     continue;
                 }
@@ -96,9 +97,10 @@ class Db extends AbstractCommand
                         SetupInterface::T_DATE_COLUMN_MAP[$table],
                         $fromTime->format('Y-m-d H:i:s'),
                         $toTime->format('Y-m-d H:i:s'),
-                        $shop[EI::C_ID_SHOP],
+                        $shopId,
                     );
-                    $message .= $this->executeQueryAndGetResultString($sql . $cond, $shop[EI::C_ID_SHOP], "Profiles ($table)");
+                    $entity = sprintf("Profiles (%s)", $table);
+                    $message .= $this->executeQueryAndGetResultString($sql . $cond, $shopId, $entity);
                 }
             }
         } catch (Throwable $e) {

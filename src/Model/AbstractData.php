@@ -345,7 +345,7 @@ abstract class AbstractData implements DataInterface
                     $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
                     $eventsArr[] = [
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                            $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+                            (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                             is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
@@ -359,7 +359,7 @@ abstract class AbstractData implements DataInterface
 
                             $eventsArr[] = [
                                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                                    $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+                                    (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
                                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                                     $discriminator[SchemaInterface::KEY_ITEMS],
                                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]

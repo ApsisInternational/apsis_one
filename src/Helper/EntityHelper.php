@@ -549,6 +549,8 @@ class EntityHelper extends LoggerHelper
                 $events = $this->getEventRepository()
                     ->findByProfileIdAndSyncStatus($profile->getId(), [EI::SS_JUSTIN]);
                 $profileData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] = is_null($events) ? [] : $events;
+            } else {
+                $profileData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] = [];
             }
 
             /** @var SchemaInterface $schemaProvider */

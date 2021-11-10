@@ -19,7 +19,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
         $this->validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
         $this->optionalQueryParams = [
             self::QUERY_PARAM_SCHEMA => self::DATA_TYPE_INT,
-            self::QUERY_PARAM_AFTER_ID => self::DATA_TYPE_INT
+            self::QUERY_PARAM_AFTER_ID => self::DATA_TYPE_INT,
+            self::QUERY_PARAM_INCLUDE_EVENTS => self::DATA_TYPE_INT
         ];
         $this->optionalQueryParamIgnoreRelations = [
             self::QUERY_PARAM_SCHEMA => [self::PARAM_TYPE_QUERY => [self::QUERY_PARAM_CONTEXT_IDS]]
@@ -148,10 +149,12 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 );
 
             if (is_array($profiles)) {
+                $inclEvents = isset($this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS]);
+
                 foreach ($profiles as $profile) {
                     $item = $entityHelper->getProfileDataArrForExport(
                         $profile,
-                        $this->configs->getEventSyncFlag($this->groupId, $this->shopId)
+                        ($inclEvents && $this->configs->getEventSyncFlag($this->groupId, $this->shopId))
                     );
                     if (! empty($item)) {
                         $items[$profile->getId()] = $item;
