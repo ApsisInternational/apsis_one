@@ -197,7 +197,7 @@ class ClientFactory
      * @param int|null $idShopGroup
      * @param int|null $idShop
      */
-    protected function saveTokenAndExpiry(stdClass $request, ?int $idShopGroup = null, ?int $idShop = null)
+    protected function saveTokenAndExpiry(stdClass $request, ?int $idShopGroup = null, ?int $idShop = null): void
     {
         try {
             $this->helper->logInfoMsg(__METHOD__);

@@ -16,8 +16,6 @@ class ProfileRepository extends AbstractRepository
     public function findOneByIntegrationId(string $uuid): ?Profile
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             return $this->hydrateOne(
                 $this->db->select($this->buildSqlQuery($this->buildWhereClause([EI::C_ID_INTEGRATION => $uuid])))
             );
@@ -35,8 +33,6 @@ class ProfileRepository extends AbstractRepository
     public function findOneByCustomerId(string $customerId): ?Profile
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             $sql = $this->buildSqlQuery(
                 $this->buildWhereClause([EI::C_ID_CUSTOMER => $customerId, EI::C_IS_CUSTOMER => EI::YES])
             );
@@ -55,8 +51,6 @@ class ProfileRepository extends AbstractRepository
     public function findOneByNewsletterId(string $newsletterId): ?Profile
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             $sql = $this->buildSqlQuery(
                 $this->buildWhereClause([EI::C_ID_CUSTOMER => $newsletterId, EI::C_IS_NEWSLETTER => EI::YES])
             );
@@ -86,8 +80,6 @@ class ProfileRepository extends AbstractRepository
         bool $isGuest = false
     ): ?Profile {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             $conditions = [EI::C_EMAIL => $email, EI::C_ID_SHOP => $idShop];
             if ($isCustomer) {
                 $conditions[EI::C_IS_CUSTOMER] = $isCustomer;

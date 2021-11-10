@@ -17,8 +17,6 @@ class EventRepository extends AbstractRepository
     public function findByProfileIdAndSyncStatus(int $idProfile, array $syncStatus): ?array
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             return $this->hydrateMany(
                 $this->db->select($this->buildSqlQuery(
                     $this->buildWhereClause([EI::C_ID_PROFILE => $idProfile, EI::C_SYNC_STATUS => $syncStatus]),

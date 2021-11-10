@@ -69,27 +69,29 @@ class apsis_OneApiabandonedcartsModuleFrontController extends AbstractApiControl
                 (int) $this->shopId
             );
 
-            /** @var EntityHelper $entityHelper */
-            $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
-            $abandonedCarts = $entityHelper->getAbandonedCartRepository()
-                ->findForGivenShopsFilterByDateTime(
-                    $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId),
-                    $beforeDatetime,
-                    $afterDatetime
-                );
+            if (strlen($beforeDatetime) && strlen($afterDatetime)) {
+                /** @var EntityHelper $entityHelper */
+                $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+                $abandonedCarts = $entityHelper->getAbandonedCartRepository()
+                    ->findForGivenShopsFilterByDateTime(
+                        $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId),
+                        $beforeDatetime,
+                        $afterDatetime
+                    );
 
-            if (is_array($abandonedCarts)) {
-                foreach ($abandonedCarts as $abandonedCart) {
-                    $dataArr = $entityHelper->getAbandonedCartDataArrForExport($abandonedCart);
-                    /** @var Profile $profile */
-                    $profile = $entityHelper->getProfileRepository()
-                        ->findOneById($abandonedCart->getIdApsisProfile());
+                if (is_array($abandonedCarts)) {
+                    foreach ($abandonedCarts as $abandonedCart) {
+                        $dataArr = $entityHelper->getAbandonedCartDataArrForExport($abandonedCart);
+                        /** @var Profile $profile */
+                        $profile = $entityHelper->getProfileRepository()
+                            ->findOneById($abandonedCart->getIdApsisProfile());
 
-                    if (! empty($dataArr) && $profile instanceof Profile) {
-                        $items[] = [
-                            'profile_id' => $profile->getIdIntegration(),
-                            'cart_data' => $dataArr
-                        ];
+                        if (! empty($dataArr) && $profile instanceof Profile) {
+                            $items[] = [
+                                'profile_id' => $profile->getIdIntegration(),
+                                'cart_data' => $dataArr
+                            ];
+                        }
                     }
                 }
             }

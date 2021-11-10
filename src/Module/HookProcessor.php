@@ -39,11 +39,10 @@ class HookProcessor extends AbstractSetup
      * @param string $hookName
      * @param array $hookArgs
      */
-    public function processHook(string $hookName, array $hookArgs)
+    public function processHook(string $hookName, array $hookArgs): void
     {
         try {
             $hookName = lcfirst(str_replace('hook', '', $hookName));
-            $this->module->helper->logDebugMsg($hookName, $hookArgs);
 
             if (in_array($hookName, $this->module->helper->getAllHooksForProfileEntity())) {
                 $this->processHookForProfileEntity($hookName, $hookArgs);
@@ -62,7 +61,6 @@ class HookProcessor extends AbstractSetup
     private function processHookForProfileEntity(string $hookName, array $hookArgs): void
     {
         try {
-            $this->module->helper->logInfoMsg(__METHOD__);
             $repository = $this->entityHelper->getProfileRepository();
 
             if (in_array($hookName, $this->module->helper->getAllCustomerHooks()) &&
@@ -199,8 +197,6 @@ class HookProcessor extends AbstractSetup
     private function processHookForEventEntity(string $hookName, array $hookArgs): void
     {
         try {
-            $this->module->helper->logInfoMsg(__METHOD__);
-
             switch ($hookName) {
                 case HI::CART_HOOK_UPDATE_QTY_BEFORE:
                     $this->entityHelper->registerProductCartedEvent($hookArgs);

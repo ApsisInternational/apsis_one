@@ -16,8 +16,6 @@ class AbandonedCartRepository extends AbstractRepository
     public function findOneByToken(string $token): ?AbandonedCart
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             return $this->hydrateOne(
                 $this->db->select($this->buildSqlQuery($this->buildWhereClause([EI::C_TOKEN => $token])))
             );
@@ -29,24 +27,22 @@ class AbandonedCartRepository extends AbstractRepository
 
     /**
      * @param array $idShopArr
-     * @param string $beforeDateTime
-     * @param string $afterDateTime
+     * @param string $beforeDate
+     * @param string $afterDate
      *
      * @return AbandonedCart[]|null
      */
-    public function findForGivenShopsFilterByDateTime(array $idShopArr, string $beforeDateTime, string $afterDateTime): ?array
+    public function findForGivenShopsFilterByDateTime(array $idShopArr, string $beforeDate, string $afterDate): ?array
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             return $this->hydrateMany(
                 $this->db->select(
                     $this->buildSqlQuery(
                         sprintf(
                             "%s BETWEEN CAST('%s' AS DATETIME) AND CAST('%s' AS DATETIME) AND %s",
                             EI::C_DATE_ADD,
-                            $afterDateTime,
-                            $beforeDateTime,
+                            $afterDate,
+                            $beforeDate,
                             $this->buildWhereClause([EI::C_ID_SHOP => $idShopArr])
                         ),
                         self::QUERY_LIMIT

@@ -23,11 +23,8 @@ abstract class AbstractRepository extends EntityRepository implements Repository
      * @param string $tablesPrefix
      * @param EntityMetaData $entityMetaData
      */
-    public function __construct(
-        EntityManager $entityManager,
-        string $tablesPrefix,
-        EntityMetaData $entityMetaData
-    ) {
+    public function __construct(EntityManager $entityManager, string $tablesPrefix, EntityMetaData $entityMetaData)
+    {
         $this->logger = new LoggerHelper();
         parent::__construct($entityManager, $tablesPrefix, $entityMetaData);
     }
@@ -66,7 +63,6 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     public function findOneById(int $id): ?EI
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
             return parent::findOne($id);
         } catch (Throwable $e) {
             $this->logger->logErrorMsg(__METHOD__, $e);
@@ -80,7 +76,6 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     public function findAll(): ?array
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
             return parent::findAll();
         } catch (Throwable $e) {
             $this->logger->logErrorMsg(__METHOD__, $e);
@@ -100,8 +95,6 @@ abstract class AbstractRepository extends EntityRepository implements Repository
                 return $this->findOneById($idProfile);
             }
 
-            $this->logger->logInfoMsg(__METHOD__);
-
             $sql = $this->buildSqlQuery($this->buildWhereClause([EI::C_ID_PROFILE => $idProfile]), self::QUERY_LIMIT);
             return $this->hydrateMany($this->db->select($sql));
         } catch (Throwable $e) {
@@ -119,8 +112,6 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     public function findByProfileIdForGivenShop(int $idProfile, array $idShopArr): ?array
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             $sql = $this->buildSqlQuery(
                 $this->buildWhereClause([EI::C_ID_PROFILE => $idProfile, EI::C_ID_SHOP => $idShopArr]),
                 self::QUERY_LIMIT
@@ -146,9 +137,7 @@ abstract class AbstractRepository extends EntityRepository implements Repository
                 return null;
             }
 
-            $this->logger->logInfoMsg(__METHOD__);
-
-           $primary =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
+            $primary =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
             $sql = $this->buildSqlQuery(
                 $this->buildWhereClause(
                     [EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr, $primary => $afterId]
@@ -171,8 +160,6 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     public function getTotalCountBySyncStatusAndShop(array $statusArr, array $idShopArr): ?int
     {
         try {
-            $this->logger->logInfoMsg(__METHOD__);
-
             if ($this instanceof AbandonedCartRepository) {
                 return null;
             }

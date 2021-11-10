@@ -76,7 +76,6 @@ class EntityHelper extends LoggerHelper
      */
     public function getProfileRepository(): ProfileRepository
     {
-        $this->logInfoMsg(__METHOD__);
         return static::getRepository(Profile::class);
     }
 
@@ -87,7 +86,6 @@ class EntityHelper extends LoggerHelper
      */
     public function getEventRepository(): EventRepository
     {
-        $this->logInfoMsg(__METHOD__);
         return static::getRepository(Event::class);
     }
 
@@ -98,7 +96,6 @@ class EntityHelper extends LoggerHelper
      */
     public function getAbandonedCartRepository(): AbandonedCartRepository
     {
-        $this->logInfoMsg(__METHOD__);
         return static::getRepository(AbandonedCart::class);
     }
 
@@ -310,8 +307,12 @@ class EntityHelper extends LoggerHelper
      * @param int $eventType
      * @param int|null $shopId
      */
-    public function registerSubsEventsForSubscriber(int $profileId, int $subscriberId, int $eventType, ?int $shopId = null): void
-    {
+    public function registerSubsEventsForSubscriber(
+        int $profileId,
+        int $subscriberId,
+        int $eventType,
+        ?int $shopId = null
+    ): void {
         try {
             if (is_null($shopId)) {
                 $shopId = $this->shopContext->getCurrentShopId();
@@ -364,8 +365,12 @@ class EntityHelper extends LoggerHelper
      * @param int $eventType
      * @param int $subscriberId
      */
-    public function registerEventForCustomer(Customer $customer, int $profileId, int $eventType, int $subscriberId = 0): void
-    {
+    public function registerEventForCustomer(
+        Customer $customer,
+        int $profileId,
+        int $eventType,
+        int $subscriberId = 0
+    ): void {
         try {
             $jsonData = json_encode([
                 'id_customer' => $customer->id,
@@ -388,8 +393,6 @@ class EntityHelper extends LoggerHelper
     public function registerProductCartedEvent(array $hookArgs): void
     {
         try {
-            $this->logInfoMsg(__METHOD__);
-
             if (isset($hookArgs['operator']) && $hookArgs['operator'] === 'up' && ! empty($hookArgs['quantity']) &&
                 isset($hookArgs['cart'], $hookArgs['product'], $hookArgs['shop'])
             ) {
@@ -434,8 +437,6 @@ class EntityHelper extends LoggerHelper
      */
     public function registerProductReviewEvent(array $hookArgs): void
     {
-        $this->logInfoMsg(__METHOD__);
-
         try {
             if (isset($hookArgs['object']) && is_object($object = $hookArgs['object']) && isset($object->id) &&
                 isset($object->validate) && $object->validate
@@ -457,8 +458,6 @@ class EntityHelper extends LoggerHelper
      */
     public function registerProductWishedEvent(array $hookArgs): void
     {
-        $this->logInfoMsg(__METHOD__);
-
         try {
             if (! empty($hookArgs['idWishlist']) &&
                 ! empty($hookArgs['customerId']) &&
@@ -484,8 +483,6 @@ class EntityHelper extends LoggerHelper
      */
     public function registerOrderPlacedEvent(array $hookArgs): void
     {
-        $this->logInfoMsg(__METHOD__);
-
         try {
             if (isset($hookArgs['object']) && is_object($object = $hookArgs['object']) && $object instanceof Order &&
                 isset($object->id) && isset($object->id_customer) &&

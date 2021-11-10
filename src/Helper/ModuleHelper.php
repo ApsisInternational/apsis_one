@@ -144,7 +144,9 @@ class ModuleHelper extends LoggerHelper
         /** @var ShopContext $shopContext */
         $shopContext = $this->getService(self::SERVICE_CONTEXT_SHOP);
 
-        if ($idShopGroup && ! empty($list = $shopContext->getShopListGroupedByGroup()) && ! empty($list[$idShopGroup])) {
+        if ($idShopGroup && ! empty($list = $shopContext->getShopListGroupedByGroup()) &&
+            ! empty($list[$idShopGroup])
+        ) {
             return $list[$idShopGroup];
         }
 
@@ -161,7 +163,7 @@ class ModuleHelper extends LoggerHelper
      *
      * @return object|null
      */
-    public function getService(string $serviceName, string $container = self::FROM_CONTAINER_MS)
+    public function getService(string $serviceName, string $container = self::FROM_CONTAINER_MS): ?object
     {
         try {
             // First option
