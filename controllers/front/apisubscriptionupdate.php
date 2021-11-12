@@ -2,6 +2,7 @@
 
 use Apsis\One\Controller\AbstractApiController;
 use Apsis\One\Model\Profile;
+use Apsis\One\Model\SchemaInterface;
 use Apsis\One\Module\HookProcessor;
 
 class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiController
@@ -14,7 +15,10 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
     protected function initClassProperties(): void
     {
         $this->validRequestMethod = self::VERB_PATCH;
-        $this->validBodyParams = [self::BODY_PARAM_PROFILE_KEY => self::DATA_TYPE_STRING];
+        $this->validBodyParams = [
+            self::BODY_PARAM_PROFILE_KEY => self::DATA_TYPE_STRING,
+            self::BODY_PARAM_CONSENT_NAME => self::DATA_TYPE_STRING
+        ];
         $this->validQueryParams = [self::QUERY_PARAM_CONTEXT_IDS => self::DATA_TYPE_STRING];
     }
 
@@ -26,8 +30,9 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
         try {
             $this->validateProfileSyncFeature();
 
-            if (empty($PK = $this->bodyParams[self::BODY_PARAM_PROFILE_KEY]) ||
-                is_null($profile = $this->getProfile($PK))
+            if (empty($profileKey = $this->bodyParams[self::BODY_PARAM_PROFILE_KEY]) ||
+                empty($consentName = $this->bodyParams[self::BODY_PARAM_CONSENT_NAME]) ||
+                is_null($profile = $this->getProfile($profileKey))
             ) {
                 $msg = 'Profile not found.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
@@ -35,7 +40,7 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_404, [], $msg));
             }
 
-            if ($this->updateSubscription($profile) === false) {
+            if (isset($profile) && isset($consentName) && $this->updateSubscription($profile, $consentName) === false) {
                 $msg = 'Unable to update subscription for Profile.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
@@ -49,15 +54,15 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
     }
 
     /**
-     * @param string $PK
+     * @param string $profileKey
      *
      * @return Profile|null
      */
-    protected function getProfile(string $PK): ?Profile
+    protected function getProfile(string $profileKey): ?Profile
     {
         try {
-            if (strlen($PK)) {
-                return $this->getProfileRepository()->findOneByIntegrationId($PK);
+            if (strlen($profileKey)) {
+                return $this->getProfileRepository()->findOneByIntegrationId($profileKey);
             }
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
@@ -68,10 +73,31 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
 
     /**
      * @param Profile $profile
+     * @param string $consentName
      *
      * @return bool
      */
-    protected function updateSubscription(Profile $profile): bool
+    protected function updateSubscription(Profile $profile, string $consentName): bool
+    {
+        try {
+            if ($consentName === SchemaInterface::SCHEMA_CONSENT_EMAIL_SUBSCRIPTION) {
+                return $this->updateEmailSubscription($profile);
+            } elseif ($consentName === SchemaInterface::SCHEMA_CONSENT_PARTNER_OFFERS) {
+                return $this->updatePartnerOffersSubscription($profile);
+            }
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
+        }
+
+        return false;
+    }
+
+    /**
+     * @param Profile $profile
+     *
+     * @return bool
+     */
+    protected function updateEmailSubscription(Profile $profile): bool
     {
         try {
             $_POST['email'] = $profile->getEmail();
@@ -87,6 +113,28 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
                 );
             }
 
+            return true;
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
+            return false;
+        }
+    }
+
+    /**
+     * @param Profile $profile
+     *
+     * @return bool
+     */
+    protected function updatePartnerOffersSubscription(Profile $profile): bool
+    {
+        try {
+            if (! empty($profile->getIdCustomer())) {
+                $customer = $this->getEntityHelper()->getCustomerById($profile->getIdCustomer());
+                if ($customer instanceof Customer && true === (bool) $customer->optin) {
+                    $customer->optin = false;
+                    return $customer->update();
+                }
+            }
             return true;
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

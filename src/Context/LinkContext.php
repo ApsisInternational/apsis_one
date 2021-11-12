@@ -84,4 +84,31 @@ class LinkContext extends AbstractContext
             return null;
         }
     }
+
+    /**
+     * @param Product $product
+     * @param int $shopId
+     * @param int $langId
+     *
+     * @return string|null
+     */
+    public function getProductLink(Product $product, int $shopId, int $langId): ?string
+    {
+        try {
+            $linkRewrite = $product->link_rewrite ?? null;
+            $category = $product->category ?? null;
+
+            return (string) $this->getContextObject()->getProductLink(
+                $product,
+                $linkRewrite,
+                $category,
+                null,
+                $langId,
+                $shopId
+            );
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
+    }
 }

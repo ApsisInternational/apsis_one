@@ -648,7 +648,7 @@ class EntityHelper extends LoggerHelper
                 $product = new Product($arr['id_product'], true, $arr['id_lang'], $arr['id_shop']);
                 if (Validate::isLoadedObject($product)) {
                     $arr['product_image_url'] = $this->linkContext->getProductCoverImage($product);
-                    $arr['product_url'] = $product->getLink();
+                    $arr['product_url'] = $this->linkContext->getProductLink($product, $arr['id_shop'], $arr['id_lang']);
                     $arr['product_price_amount_incl_tax'] = $product->getPrice();
                     $arr['product_price_amount_excl_tax'] = $product->getPrice(false);
                 }

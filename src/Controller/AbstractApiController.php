@@ -2,6 +2,7 @@
 
 namespace Apsis\One\Controller;
 
+use Apsis\One\Helper\EntityHelper;
 use Apsis\One\Model\SchemaInterface;
 use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Helper\HelperInterface;
@@ -11,6 +12,7 @@ use apsis_OneApiinstallationconfigModuleFrontController;
 use apsis_OneApistoresModuleFrontController;
 use apsis_OneApiprofilesModuleFrontController;
 use Context;
+use Exception;
 use ModuleFrontController;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
 use WebserviceRequest;
@@ -240,7 +242,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
                 }
 
                 if (! Tools::getIsset($queryParam)) {
-                    $msg = sprintf("Missing query param {%s}", $queryParam) ;
+                    $msg = sprintf("Missing query param {%s}", $queryParam);
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -311,7 +313,6 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             $this->queryParams[$queryParam] = Tools::safeOutput($value);
 
             if ($queryParam === self::QUERY_PARAM_CONTEXT_IDS) {
-                $this->module->helper->logInfoMsg($this->queryParams[$queryParam]);
                 $this->setContextIds($this->queryParams[$queryParam]);
             }
         } catch (Throwable $e) {
@@ -356,7 +357,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             } else {
                 $body = file_get_contents('php://input');
                 if (empty($body) || ! Validate::isJson($body)) {
-                    $msg = sprintf("Invalid payload.\n {%s}", $body);
+                    $msg = sprintf("Invalid payload. {%s}", $body);
                     $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                     $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_400, [], $msg));
@@ -519,13 +520,23 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     }
 
     /**
+     * @return EntityHelper
+     */
+    protected function getEntityHelper(): EntityHelper
+    {
+        /** @var EntityHelper $entityHelper */
+        $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+        return $entityHelper;
+    }
+
+    /**
      * @return ProfileRepository
+     *
+     * @throws Exception
      */
     protected function getProfileRepository(): ProfileRepository
     {
         /** @var ProfileRepository $repository */
-        return $this->module->helper
-            ->getService(HelperInterface::SERVICE_HELPER_ENTITY)
-            ->getProfileRepository();
+        return $this->getEntityHelper()->getProfileRepository();
     }
 }

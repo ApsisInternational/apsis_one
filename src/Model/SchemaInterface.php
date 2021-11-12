@@ -80,6 +80,9 @@ interface SchemaInterface
     const SCHEMA_KEY_TYPE = 'type';
     const SCHEMA_KEY_VALIDATE = 'validate';
     const SCHEMA_ENTRY_ID_FIELD_NAME = 'entryId';
+    const SCHEMA_CONSENT_EMAIL_SUBSCRIPTION = 'emailNewsletter';
+    const SCHEMA_CONSENT_PARTNER_OFFERS = 'partnerOffers';
+    const SCHEMA_FIELD_CART_REBUILD_URL = 'cartRebuildUrl';
 
     /**
      * Events discriminator
@@ -207,13 +210,13 @@ interface SchemaInterface
     ];
     const SCHEMA_PROFILE_CONSENT = [
         [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletter',
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_CONSENT_EMAIL_SUBSCRIPTION,
             self::SCHEMA_KEY_DISPLAY_NAME => 'Email Newsletter Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
         ],
         [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffers',
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_CONSENT_PARTNER_OFFERS,
             self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers Subscription',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
@@ -353,7 +356,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_LOGICAL_NAME => 'cartToken',
             self::SCHEMA_KEY_DISPLAY_NAME => 'Cart Token',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
-            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
+        ],
+        self::SCHEMA_FIELD_CART_REBUILD_URL => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_FIELD_CART_REBUILD_URL,
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Cart Rebuild Url',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_URL
         ],
         'itemsCount' => [
             self::SCHEMA_KEY_LOGICAL_NAME => 'itemsCount',
@@ -507,8 +516,8 @@ interface SchemaInterface
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_STRING,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_GENERIC_STRING
         ],
-        'isSubscribedToNewsletter' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'emailNewsletter',
+        self::SCHEMA_CONSENT_EMAIL_SUBSCRIPTION => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_CONSENT_EMAIL_SUBSCRIPTION,
             self::SCHEMA_KEY_DISPLAY_NAME => 'Email Newsletter?',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN
@@ -519,8 +528,8 @@ interface SchemaInterface
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP
         ],
-        'partnerOffers' => [
-            self::SCHEMA_KEY_LOGICAL_NAME => 'partnerOffers',
+        self::SCHEMA_CONSENT_PARTNER_OFFERS => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_CONSENT_PARTNER_OFFERS,
             self::SCHEMA_KEY_DISPLAY_NAME => 'Partner Offers?',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_BOOLEAN,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_BOOLEAN

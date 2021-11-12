@@ -24,6 +24,7 @@ interface ApiControllerInterface
     const QUERY_PARAM_CONTEXT_IDS = 'context_ids';
     const QUERY_PARAM_RESET = 'reset';
     const QUERY_PARAM_SCHEMA = 'schema';
+    const QUERY_PARAM_TOKEN = 'token';
     const QUERY_PARAM_AFTER_ID = 'after_id';
     const QUERY_PARAM_INCLUDE_EVENTS = 'include_events';
     const QUERY_PARAM_AFTER_DATETIME = 'after_datetime';
@@ -31,7 +32,8 @@ interface ApiControllerInterface
 
     /** BODY PARAMS */
     const JSON_BODY_PARAM_ITEMS = 'items';
-    const BODY_PARAM_PROFILE_KEY = 'PK';
+    const BODY_PARAM_PROFILE_KEY = 'profile_key';
+    const BODY_PARAM_CONSENT_NAME = 'consent_name';
     const BODY_PARAM_TOTAL = 'total';
     const BODY_PARAM_COUNT = 'count';
     const BODY_PARAM_LINKS = 'links';

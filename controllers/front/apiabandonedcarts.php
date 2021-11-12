@@ -80,11 +80,17 @@ class apsis_OneApiabandonedcartsModuleFrontController extends AbstractApiControl
                     );
 
                 if (is_array($abandonedCarts)) {
+                    $cachedProfiles = [];
                     foreach ($abandonedCarts as $abandonedCart) {
                         $dataArr = $entityHelper->getAbandonedCartDataArrForExport($abandonedCart);
-                        /** @var Profile $profile */
-                        $profile = $entityHelper->getProfileRepository()
-                            ->findOneById($abandonedCart->getIdApsisProfile());
+
+                        if (isset($cachedProfiles[$abandonedCart->getIdApsisProfile()])) {
+                            $profile = $cachedProfiles[$abandonedCart->getIdApsisProfile()];
+                        } else {
+                            /** @var Profile $profile */
+                            $profile = $cachedProfiles[$abandonedCart->getIdApsisProfile()] =
+                                $entityHelper->getProfileRepository()->findOneById($abandonedCart->getIdApsisProfile());
+                        }
 
                         if (! empty($dataArr) && $profile instanceof Profile) {
                             $items[] = [

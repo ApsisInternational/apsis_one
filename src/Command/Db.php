@@ -135,9 +135,11 @@ class Db extends AbstractCommand
 
                 $sql = sprintf(
                     EI::ABANDONED_CART_INSERT_SQL,
+                    EI::ABANDONED_CART_INSERT_SQL_ITEMS,
                     (int) $shop[EI::C_ID_SHOP],
-                    $fromTime->format('Y-m-d H:i:s'),
-                    $toTime->format('Y-m-d H:i:s')
+                    EI::ABANDONED_CART_INSERT_SQL_ITEMS,
+                    '2021-01-03 15:59:10',
+                    '2021-12-03 15:59:10'
                 );
                 $message .= $this->executeQueryAndGetResultString($sql, $shop[EI::C_ID_SHOP], 'Abandoned Carts');
             }

@@ -995,27 +995,7 @@ interface EntityInterface extends PsEntityInterface
                     "is_recyclable", c.`recyclable`,
                     "is_gift", c.`gift`,
                     "id_lang", c.`id_lang`,
-                    "items", (
-                        SELECT
-                            JSON_OBJECTAGG(
-                                cp.`id_product`, JSON_OBJECT(
-                                    "id_product", cp.`id_product`,
-                                    "product_name", pl.`name`,
-                                    "product_reference", p.`reference`,
-                                    "product_qty", cp.`quantity`,
-                                    "product_image_url", null,
-                                    "product_url", null,
-                                    "product_price_amount_incl_tax", null,
-                                    "product_price_amount_excl_tax", null
-                                )
-                            )
-                        FROM `' . _DB_PREFIX_ . 'cart_product` cp
-                        INNER JOIN `' . _DB_PREFIX_ . 'product` p
-                            ON (p.`id_product` = cp.`id_product`)
-                        INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
-                            ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, cp.`id_shop`, `id_lang`)
-                        WHERE cp.`id_cart` = c.`id_cart`
-                    )
+                    "items", (%s)
                 ) as `cart_data`,
                 UUID() as `token`,
                 c.`date_upd` as `date_add`
@@ -1031,9 +1011,32 @@ interface EntityInterface extends PsEntityInterface
             WHERE
                 c.`id_customer` != ' . self::NO_INT . ' AND
                 c.`id_shop` = %d AND
+                (%s) IS NOT NULL AND
                 c.`date_upd` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME)
         ) AS s
         WHERE JSON_EXTRACT(cart_data, "$.items") IS NOT NULL ';
+
+    const ABANDONED_CART_INSERT_SQL_ITEMS = '
+        SELECT
+            JSON_OBJECTAGG(
+                cp.`id_product`, JSON_OBJECT(
+                    "id_product", cp.`id_product`,
+                    "product_name", pl.`name`,
+                    "product_reference", p.`reference`,
+                    "product_qty", cp.`quantity`,
+                    "product_image_url", null,
+                    "product_url", null,
+                    "product_price_amount_incl_tax", null,
+                    "product_price_amount_excl_tax", null
+                )
+            )
+        FROM `' . _DB_PREFIX_ . 'cart_product` cp
+        INNER JOIN `' . _DB_PREFIX_ . 'product` p
+            ON (p.`id_product` = cp.`id_product`)
+        INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
+            ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, cp.`id_shop`, `id_lang`)
+        WHERE cp.`id_cart` = c.`id_cart`
+    ';
 
     /**
      * @return string

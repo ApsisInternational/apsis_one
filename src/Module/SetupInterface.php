@@ -15,6 +15,7 @@ interface SetupInterface
     const API_STORES_CONTROLLER = 'apistores';
     const API_PROFILES_CONTROLLER = 'apiprofiles';
     const API_PROFILE_UPDATE_CONTROLLER = 'apisubscriptionupdate';
+    const API_CART_REBUILD_CONTROLLER = 'apicartrebuild';
 
     /** CONFIGURATION PREFIX  */
     const CONFIG_PREFIX = 'APSIS_ONE_';
