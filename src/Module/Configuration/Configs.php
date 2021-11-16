@@ -473,63 +473,6 @@ class Configs implements SetupInterface
     }
 
     /**
-     * @param int $size
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
-     *
-     * @return bool
-     */
-    public function saveProfileSynSize(int $size, ?int $idShopGroup = null, ?int $idShop = null): bool
-    {
-        try {
-            $this->logValueChange(__METHOD__, $this->getProfileSynSize($idShopGroup, $idShop), $size);
-
-            return Configuration::updateValue(
-                self::CONFIG_KEY_PROFILE_SYNC_SIZE,
-                $size,
-                true,
-                $idShopGroup,
-                $idShop
-            );
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return false;
-        }
-    }
-
-    /**
-     * @param int|null $idShopGroup
-     * @param int|null $idShop
-     *
-     * @return int
-     */
-    public function getProfileSynSize(?int $idShopGroup = null, ?int $idShop = null): int
-    {
-        try {
-            $value = (int) Configuration::get(self::CONFIG_KEY_PROFILE_SYNC_SIZE, null, $idShopGroup, $idShop);
-            return ($value) ?: self::DEFAULT_SYNC_SIZE;
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return self::DEFAULT_SYNC_SIZE;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function deleteProfileSynSizeFromAllContext(): bool
-    {
-        try {
-            $this->module->helper->logInfoMsg(__METHOD__);
-
-            return Configuration::deleteByName(self::CONFIG_KEY_PROFILE_SYNC_SIZE);
-        } catch (Throwable $e) {
-            $this->module->helper->logErrorMsg(__METHOD__, $e);
-            return false;
-        }
-    }
-
-    /**
      * @param string $key
      * @param int|null $idLang
      * @param int|null $idShopGroup

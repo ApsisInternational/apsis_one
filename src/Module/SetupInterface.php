@@ -28,7 +28,6 @@ interface SetupInterface
     const CONFIG_KEY_INSTALLATION_CONFIGS = self::CONFIG_PREFIX . 'INSTALLATION_CONFIGS';
     const CONFIG_KEY_API_TOKEN = self::CONFIG_PREFIX . 'API_TOKEN';
     const CONFIG_KEY_API_TOKEN_EXPIRY = self::CONFIG_PREFIX . 'API_TOKEN_EXPIRY';
-    const CONFIG_KEY_PROFILE_SYNC_SIZE = self::CONFIG_PREFIX . 'PROFILE_SYNC_SIZE';
 
     /** INSTALLATION CONFIGURATION KEYS  */
     const INSTALLATION_CONFIG_CLIENT_ID = 'client_id';
@@ -47,10 +46,6 @@ interface SetupInterface
     /** CONFIG FLAGS */
     const FLAG_YES = 1;
     const FLAG_NO = 0;
-
-    /** LIMITATIONS  */
-    const DEFAULT_SYNC_SIZE = 5000;
-    const DEFAULT_DB_CLEANUP_AFTER = 30; //Days
 
     /** MODULE */
     const MODULE_NAME = 'apsis_one';

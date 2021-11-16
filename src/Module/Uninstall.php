@@ -44,8 +44,7 @@ class Uninstall extends AbstractSetup
                 $this->configs->deleteTrackingCodeFromAllContext() &&
                 $this->configs->deleteInstallationConfigsFromAllContext() &&
                 $this->configs->deleteApiTokenFromAllContext() &&
-                $this->configs->deleteApiTokenExpiryFromAllContext() &&
-                $this->configs->deleteProfileSynSizeFromAllContext();
+                $this->configs->deleteApiTokenExpiryFromAllContext();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;

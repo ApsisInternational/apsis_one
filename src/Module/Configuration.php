@@ -47,11 +47,9 @@ class Configuration extends AbstractSetup
             $profileSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_FLAG);
             $eventSyncEnabled =  (int) Tools::getValue(self::CONFIG_KEY_EVENT_SYNC_FLAG);
             $trackingScript = (string) Tools::getValue(self::CONFIG_KEY_TRACKING_CODE);
-            $profileSyncSize = (int) Tools::getValue(self::CONFIG_KEY_PROFILE_SYNC_SIZE, self::DEFAULT_SYNC_SIZE);
             return $this->configs->saveProfileSyncFlag($profileSyncEnabled) &&
                 $this->configs->saveEventSyncFlag($eventSyncEnabled) &&
-                $this->configs->saveTrackingCode($trackingScript) &&
-                $this->configs->saveProfileSynSize($profileSyncSize);
+                $this->configs->saveTrackingCode($trackingScript);
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;
@@ -75,7 +73,6 @@ class Configuration extends AbstractSetup
             // Load current value
             $helper->fields_value[self::READ_ONLY_FILED_BASE_URL] = $context->getBaseUrl();
             $helper->fields_value[self::CONFIG_KEY_GLOBAL_KEY] = $this->configs->getGlobalKey();
-            $helper->fields_value[self::CONFIG_KEY_PROFILE_SYNC_SIZE] = $this->configs->getProfileSynSize();
 
             $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] =
                 empty($this->configs->getInstallationConfigs()) ? 'NOT CONNECTED' : 'CONNECTED';
@@ -199,12 +196,6 @@ class Configuration extends AbstractSetup
                                 'label' => 'No',
                             ]
                         ]
-                    ],
-                    [
-                        'type' => 'text',
-                        'label' => 'Profile Sync Size',
-                        'name' => self::CONFIG_KEY_PROFILE_SYNC_SIZE,
-                        'required' => true
                     ],
                     [
                         'type' => 'switch',
