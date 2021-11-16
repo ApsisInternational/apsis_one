@@ -138,8 +138,8 @@ class Db extends AbstractCommand
                     EI::ABANDONED_CART_INSERT_SQL_ITEMS,
                     (int) $shop[EI::C_ID_SHOP],
                     EI::ABANDONED_CART_INSERT_SQL_ITEMS,
-                    '2021-01-03 15:59:10',
-                    '2021-12-03 15:59:10'
+                    $fromTime->format('Y-m-d H:i:s'), // '2021-01-03 15:59:10'
+                    $toTime->format('Y-m-d H:i:s') // '2021-12-03 15:59:10'
                 );
                 $message .= $this->executeQueryAndGetResultString($sql, $shop[EI::C_ID_SHOP], 'Abandoned Carts');
             }

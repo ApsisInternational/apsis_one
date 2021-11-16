@@ -111,39 +111,22 @@ class apsis_OneApicartrebuildModuleFrontController extends ModuleFrontController
      */
     private function recoverCartAndRedirect(AbandonedCart $abandonedCart): void
     {
-        if (Validate::isLoadedObject($cart = new Cart($abandonedCart->getIdCart())) &&
-            Validate::isLoadedObject($customer = new Customer((int) $cart->id_customer))
-        ) {
-            $customer->logged = 1;
-            $this->setInContext($customer, $cart->id);
-        }
-
-        $this->module->helper->logDebugMsg(
-            __METHOD__,
-            ['info' => sprintf('Successfully rebuild cart for given token {%s}.', $abandonedCart->getToken())]
-        );
-
-        Tools::redirect($this->context->link->getPageLink('cart', true, null, null, false, $cart->id_shop));
-    }
-
-    /**
-     * @param Customer $customer
-     *
-     * @param int $cartId
-     */
-    private function setInContext(Customer $customer, int $cartId)
-    {
         try {
-            $this->context->customer = $customer;
-            $this->context->cookie->id_customer = $customer->id;
-            $this->context->cookie->logged = 1;
-            $this->context->cookie->passwd = $customer->passwd;
-            $this->context->cookie->check_cgv = 1;
-            $this->context->cookie->customer_firstname = $customer->firstname;
-            $this->context->cookie->customer_lastname = $customer->lastname;
-            $this->context->cookie->is_guest = $customer->isGuest();
-            $this->context->cookie->email = $customer->email;
-            $this->context->cookie->id_cart = $cartId;
+            if (Validate::isLoadedObject($cart = new Cart($abandonedCart->getIdCart()))) {
+                $_POST['recover_cart'] = $cart->id;
+                $_POST['token_cart'] = md5(_COOKIE_KEY_ . 'recover_cart_' . $cart->id);
+
+                $this->module->helper->logInfoMsg(
+                    sprintf('Successfully rebuild cart for given token {%s}.', $abandonedCart->getToken())
+                );
+                parent::init();
+                Tools::redirect($this->context->link->getPageLink('cart', true, null, null, false, $cart->id_shop));
+            } else {
+                $this->module->helper->logInfoMsg(
+                    sprintf('Unable to rebuild cart for given token {%s}.', $abandonedCart->getToken())
+                );
+                $this->redirectToHomepage(null, $e->getMessage(), __METHOD__);
+            }
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             $this->redirectToHomepage(null, $e->getMessage(), __METHOD__);

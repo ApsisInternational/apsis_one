@@ -1011,10 +1011,10 @@ interface EntityInterface extends PsEntityInterface
             WHERE
                 c.`id_customer` != ' . self::NO_INT . ' AND
                 c.`id_shop` = %d AND
-                (%s) IS NOT NULL AND
-                c.`date_upd` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME)
-        ) AS s
-        WHERE JSON_EXTRACT(cart_data, "$.items") IS NOT NULL ';
+                (%s LIMIT 1) IS NOT NULL AND
+                c.`date_upd` BETWEEN CAST("%s" AS DATETIME) AND CAST("%s" AS DATETIME) AND
+                (SELECT o.`id_order` FROM `' . _DB_PREFIX_ . 'orders` o WHERE o.`id_cart` = c.`id_cart` LIMIT 1) IS NULL
+        ) carts ';
 
     const ABANDONED_CART_INSERT_SQL_ITEMS = '
         SELECT
