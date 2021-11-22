@@ -70,7 +70,6 @@ interface HelperInterface
     const SERVICE_CONTEXT_LINK = 'apsis_one.context.link';
     /** HELPER */
     const SERVICE_HELPER_LOGGER = 'apsis_one.helper.logger';
-    const SERVICE_HELPER_DATA = 'apsis_one.helper.data';
     const SERVICE_HELPER_DATE = 'apsis_one.helper.date';
     const SERVICE_HELPER_MODULE = 'apsis_one.helper.module';
     const SERVICE_HELPER_ENTITY = 'apsis_one.helper.entity';

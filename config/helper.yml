@@ -8,9 +8,6 @@ services:
   apsis_one.helper.module:
     class: 'Apsis\One\Helper\ModuleHelper'
 
-  apsis_one.helper.data:
-    class: 'Apsis\One\Helper\DataHelper'
-
   apsis_one.helper.date:
     class: 'Apsis\One\Helper\DateHelper'
 

@@ -617,23 +617,19 @@ class Configs implements SetupInterface
      *
      * @return bool
      */
-    protected function isAnyClientConfigMissing(array $configs, ?int $idShopGroup = null, ?int $idShop = null): bool
+    public function isAnyClientConfigMissing(array $configs, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         foreach (SetupInterface::CLIENT_CONFIGS as $config) {
-
-            if (! isset($configs[$config]) || empty($configs[$config])) {
-
+            if (empty($configs[$config])) {
                 $info = [
-                    'Message' => 'Missing client credentials',
+                    'Message' => sprintf('Missing installation config {%s}', $config),
                     'idShopGroup' => $idShopGroup,
                     'idShop' => $idShop
                 ];
                 $this->module->helper->logDebugMsg(__METHOD__, $info);
-
                 return true;
             }
         }
-
         return false;
     }
 

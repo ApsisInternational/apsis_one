@@ -137,6 +137,8 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);
         }
+
+        $this->exitWithResponse([]);
     }
 
     /**
@@ -166,7 +168,7 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
             if (empty($headers['Authorization']) ||
                 $headers['Authorization'] !== $this->configs->getGlobalKey()
             ) {
-                $msg = sprintf('Invalid key {%s} for authorization header.', $headers['Authorization']);
+                $msg = 'Invalid key for authorization header.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
                 $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));

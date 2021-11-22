@@ -2,7 +2,6 @@
 
 namespace Apsis\One\Model;
 
-use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\EntityHelper;
 use Apsis\One\Helper\HelperInterface;
 use Apsis\One\Helper\ModuleHelper;
@@ -322,49 +321,12 @@ abstract class AbstractData implements DataInterface
 
             /** @var EntityHelper $entityHelper */
             $entityHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
-            /** @var DateHelper $dateHelper */
-            $dateHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
             /** @var Event $event */
             foreach ($this->objectData[SchemaInterface::PROFILE_SCHEMA_TYPE_EVENTS] as $event) {
                 try {
-                    $eventDataArr = $entityHelper->getEventDataArrForExport(
-                        json_decode($event->getEventData(), true),
-                        $event->getEventType()
-                    );
-
-                    if (empty($eventDataArr[SchemaInterface::KEY_MAIN])) {
-                        continue;
-                    }
-
-                    if (isset($eventDataArr[SchemaInterface::KEY_ITEMS])) {
-                        $subEvents = $eventDataArr[SchemaInterface::KEY_ITEMS];
-                        unset($eventDataArr[SchemaInterface::KEY_ITEMS]);
-                    }
-
-                    $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
-                    $eventsArr[] = [
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                            (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
-                            is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
-                    ];
-
-                    if (is_array($discriminator) && ! empty($subEvents)) {
-                        foreach ($subEvents as $subEvent) {
-                            if (empty($subEvent[SchemaInterface::KEY_MAIN])) {
-                                continue;
-                            }
-
-                            $eventsArr[] = [
-                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                                    (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
-                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
-                                    $discriminator[SchemaInterface::KEY_ITEMS],
-                                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
-                            ];
-                        }
+                    if (! empty($eventArr = $entityHelper->getEventDataArrForExport($event)) && is_array($eventArr)) {
+                        $eventsArr = array_merge($eventsArr, array_values($eventArr));
                     }
                 } catch (Throwable $e) {
                     $this->helper->logErrorMsg(__METHOD__, $e);

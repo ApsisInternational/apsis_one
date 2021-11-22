@@ -14,8 +14,8 @@ interface CommandInterface
     const COMMAND_HELP_DESC_SYNC = self::COMMAND_TEXT_SYNC . ' ' . self::PROFILE_DESC . ' ' . self::EVENT_DESC;
     const ARG_REQ_DESC_SYNC = self::ARG_REQ_TEXT . " '" . self::JOB_TYPE_PROFILE . "' / '" . self::JOB_TYPE_EVENT . "'";
     const MSG_PROCESSOR_SYNC = ['=====================', 'APSIS Sync Operations', '=====================', ''];
-    const JOB_TYPE_PROFILE = 'profile';
-    const JOB_TYPE_EVENT = 'event';
+    const JOB_TYPE_PROFILE = 'sync-profiles';
+    const JOB_TYPE_EVENT = 'sync-events';
     const PROFILE_DESC = "Sync operation '" . self::JOB_TYPE_PROFILE . "' to sync Profiles.";
     const EVENT_DESC = "Sync operation '" . self::JOB_TYPE_EVENT . "' to sync Profile Events.";
 
@@ -38,7 +38,8 @@ interface CommandInterface
         "' to find missing subscription updates.";
 
     // Messages
-    const MSG_SUCCESS = '<info>Successfully executed job with jobCode: %s. %s</info>';
-    const MSG_ERROR = '<error>Error. Invalid job with jobCode: %s.</error>';
-    const MSG_ALREADY_RUNNING = '<info>The command %s is already running in another process.</info>';
+    const MSG_SUCCESS = 'Successfully executed job with jobCode: %s. %s';
+    const MSG_INVALID_JOB = 'Error. Invalid job with jobCode: %s.';
+    const MSG_RUNTIME_ERR = "Error thrown during execution with jobCode: %s.\nError %s";
+    const MSG_ALREADY_RUNNING = 'The command %s is already running in another process.';
 }

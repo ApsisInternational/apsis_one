@@ -22,6 +22,8 @@ use Apsis\One\Module\AbstractSetup;
 use Apsis\One\Repository\ProfileRepository;
 use Apsis\One\Repository\EventRepository;
 use Apsis\One\Repository\AbandonedCartRepository;
+use PrestaShop\PrestaShop\Adapter\Database;
+use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager\QueryBuilder;
 use Product;
 use Shop;
 use Validate;
@@ -566,29 +568,65 @@ class EntityHelper extends LoggerHelper
     }
 
     /**
-     * @param array $eventData
-     * @param int $eventType
+     * @param Event $event
      *
      * @return array|null
      */
-    public function getEventDataArrForExport(array $eventData, int $eventType): ?array
+    public function getEventDataArrForExport(Event $event): ?array
     {
         try {
-            if (empty($eventData) || empty($eventType)) {
+            if (empty($eventData =  json_decode($event->getEventData(), true)) || empty($event->getEventType())) {
                 return null;
             }
 
-            if (in_array($eventType, SchemaInterface::EVENTS_CONTAINING_PRODUCT)) {
+            if (in_array($event->getEventType(), SchemaInterface::EVENTS_CONTAINING_PRODUCT)) {
                 $eventData = $this->setProductDataInArr($eventData);
             }
 
             /** @var SchemaInterface $schemaProvider */
-            $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$eventType]);
-
+            $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$event->getEventType()]);
             /** @var DataInterface $dataProvider */
             $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
 
-            return $dataProvider->setObjectData($eventData, $schemaProvider)->getDataArr();
+            $eventDataArr = $dataProvider->setObjectData($eventData, $schemaProvider)->getDataArr();
+            if (empty($eventDataArr[SchemaInterface::KEY_MAIN])) {
+                return null;
+            }
+
+            if (isset($eventDataArr[SchemaInterface::KEY_ITEMS])) {
+                $subEvents = $eventDataArr[SchemaInterface::KEY_ITEMS];
+                unset($eventDataArr[SchemaInterface::KEY_ITEMS]);
+            }
+
+            /** @var DateHelper $dateHelper */
+            $dateHelper = $this->moduleHelper->getService(HelperInterface::SERVICE_HELPER_DATE);
+
+            $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
+            $eventsArr['p' . $event->getId()] = [
+                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
+                    (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
+                    is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
+                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
+            ];
+
+            if (is_array($discriminator) && ! empty($subEvents)) {
+                foreach ($subEvents as $index => $subEvent) {
+                    if (empty($subEvent[SchemaInterface::KEY_MAIN])) {
+                        continue;
+                    }
+
+                    $eventsArr['p' . $event->getId() . 'c' . $index] = [
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
+                            (int)$dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
+                            $discriminator[SchemaInterface::KEY_ITEMS],
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
+                    ];
+                }
+            }
+
+            return $eventsArr;
         } catch (Throwable $e) {
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;
@@ -663,8 +701,8 @@ class EntityHelper extends LoggerHelper
                         $itemArr = $this->setProductDataInArr($itemArr);
 
                         $arr[SchemaInterface::KEY_ITEMS][$key] = $itemArr;
-                        $arr['total_product_incl_tax'] += $itemArr['product_price_amount_incl_tax'];
-                        $arr['total_product_excl_tax'] += $itemArr['product_price_amount_excl_tax'];
+                        $arr['total_product_incl_tax'] += $itemArr['product_price_amount_incl_tax'] ?? null;
+                        $arr['total_product_excl_tax'] += $itemArr['product_price_amount_excl_tax'] ?? null;
                     }
                 }
             }
@@ -807,5 +845,39 @@ class EntityHelper extends LoggerHelper
             $this->moduleHelper->logErrorMsg(__METHOD__, $e);
             return null;
         }
+    }
+
+    /**
+     * @param string $table
+     * @param int $status
+     * @param array $ids
+     *
+     * @return int|null
+     */
+    public function updateStatusForEntityByIds(string $table, int $status, array $ids): ?int
+    {
+        try {
+            $queryBuilder = new QueryBuilder(new Database());
+            $sql = sprintf(
+                "UPDATE `%s` SET `%s` = %d WHERE %s",
+                _DB_PREFIX_ . $table,
+                EI::C_SYNC_STATUS,
+                $status,
+                $queryBuilder->buildWhereConditions('AND', [EI::T_PRIMARY_MAPPINGS[$table] => $ids])
+            );
+
+            $this->moduleHelper->logInfoMsg($sql);
+
+            $result = Db::getInstance()->query($sql);
+            if (($result instanceof PDOStatement && $rowCount = $result->rowCount()) ||
+                ($result instanceof mysqli && $rowCount = $result->affected_rows)
+            ) {
+                return $rowCount;
+            }
+        } catch (Throwable $e) {
+            $this->moduleHelper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
     }
 }

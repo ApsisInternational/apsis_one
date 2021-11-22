@@ -130,7 +130,7 @@ abstract class AbstractRepository extends EntityRepository implements Repository
      *
      * @return EI[]|null
      */
-    public function findBySyncStatusForGivenShop(array $statusArr, array $idShopArr, int $afterId): ?array
+    public function findBySyncStatusForGivenShop(array $statusArr, array $idShopArr, int $afterId = 0): ?array
     {
         try {
             if ($this instanceof AbandonedCartRepository) {

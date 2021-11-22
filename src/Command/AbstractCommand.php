@@ -2,17 +2,19 @@
 
 namespace Apsis\One\Command;
 
+use Apsis_one;
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\ModuleHelper;
-use Context;
+use Apsis\One\Module\Configuration\Configs;
+use Apsis\One\Helper\EntityHelper;
 use PrestaShop\PrestaShop\Adapter\LegacyContextLoader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Apsis\One\Helper\EntityHelper;
+use Context;
 use Throwable;
 
 abstract class AbstractCommand extends Command implements CommandInterface
@@ -49,7 +51,15 @@ abstract class AbstractCommand extends Command implements CommandInterface
      */
     protected $entityHelper;
 
+    /**
+     * @var ModuleHelper
+     */
     protected $moduleHelper;
+
+    /**
+     * @var Configs
+     */
+    protected $configs;
 
     /**
      * @var DateHelper
@@ -65,6 +75,11 @@ abstract class AbstractCommand extends Command implements CommandInterface
      * @var LegacyContextLoader
      */
     protected $legacyContextLoader;
+
+    /**
+     * @var array
+     */
+    protected $installationConfigs;
 
     /**
      * @param InputInterface $input
@@ -84,10 +99,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
         $this->dateHelper = new DateHelper();
         $this->shopContext = new ShopContext($this->dateHelper);
         $this->legacyContextLoader = new LegacyContextLoader(Context::getContext());
-
-        // Load generic context to start with.
-        // @toDo load real shopId and shopGroupId for each sync
-        //$this->legacyContextLoader->loadGenericContext();
+        $this->configs = new Configs(new Apsis_one($this->moduleHelper));
 
         parent::__construct($name);
     }
@@ -116,7 +128,9 @@ abstract class AbstractCommand extends Command implements CommandInterface
             $output->writeln($this->processorMsg);
 
             if (! $this->lock()) {
-                $output->writeln(sprintf(self::MSG_ALREADY_RUNNING, $this->commandName));
+                $message = sprintf(self::MSG_ALREADY_RUNNING, $this->commandName);
+                $this->entityHelper->logInfoMsg($message);
+                $output->writeln('<info>' . $message . '</info>');
 
                 return 0;
             }
@@ -131,15 +145,15 @@ abstract class AbstractCommand extends Command implements CommandInterface
 
     /**
      * @param OutputInterface $output
-     * @param string $type
+     * @param string $jobCode
      * @param string $msg
-     *
-     * @return void
      */
-    protected function outputSuccessMsg(OutputInterface $output, string $type, string $msg): void
+    protected function outputSuccessMsg(OutputInterface $output, string $jobCode, string $msg): void
     {
         try {
-            $output->writeln(sprintf(self::MSG_SUCCESS , $type, $msg));
+            $message = sprintf(self::MSG_SUCCESS , $jobCode, $msg);
+            $this->entityHelper->logInfoMsg($message);
+            $output->writeln('<info>' . $message . '</info>');
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $output->writeln($e->getMessage());
@@ -149,16 +163,72 @@ abstract class AbstractCommand extends Command implements CommandInterface
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     *
-     * @return void
      */
-    protected function outputErrorMsg(InputInterface $input, OutputInterface $output): void
+    protected function outputInvalidJobErrorMsg(InputInterface $input, OutputInterface $output): void
     {
         try {
-            $output->writeln(sprintf(self::MSG_ERROR, (string) $input->getArgument(self::ARG_REQ_JOB)));
+            $message = sprintf(self::MSG_INVALID_JOB, (string) $input->getArgument(self::ARG_REQ_JOB));
+            $this->entityHelper->logInfoMsg($message);
+            $output->writeln('<error>' . $message . '</error>');
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $output->writeln($e->getMessage());
         }
+    }
+
+    /**
+     * @param OutputInterface $output
+     * @param string $jobCode
+     * @param string $err
+     */
+    protected function outputRuntimeErrorMsg(OutputInterface $output, string $jobCode, string $err) : void
+    {
+        try {
+            $message = sprintf(self::MSG_RUNTIME_ERR, $jobCode, $err);
+            $this->entityHelper->logInfoMsg($message);
+            $output->writeln('<error>' . $message . '</error>');
+        } catch (Throwable $e) {
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+            $output->writeln($e->getMessage());
+        }
+    }
+
+    /**
+     * @param int $shopId
+     * @param string $feature
+     *
+     * @return string
+     */
+    protected function isModuleAndFeatureActiveAndConnected(int $shopId, string $feature = self::JOB_TYPE_PROFILE): ?string
+    {
+        if (! $this->moduleHelper->isModuleEnabledForContext(null, $shopId)) {
+            return sprintf("\nSkipping for Shop ID {%d}, Module is disabled.", $shopId);
+        }
+
+        if (empty($configs = $this->configs->getInstallationConfigs(null, $shopId)) ||
+            $this->configs->isAnyClientConfigMissing($configs, null, $shopId)
+        ) {
+            return sprintf("\nSkipping for Shop ID {%d}, Module is not connected to JUSTIN.", $shopId);
+        }
+
+        $this->installationConfigs = $configs;
+
+        if ($feature === self::JOB_TYPE_PROFILE && ! $this->configs->getProfileSyncFlag(null, $shopId)) {
+            return sprintf("\nSkipping for Shop ID {%d}, Profile sync feature is not active", $shopId);
+        }
+
+        if ($feature === self::JOB_TYPE_EVENT && ! $this->configs->getEventSyncFlag(null, $shopId)) {
+            return sprintf("\nSkipping for Shop ID {%d}, Event sync feature is not active", $shopId);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int $shopId
+     */
+    protected function loadGenericContext(int $shopId): void
+    {
+        $this->legacyContextLoader->loadGenericContext(get_class($this), null, null, $shopId);
     }
 }

@@ -148,7 +148,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                     $afterId
                 );
 
-            if (is_array($profiles)) {
+            if (! empty($profiles) && is_array($profiles)) {
                 $inclEvents = isset($this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS]);
 
                 foreach ($profiles as $profile) {
@@ -157,7 +157,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                         ($inclEvents && $this->configs->getEventSyncFlag($this->groupId, $this->shopId))
                     );
                     if (! empty($item)) {
-                        $items[$profile->getId()] = $item;
+                        $items[] = $item;
                     }
                 }
             }

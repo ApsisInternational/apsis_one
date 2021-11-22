@@ -59,7 +59,7 @@ class Db extends AbstractCommand
                     $this->scanDbForSilentMissingProfilesFromSqlImport($output);
                     break;
                 default:
-                    $this->outputErrorMsg($input, $output);
+                    $this->outputInvalidJobErrorMsg($input, $output);
             }
 
             $this->release();
@@ -82,7 +82,7 @@ class Db extends AbstractCommand
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->validateModuleEnabledForShop($shopId))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
                     $message .= $check;
                     continue;
                 }
@@ -104,12 +104,11 @@ class Db extends AbstractCommand
                 }
             }
         } catch (Throwable $e) {
+            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_MISSING_PROFILES, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln(sprintf("<error>Error thrown during execution. %s</error>>", $e->getMessage()));
             return;
         }
 
-        $this->entityHelper->logInfoMsg($message);
         $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_MISSING_PROFILES, $message);
     }
 
@@ -123,7 +122,7 @@ class Db extends AbstractCommand
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
-                if (is_string($check = $this->validateModuleEnabledForShop((int) $shop[EI::C_ID_SHOP]))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected((int) $shop[EI::C_ID_SHOP]))) {
                     $message .= $check;
                     continue;
                 }
@@ -144,12 +143,11 @@ class Db extends AbstractCommand
                 $message .= $this->executeQueryAndGetResultString($sql, $shop[EI::C_ID_SHOP], 'Abandoned Carts');
             }
         } catch (Throwable $e) {
+            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_AC, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln(sprintf("<error>Error thrown during execution. %s</error>>", $e->getMessage()));
             return;
         }
 
-        $this->entityHelper->logInfoMsg($message);
         $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_AC, $message);
     }
 
@@ -159,14 +157,14 @@ class Db extends AbstractCommand
     private function scanDbForSilentSubscriptionUpdate(OutputInterface $output): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
-        $updated = $eventsCreated = 0;
         $message = '';
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
+                $updated = $eventsCreated = 0;
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->validateModuleEnabledForShop($shopId))) {
-                    $message = $check;
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
+                    $message .= $check;
                     continue;
                 }
 
@@ -178,22 +176,27 @@ class Db extends AbstractCommand
                     $eventsCreated += $this->entityHelper->registerSubsEventsForSubscribers($subsNeedUpd);
                 }
 
-                $customerNeedUp = PsDb::getInstance()
+                $customerNeedsUpdate = PsDb::getInstance()
                     ->executeS(sprintf(EI::PROFILE_SQL_CUSTOMER_SELECT_NEEDING_UPDATE, $shopId));
-                if (is_array($customerNeedUp) && ! empty($customerNeedUp)) {
+                if (is_array($customerNeedsUpdate) && ! empty($customerNeedsUpdate)) {
                     PsDb::getInstance()->query(sprintf(EI::PROFILE_SQL_CUSTOMER_UPDATE_NEEDING_UPDATE, $shopId));
-                    $updated += count($customerNeedUp);
-                    $eventsCreated += $this->entityHelper->registerSubsEventsForCustomers($customerNeedUp);
+                    $updated += count($customerNeedsUpdate);
+                    $eventsCreated += $this->entityHelper->registerSubsEventsForCustomers($customerNeedsUpdate);
                 }
+
+                $message .= sprintf(
+                    "\nUpdated %d Profiles, inserted %d Events for Shop ID: %d.",
+                    $updated,
+                    $eventsCreated,
+                    $shopId
+                );
             }
         } catch (Throwable $e) {
+            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_SUBS_UPDATE, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln(sprintf("<error>Error thrown during execution. %s</error>>", $e->getMessage()));
             return;
         }
 
-        $message = sprintf(' Updated %d Profiles. Inserted %d Events. %s', $updated, $eventsCreated, $message);
-        $this->entityHelper->logInfoMsg($message);
         $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_SUBS_UPDATE, $message);
     }
 
@@ -235,19 +238,5 @@ class Db extends AbstractCommand
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return $e->getMessage();
         }
-    }
-
-    /**
-     * @param int $shopId
-     *
-     * @return string
-     */
-    private function validateModuleEnabledForShop(int $shopId): ?string
-    {
-        if (! $this->moduleHelper->isModuleEnabledForContext(null, $shopId)) {
-            return sprintf("\nSkipping for Shop ID {%d}, Module is disabled.", $shopId);
-        }
-
-        return null;
     }
 }

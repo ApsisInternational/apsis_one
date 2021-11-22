@@ -5,6 +5,7 @@ namespace Apsis\One\Module;
 use Apsis\One\Model\EntityInterface as EI;
 use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Model\Profile;
+use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Repository\ProfileRepository;
 use Apsis_one;
 use Apsis\One\Helper\EntityHelper;
@@ -42,7 +43,9 @@ class HookProcessor extends AbstractSetup
     public function processHook(string $hookName, array $hookArgs): void
     {
         try {
-            if (! $this->module->helper->isModuleEnabledForCurrentShop()) {
+            /** @var Configs $configs */
+            $configs = $this->module->helper->getService(HI::SERVICE_MODULE_CONFIGS);
+            if (! $this->module->helper->isModuleEnabledForCurrentShop() || empty($configs->getInstallationConfigs())) {
                 return;
             }
 
