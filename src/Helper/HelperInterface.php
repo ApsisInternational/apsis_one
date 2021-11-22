@@ -16,6 +16,7 @@ interface HelperInterface
     const CUSTOMER_HOOK_DELETE_AFTER = 'actionObjectCustomerDeleteAfter';
     const CUSTOMER_HOOK_AUTH = 'actionAuthentication';
     const CUSTOMER_HOOK_DISPLAY_ACCOUNT = 'displayCustomerAccount';
+    const DISPLAY_AFTER_BODY = 'displayAfterBodyOpeningTag';
     const CUSTOMER_HOOKS = [
         self::CUSTOMER_HOOK_ADD_AFTER,
         self::CUSTOMER_HOOK_UPDATE_AFTER,

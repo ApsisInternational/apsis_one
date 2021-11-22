@@ -10,6 +10,7 @@ use Apsis\One\Module\Install;
 use Apsis\One\Module\SetupInterface;
 use Apsis\One\Module\Uninstall;
 use Apsis\One\Module\Configuration;
+use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Module\HookProcessor;
 use Apsis\One\Helper\ModuleHelper;
 use Apsis\One\Helper\HelperInterface;
@@ -232,22 +233,53 @@ class Apsis_one extends Module implements SetupInterface
     }
 
     /**
-     * @param array $hookArgs
+     * @param $params
      *
-     * @return string
+     * @return string|null
      */
-    public function hookDisplayCustomerAccount(array $hookArgs): string
+    public function hookDisplayAfterBodyOpeningTag($params): ?string
     {
-        if (! $this->helper->isModuleEnabledForCurrentShop()) {
-            return '';
+        try {
+            /** @var Configs $configs */
+            $configs = $this->helper->getService(HelperInterface::SERVICE_MODULE_CONFIGS);
+            if (! $this->helper->isModuleEnabledForCurrentShop() || empty($configs->getInstallationConfigs()) ||
+                empty($tCode = $configs->getTrackingCode())
+            ) {
+                return null;
+            }
+
+            return $tCode;
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
         }
 
+        return null;
+    }
+
+    /**
+     * @param array $hookArgs
+     *
+     * @return string|null
+     */
+    public function hookDisplayCustomerAccount(array $hookArgs): ?string
+    {
         $this->helper->logInfoMsg(__METHOD__);
-        return 'YES';
-        /**  See Method hookDisplayAdminCustomersForm() Class ps_emailsubscription
-        $input = [];
-        $this->context->smarty->assign(['input' => $input]);
-        return $this->display(__FILE__, 'views/templates/admin/newsletter_subscribe.tpl');
-        **/
+
+        try {
+            if (! $this->helper->isModuleEnabledForCurrentShop()) {
+                return null;
+            }
+
+            /**  See Method hookDisplayAdminCustomersForm() Class ps_emailsubscription
+            $input = [];
+            $this->context->smarty->assign(['input' => $input]);
+            return $this->display(__FILE__, 'views/templates/admin/newsletter_subscribe.tpl');
+             **/
+
+            return 'YES';
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
     }
 }

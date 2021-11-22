@@ -22,7 +22,7 @@ class ModuleHelper extends LoggerHelper
     public function getAllAvailableHooks(): array
     {
         return array_merge(
-            [self::CUSTOMER_HOOK_DISPLAY_ACCOUNT],
+            [self::CUSTOMER_HOOK_DISPLAY_ACCOUNT, self::DISPLAY_AFTER_BODY],
             self::CUSTOMER_HOOKS,
             self::EMAIL_SUBSCRIPTION_HOOKS,
             self::ENTITY_ADDRESS_HOOKS,
