@@ -121,6 +121,7 @@ interface HelperInterface
     const GRID_ROUTE_AC_EXPORT = 'admin_apsis_abandonedcart_export';
     /** OTHER  */
     const MODULE_CONFIG_ROUTE = 'admin_apsis_module_config';
+    const MODULE_LOG_VIEWER_ROUTE = 'admin_apsis_module_log_viewer';
 
     /** TEMPLATES */
     const TPL_BASE_PATH = '@Modules/apsis_one/views/templates/admin/grids/';

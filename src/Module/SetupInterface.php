@@ -52,16 +52,19 @@ interface SetupInterface
     const MODULE_DISPLAY_NAME = 'APSIS One';
     const MODULE_VERSION  = '1.0.0';
     const MODULE_CONFIG_TAB = 'Configure Module';
+    const MODULE_LOG_VIEWER_TAB = 'Log Viewer';
 
     /** CLASS NAMES FOR LEGACY USAGE */
     const APSIS_MENU = 'AdminParentApsis';
     const APSIS_CONFIG_TAB = 'ApsisOneModuleConfig';
+    const APSIS_LOGS_TAB = 'ApsisOneLogViewer';
     const LEGACY_CONTROLLER_CLASSES = [
         self::APSIS_MENU => self::APSIS_MENU,
         EI::T_PROFILE => 'ApsisOneProfileController',
         EI::T_EVENT => 'ApsisOneEventController',
         EI::T_ABANDONED_CART => 'ApsisOneAbandonedCartController',
-        self::APSIS_CONFIG_TAB => 'ApsisOneModuleConfigController'
+        self::APSIS_CONFIG_TAB => 'ApsisOneModuleConfigController',
+        self::APSIS_LOGS_TAB => 'ApsisOneLogViewerController'
     ];
 
     const T_CUSTOMER = 'customer';

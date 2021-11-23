@@ -128,7 +128,7 @@ class Install extends AbstractSetup
             //Create sub menu items under given parent menu
             $parentId = (new Tab(Tab::getIdFromClassName(self::APSIS_MENU)))->id;
             $status = true;
-            foreach (array_merge(EI::TABLES, [self::APSIS_CONFIG_TAB]) as $menuItem) {
+            foreach (array_merge(EI::TABLES, [self::APSIS_LOGS_TAB, self::APSIS_CONFIG_TAB]) as $menuItem) {
                 if (! $this->createTab($menuItem, $parentId)) {
                     $status = false;
                 }
@@ -280,6 +280,9 @@ class Install extends AbstractSetup
             if ($menuItem === self::APSIS_CONFIG_TAB) {
                 $wording = self::MODULE_CONFIG_TAB;
                 $routeName = HI::MODULE_CONFIG_ROUTE;
+            } elseif($menuItem === self::APSIS_LOGS_TAB) {
+                $wording = self::MODULE_LOG_VIEWER_TAB;
+                $routeName = HI::MODULE_LOG_VIEWER_ROUTE;
             } elseif (isset(EI::T_LABEL_MAPPINGS[$menuItem], GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem])) {
                 $wording = EI::T_LABEL_MAPPINGS[$menuItem];
                 $routeName = GridDefinitionFactoryInterface::GRID_ROUTES_LIST_MAP[$menuItem];

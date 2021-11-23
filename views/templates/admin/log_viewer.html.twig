@@ -1,0 +1,17 @@
+{% extends '@PrestaShop/Admin/layout.html.twig' %}
+
+{% block content %}
+    <div style="padding-top: 25px;">
+        <h4 style="border-bottom: 4px solid #dfdfdf; color: #eb5e00;">{{ header }}</h4>
+    </div>
+    <div style="border: 4px solid #dfdfdf; overflow: hidden; height: 510px; padding: 5px;">
+        <pre id="apsis-viewer" style="width:100%; height:500px; overflow:auto; margin:0; padding:3px; background:black; color:#2EC029;
+            font:normal 11px Lucida Console, Courier New, serif; line-height:1.6;">{{ content }}</pre>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            let viewer = document.getElementById('apsis-viewer'), dh = viewer.scrollHeight, ch = viewer.clientHeight;
+            if (dh > ch) { viewer.scrollTop = dh - ch; }
+        });
+    </script>
+{% endblock %}

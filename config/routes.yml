@@ -8,6 +8,16 @@ admin_apsis_module_config:
     _legacy_link: ApsisOneModuleConfigController
 # END: Module Config Route
 
+# BEGIN: Log Viewer
+admin_apsis_module_log_viewer:
+  path: /apsis_module/logviewer
+  methods: [GET]
+  defaults:
+    _controller: 'Apsis\One\Controller\Admin\LogViewerController::indexAction'
+    _legacy_controller: ApsisOneLogViewerController
+    _legacy_link: ApsisOneLogViewerController
+# END: Module Config Route
+
 # BEGIN: Profile Routes
 admin_apsis_profile_index:
   path: /apsis_profile/list

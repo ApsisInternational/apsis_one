@@ -98,7 +98,7 @@ class Uninstall extends AbstractSetup
         $this->module->helper->logInfoMsg(__METHOD__);
 
         try {
-            $menuItems = array_merge([self::APSIS_MENU], EI::TABLES);
+            $menuItems = array_merge([self::APSIS_MENU, self::APSIS_LOGS_TAB], EI::TABLES);
             foreach ($menuItems as $menuItem) {
                 $tabId = (int) Tab::getIdFromClassName(self::LEGACY_CONTROLLER_CLASSES[$menuItem]);
                 if (! $tabId) {
