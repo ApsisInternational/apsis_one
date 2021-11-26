@@ -129,7 +129,7 @@ class apsis_OneApisubscriptionupdateModuleFrontController extends AbstractApiCon
     {
         try {
             if (! empty($profile->getIdCustomer())) {
-                $customer = $this->getEntityHelper()->getCustomerById($profile->getIdCustomer());
+                $customer = $this->module->helper->getCustomerById($profile->getIdCustomer());
                 if ($customer instanceof Customer && true === (bool) $customer->optin) {
                     $customer->optin = false;
                     return $customer->update();

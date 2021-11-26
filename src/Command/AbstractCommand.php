@@ -2,7 +2,7 @@
 
 namespace Apsis\One\Command;
 
-use Apsis_one;
+use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Context\ShopContext;
 use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\ModuleHelper;
@@ -14,7 +14,6 @@ use Symfony\Component\Console\Command\LockableTrait;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Context;
 use Throwable;
 
 abstract class AbstractCommand extends Command implements CommandInterface
@@ -62,11 +61,6 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected $configs;
 
     /**
-     * @var DateHelper
-     */
-    protected $dateHelper;
-
-    /**
      * @var ShopContext
      */
     protected $shopContext;
@@ -95,11 +89,11 @@ abstract class AbstractCommand extends Command implements CommandInterface
     public function __construct($name = null)
     {
         $this->moduleHelper = new ModuleHelper();
-        $this->entityHelper = new EntityHelper();
-        $this->dateHelper = new DateHelper();
-        $this->shopContext = new ShopContext($this->dateHelper);
-        $this->legacyContextLoader = new LegacyContextLoader(Context::getContext());
-        $this->configs = new Configs(new Apsis_one($this->moduleHelper));
+        $this->legacyContextLoader = $this->moduleHelper
+            ->getService(HI::SERVICE_PS_LEGACY_CONTEXT_LOADER, HI::FROM_CONTAINER_FD);
+        $this->entityHelper = $this->moduleHelper->getService(HI::SERVICE_HELPER_ENTITY);
+        $this->shopContext = $this->moduleHelper->getService(HI::SERVICE_CONTEXT_SHOP);
+        $this->configs = $this->moduleHelper->getService(HI::SERVICE_MODULE_CONFIGS);
 
         parent::__construct($name);
     }

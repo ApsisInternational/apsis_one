@@ -113,9 +113,10 @@ class HookProcessor extends AbstractSetup
                 $profile = $this->entityHelper->createProfileForCustomerEntity($customer);
             }
 
-            // Register Customer login event
+            // Register Customer login event and merge with web profile
             if ($profile instanceof Profile && $hookName === HI::CUSTOMER_HOOK_AUTH) {
                 $this->entityHelper->registerEventForCustomer($customer, $profile->getId(), EI::ET_CUST_LOGIN);
+                $this->module->helper->mergePrestaShopProfileWithWebProfile($profile);
             }
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);

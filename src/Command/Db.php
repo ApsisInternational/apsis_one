@@ -2,6 +2,8 @@
 
 namespace Apsis\One\Command;
 
+use Apsis\One\Helper\DateHelper;
+use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Module\SetupInterface;
 use DateTime;
 use mysqli;
@@ -41,6 +43,20 @@ class Db extends AbstractCommand
      * @var array
      */
     protected $processorMsg = self:: MSG_PROCESSOR_DB;
+
+    /**
+     * @var DateHelper
+     */
+    protected $dateHelper;
+
+    /**
+     * @inheritDoc
+     */
+    public function __construct($name = null)
+    {
+        parent::__construct($name);
+        $this->dateHelper = $this->moduleHelper->getService(HI::SERVICE_HELPER_DATE);
+    }
 
     /**
      * {@inheritdoc}

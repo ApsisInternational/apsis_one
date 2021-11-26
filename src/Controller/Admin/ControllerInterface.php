@@ -9,6 +9,8 @@ use Apsis\One\Model\EntityInterface as EI;
 
 interface ControllerInterface extends ContainerAwareInterface
 {
+    const HELP_LINK = 'https://help.apsis.com/en';
+
     /** MAPPINGS */
     const TEMPLATES = [
         EI::T_PROFILE => HI::TPL_PROFILE_LIST,

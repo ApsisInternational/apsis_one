@@ -54,7 +54,7 @@ abstract class AbstractController extends FrameworkBundleAdminController impleme
             $grid = $this->gridFactory->getGrid($filter);
             return $this->render(
                 self::TEMPLATES[$grid->getDefinition()->getId()],
-                [$grid->getDefinition()->getId() => $this->presentGrid($grid)]
+                [$grid->getDefinition()->getId() => $this->presentGrid($grid), 'help_link' => self::HELP_LINK]
             );
         } catch (Throwable $e) {
             $this->addFlash('error', $e->getMessage());

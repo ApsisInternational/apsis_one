@@ -42,7 +42,11 @@ class LogViewerController extends FrameworkBundleAdminController
         }
 
         return $this->render('@Modules/apsis_one/views/templates/admin/log_viewer.html.twig',
-            ['header' => sprintf("File Path: %s", $this->filename), 'content' => $content]
+            [
+                'header' => sprintf("File Path: %s", $this->filename),
+                'content' => $content,
+                'help_link' => ControllerInterface::HELP_LINK
+            ]
         );
     }
 }

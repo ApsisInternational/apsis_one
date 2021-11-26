@@ -2,9 +2,18 @@
 
 namespace Apsis\One\Helper;
 
+use Apsis\One\Api\Client;
+use Apsis\One\Api\ClientFactory;
+use Apsis\One\Context\LinkContext;
 use Apsis\One\Context\ShopContext;
+use Apsis\One\Controller\ApiControllerInterface;
+use Apsis\One\Model\EntityInterface;
+use Apsis\One\Model\Profile;
 use Apsis\One\Module\AbstractSetup;
-use Apsis\One\Module\SetupInterface;
+use Apsis\One\Module\Configuration\Configs;
+use Apsis\One\Module\SetupInterface as SI;
+use Currency;
+use Customer;
 use PrestaShop\ModuleLibServiceContainer\DependencyInjection\ServiceContainer;
 use PrestaShop\PrestaShop\Adapter\ContainerFinder;
 use PrestaShop\PrestaShop\Adapter\SymfonyContainer;
@@ -13,6 +22,7 @@ use Context;
 use Module;
 use Db;
 use Throwable;
+use Validate;
 
 class ModuleHelper extends LoggerHelper
 {
@@ -80,7 +90,7 @@ class ModuleHelper extends LoggerHelper
     public function isModuleEnabledForCurrentShop(): bool
     {
         try {
-            return (bool) Module::isEnabled(SetupInterface::MODULE_NAME);
+            return (bool) Module::isEnabled(SI::MODULE_NAME);
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return false;
@@ -115,7 +125,7 @@ class ModuleHelper extends LoggerHelper
             }
 
             $in = implode(',', array_map('intval', $shopList));
-            $moduleId = Module::getModuleIdByName(SetupInterface::MODULE_NAME);
+            $moduleId = Module::getModuleIdByName(SI::MODULE_NAME);
             $select = 'SELECT `id_module` FROM `' . AbstractSetup::getTableWithDbPrefix('module_shop') . '`';
             $where = 'WHERE `id_module` = ' . $moduleId .' AND `id_shop` IN (' . $in . ')';
 
@@ -200,10 +210,7 @@ class ModuleHelper extends LoggerHelper
      */
     private function getModuleSpecificContainer(): ServiceContainer
     {
-        return new ServiceContainer(
-            SetupInterface::MODULE_NAME,
-            _PS_MODULE_DIR_ . SetupInterface::MODULE_NAME . '/'
-        );
+        return new ServiceContainer(SI::MODULE_NAME, _PS_MODULE_DIR_ . SI::MODULE_NAME . '/');
     }
 
     /**
@@ -222,5 +229,286 @@ class ModuleHelper extends LoggerHelper
     private function getFromSymfonyContainerAdapter(): ContainerInterface
     {
         return SymfonyContainer::getInstance();
+    }
+
+    /**
+     * VALID RFC 4211 COMPLIANT Universally Unique Identifier (UUID) version 4
+     * https://www.php.net/manual/en/function.uniqid.php#94959
+     *
+     * @return string
+     */
+    public static function generateUniversallyUniqueIdentifier(): string
+    {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
+
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
+
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
+
+            // 48 bits for "node"
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
+        );
+    }
+
+    /**
+     * @param int $id
+     *
+     * @return Customer|null
+     */
+    public function getCustomerById(int $id): ?Customer
+    {
+        $customer = new Customer($id);
+        if (Validate::isLoadedObject($customer)) {
+            return $customer;
+        }
+
+        return null;
+    }
+
+    /**
+     * @param int $idCurrency
+     *
+     * @return Currency|null
+     */
+    public function getCurrencyById(int $idCurrency): ?Currency
+    {
+        try {
+            return new Currency($idCurrency);
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
+    }
+
+    /**
+     * @param int $idCurrency
+     *
+     * @return string|null
+     */
+    public function getCurrencyIsoCodeById(int $idCurrency): ?string
+    {
+        try {
+            if ($currency = $this->getCurrencyById($idCurrency)) {
+                return $currency->iso_code;
+            }
+
+            return null;
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
+    }
+
+    /**
+     * @param Profile $profile
+     */
+    public function mergePrestaShopProfileWithWebProfile(Profile $profile): void
+    {
+        /** @var Configs $configs */
+        $configs = $this->getService(self::SERVICE_MODULE_CONFIGS);
+        /** @var ClientFactory $clientFactory */
+        $clientFactory = $this->getService(self::SERVICE_MODULE_API_CLIENT_FACTORY);
+
+        $client = $clientFactory->getApiClient();
+        $sectionDiscriminator = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR);
+        $keySpaceDiscriminator = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR);
+
+        if (empty($sectionDiscriminator) || empty($keySpaceDiscriminator) || ! $client instanceof Client) {
+            return;
+        }
+
+        $keySpacesToMerge = $this->getKeySpacesToMerge($profile->getIdIntegration(), $sectionDiscriminator);
+        if (empty($keySpacesToMerge)) {
+            return;
+        }
+
+        if ($profile->getSyncStatus() !== EntityInterface::SS_SYNCED) {
+            $emailAttributeVersionId = $this->getEmailAttributeVersionId($client, $sectionDiscriminator);
+            if (empty($emailAttributeVersionId)) {
+                return;
+            }
+
+            $status = $client->addAttributesToProfile(
+                $keySpaceDiscriminator,
+                $profile->getIdIntegration(),
+                $sectionDiscriminator,
+                [$emailAttributeVersionId => $profile->getEmail()]
+            );
+
+            if ($status !== null) {
+                return;
+            }
+        }
+
+        //If conflict on merge then set new cookie value for web keyspace
+        if ($client->mergeProfile($keySpacesToMerge) === ApiControllerInterface::HTTP_CODE_409) {
+            //Create new cookie value
+            $keySpacesToMerge[1]['profile_key'] = md5($profile->getIdIntegration() . time());
+
+            //Log it
+            $this->logDebugMsg(
+                __METHOD__,
+                [
+                    'Message' => 'Conflict merging with web profile, creating new cookie value.',
+                    'Profile' => $profile->getIdIntegration(),
+                    self::APSIS_WEB_COOKIE_NAME => $keySpacesToMerge[1]['profile_key']
+                ]
+            );
+
+            //Send second merge request
+            if ($client->mergeProfile($keySpacesToMerge) === null) {
+                $this->setNewCookieValue($keySpacesToMerge);
+            }
+        }
+    }
+
+    /**
+     * @param Client $client
+     * @param string $sectionDiscriminator
+     *
+     * @return int|null
+     */
+    protected function getEmailAttributeVersionId(Client $client, string $sectionDiscriminator): ?int
+    {
+        try {
+            if (empty($sectionDiscriminator)) {
+                return null;
+            }
+
+            $attributes = $client->getAttributes($sectionDiscriminator);
+            if ($attributes && isset($attributes->items)) {
+                foreach ($attributes->items as $attribute) {
+                    if ($attribute->discriminator === 'com.apsis1.attributes.email') {
+                        foreach ($attribute->versions as $version) {
+                            if ($version->deprecated_at === null) {
+                                return (int) $version->id;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $profileKey
+     * @param string $keySpaceDiscriminator
+     *
+     * @return array|null
+     */
+    protected function getKeySpacesToMerge(string $profileKey, string $keySpaceDiscriminator): ?array
+    {
+        try {
+            if (empty($keySpaceDiscriminator)) {
+                return null;
+            }
+
+            $elyCookieValue = $_COOKIE[self::APSIS_WEB_COOKIE_NAME] ?? null;
+            if (empty($elyCookieValue)) {
+                return null;
+            }
+
+            return [
+                [
+                    'keyspace_discriminator' => $keySpaceDiscriminator,
+                    'profile_key' => $profileKey
+                ],
+                [
+                    'keyspace_discriminator' => 'com.apsis1.keyspaces.web',
+                    'profile_key' => $elyCookieValue
+                ]
+            ];
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param array $keySpacesToMerge
+     */
+    protected function setNewCookieValue(array $keySpacesToMerge): void
+    {
+        try {
+            $domain = $this->getDomainFromBaseUrl();
+            if (is_string($domain) && strlen($domain)) {
+                $status = setcookie(
+                    self::APSIS_WEB_COOKIE_NAME,
+                    $keySpacesToMerge[1]['profile_key'],
+                    self::APSIS_WEB_COOKIE_DURATION + time(),
+                    '/',
+                    $domain
+                );
+
+                if (! $status) {
+                    $this->logInfoMsg(
+                        sprintf("%s. The cookie %s could not be sent.", __METHOD__, self::APSIS_WEB_COOKIE_NAME)
+                    );
+                } else {
+                    $info = ['Name' => self::APSIS_WEB_COOKIE_NAME, 'Value' => $keySpacesToMerge[1]['profile_key']];
+                    $this->logDebugMsg(__METHOD__, $info);
+                }
+            }
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+        }
+    }
+
+    /**
+     * @return string|null
+     */
+    protected function getDomainFromBaseUrl(): ?string
+    {
+        try {
+            /** @var LinkContext $context */
+            $context = $this->getService(self::SERVICE_CONTEXT_LINK);
+
+            $baseUrl = $context->getBaseUrl();
+            if (empty($baseUrl)) {
+                return null;
+            }
+
+            $host = parse_url($baseUrl, PHP_URL_HOST);
+            if (empty($host)) {
+                return null;
+            }
+
+            $hostArr = explode('.', $host);
+            if (empty($hostArr)) {
+                return null;
+            }
+
+            if (count($hostArr) > 3) {
+                return sprintf('.%s', $host);
+            } else {
+                $TLD = array_pop($hostArr);
+                $SLD = array_pop($hostArr);
+                return sprintf('.%s.%s', $SLD, $TLD);
+            }
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+        }
+
+        return null;
     }
 }

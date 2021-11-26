@@ -96,6 +96,8 @@ interface HelperInterface
     const SERVICE_EVENT_COMMON_PRODUCT_REVIEWED_SCHEMA = 'apsis_one.event.product-reviewed.schema';
     const SERVICE_EVENT_COMMON_ORDER_PLACED_SCHEMA = 'apsis_one.event.order-placed.schema';
     const SERVICE_EVENT_COMMON_ORDER_PLACED_PRODUCT_SCHEMA = 'apsis_one.event.order-placed-product.schema';
+    /** OTHERS */
+    const SERVICE_PS_LEGACY_CONTEXT_LOADER = 'prestashop.adapter.legacy_context_loader';
 
     /**
      * ROUTES
@@ -142,6 +144,9 @@ interface HelperInterface
         self::FROM_CONTAINER_FD => self::FROM_CONTAINER_SA,
         self::FROM_CONTAINER_SA => ''
     ];
+
+    const APSIS_WEB_COOKIE_NAME = 'Ely_vID';
+    const APSIS_WEB_COOKIE_DURATION = 31536000; // 1 Year
 
     /**
      * @param string $message

@@ -165,13 +165,16 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     {
         try {
             $headers = WebserviceRequest::getallheaders();
-            if (empty($headers['Authorization']) ||
-                $headers['Authorization'] !== $this->configs->getGlobalKey()
-            ) {
-                $msg = 'Invalid key for authorization header.';
+            if (empty($headers['Authorization']) || $headers['Authorization'] !== $this->configs->getGlobalKey()) {
+                $msg = empty($headers['Authorization']) ?
+                    'No value for authorization header found.' : 'Invalid key for authorization header.';
                 $this->module->helper->logDebugMsg(__METHOD__, ['info' => $msg]);
 
-                $this->exitWithResponse($this->generateResponse(self::HTTP_CODE_401, [], $msg));
+                $this->exitWithResponse(
+                    $this->generateResponse(
+                        empty($headers['Authorization']) ? self::HTTP_CODE_401 : self::HTTP_CODE_403, [], $msg
+                    )
+                );
             }
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

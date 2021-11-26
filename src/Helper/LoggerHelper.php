@@ -23,7 +23,11 @@ class LoggerHelper extends FileLogger implements HelperInterface
      */
     public function logInfoMsg(string $message): void
     {
-        $this->addLogEntryToFile($this->addModuleVersionToMessage($message, AbstractLogger::INFO));
+        $this->addLogEntryToFile(
+            $this->addModuleVersionToMessage(
+                str_replace(PHP_EOL, PHP_EOL . " -- ", $message), AbstractLogger::INFO
+            )
+        );
     }
 
     /**
@@ -31,7 +35,7 @@ class LoggerHelper extends FileLogger implements HelperInterface
      */
     public function logDebugMsg(string $message, array $info): void
     {
-        array_unshift($info, ['Message' => $message]);
+        $info['Message/Method'] = $message;
         $this->addLogEntryToFile($this->getStringForLog($info, AbstractLogger::DEBUG));
     }
 
@@ -43,7 +47,7 @@ class LoggerHelper extends FileLogger implements HelperInterface
         $info = [
             'Method' => $message,
             'Exception' => $e->getMessage(),
-            'Trace' => str_replace(PHP_EOL, PHP_EOL . "        ", PHP_EOL . $e->getTraceAsString())
+            'Trace' => str_replace(PHP_EOL, PHP_EOL . "      ", PHP_EOL . $e->getTraceAsString())
         ];
         $this->addLogEntryToFile($this->getStringForLog($info, AbstractLogger::ERROR));
     }
@@ -67,7 +71,7 @@ class LoggerHelper extends FileLogger implements HelperInterface
      */
     private function addModuleVersionToMessage(string $message, int $level): string
     {
-        return '*' . $this->level_value[$level] . '* ' . "\tv" . SetupInterface::MODULE_VERSION . "\t" .
+        return '*' . $this->level_value[$level] . '*' . "  v" . SetupInterface::MODULE_VERSION . "  " .
             date('Y/m/d - H:i:s') . ': ' . $message . "\r\n";
     }
 

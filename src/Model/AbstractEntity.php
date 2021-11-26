@@ -3,6 +3,7 @@
 namespace Apsis\One\Model;
 
 use Apsis\One\Helper\EntityHelper;
+use Apsis\One\Helper\ModuleHelper;
 use Db;
 use ObjectModel;
 use PrestaShopDatabaseException;
@@ -58,11 +59,11 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     public function __construct($id = null)
     {
         if ($this instanceof Profile && empty($this->getIdIntegration())) {
-            $this->setIdIntegration(EntityHelper::generateUniversallyUniqueIdentifier());
+            $this->setIdIntegration(ModuleHelper::generateUniversallyUniqueIdentifier());
         }
 
         if ($this instanceof AbandonedCart && empty($this->getToken())) {
-            $this->setToken(EntityHelper::generateUniversallyUniqueIdentifier());
+            $this->setToken(ModuleHelper::generateUniversallyUniqueIdentifier());
         }
 
         parent::__construct($id);

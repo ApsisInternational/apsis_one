@@ -403,22 +403,18 @@ class Client extends AbstractHttpRest
     /**
      * INTEGRATIONS: Justin Delta Sync Manager
      *
-     * Schedule an update of profiles
+     * Schedule an update of profiles and events
      *
      * @param string $sectionDiscriminator
-     * @param array $data
-     * @param string $integrationName
+     * @param array $items
      *
      * @return mixed
      */
-    public function insertOrUpdateProfiles(
-        string $sectionDiscriminator,
-        array $data,
-        string $integrationName = 'prestashop'
-    ) {
-        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/integrations/' . $integrationName . '/updates')
+    public function justinDsmInsertOrUpdate(string $sectionDiscriminator, array $items)
+    {
+        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/integrations/prestashop/updates')
             ->setVerb(self::VERB_POST)
-            ->buildBody($data);
+            ->buildBody(['items' => $items]);
         return $this->executeRequestAndReturnResponse(__METHOD__);
     }
 }

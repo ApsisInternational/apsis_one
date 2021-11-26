@@ -4,11 +4,6 @@ namespace Apsis\One\Helper;
 
 use Apsis\One\Context\LinkContext;
 use Apsis\One\Context\ShopContext;
-use Cart;
-use Currency;
-use mysqli;
-use Order;
-use PDOStatement;
 use PrestaShop\PrestaShop\Adapter\CoreException;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager;
 use PrestaShop\PrestaShop\Adapter\ServiceLocator;
@@ -24,6 +19,10 @@ use Apsis\One\Repository\EventRepository;
 use Apsis\One\Repository\AbandonedCartRepository;
 use PrestaShop\PrestaShop\Adapter\Database;
 use PrestaShop\PrestaShop\Core\Foundation\Database\EntityManager\QueryBuilder;
+use Cart;
+use mysqli;
+use Order;
+use PDOStatement;
 use Product;
 use Shop;
 use Validate;
@@ -99,40 +98,6 @@ class EntityHelper extends LoggerHelper
     public function getAbandonedCartRepository(): AbandonedCartRepository
     {
         return static::getRepository(AbandonedCart::class);
-    }
-
-    /**
-     * VALID RFC 4211 COMPLIANT Universally Unique Identifier (UUID) version 4
-     * https://www.php.net/manual/en/function.uniqid.php#94959
-     *
-     * @return string
-     */
-    public static function generateUniversallyUniqueIdentifier(): string
-    {
-        return sprintf(
-            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-
-            // 32 bits for "time_low"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_mid"
-            mt_rand(0, 0xffff),
-
-            // 16 bits for "time_hi_and_version",
-            // four most significant bits holds version number 4
-            mt_rand(0, 0x0fff) | 0x4000,
-
-            // 16 bits, 8 bits for "clk_seq_hi_res",
-            // 8 bits for "clk_seq_low",
-            // two most significant bits holds zero and one for variant DCE1.1
-            mt_rand(0, 0x3fff) | 0x8000,
-
-            // 48 bits for "node"
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff),
-            mt_rand(0, 0xffff)
-        );
     }
 
     /**
@@ -418,7 +383,7 @@ class EntityHelper extends LoggerHelper
                         'product_reference' => $product->reference,
                         'product_name' => $product->name,
                         'product_qty' => (int) $hookArgs['quantity'],
-                        'currency_code' => $this->getCurrencyIsoCodeById($cart->id_currency)
+                        'currency_code' => $this->moduleHelper->getCurrencyIsoCodeById($cart->id_currency)
                     ]);
                     $this->registerEvent(
                         $profile->getId(),
@@ -602,9 +567,9 @@ class EntityHelper extends LoggerHelper
             $dateHelper = $this->moduleHelper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
             $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
-            $eventsArr['p' . $event->getId()] = [
-                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                    (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+            $createdAt = (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd());
+            $eventsArr[$event->getId()] = [
+                SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $createdAt,
                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                     is_array($discriminator) ? $discriminator[SchemaInterface::KEY_MAIN] : $discriminator,
                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $eventDataArr[SchemaInterface::KEY_MAIN]
@@ -617,8 +582,7 @@ class EntityHelper extends LoggerHelper
                     }
 
                     $eventsArr['p' . $event->getId() . 'c' . $index] = [
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                            (int)$dateHelper->formatDateForPlatformCompatibility($event->getDateAdd()),
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $createdAt,
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                             $discriminator[SchemaInterface::KEY_ITEMS],
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
@@ -782,21 +746,6 @@ class EntityHelper extends LoggerHelper
     }
 
     /**
-     * @param int $id
-     *
-     * @return Customer|null
-     */
-    public function getCustomerById(int $id): ?Customer
-    {
-        $customer = new Customer($id);
-        if (Validate::isLoadedObject($customer)) {
-            return $customer;
-        }
-
-        return null;
-    }
-
-    /**
      * @param string $sql
      * @param string $type
      *
@@ -814,61 +763,28 @@ class EntityHelper extends LoggerHelper
     }
 
     /**
-     * @param int $idCurrency
-     *
-     * @return Currency|null
-     */
-    public function getCurrencyById(int $idCurrency): ?Currency
-    {
-        try {
-            return new Currency($idCurrency);
-        } catch (Throwable $e) {
-            $this->moduleHelper->logErrorMsg(__METHOD__, $e);
-            return null;
-        }
-    }
-
-    /**
-     * @param int $idCurrency
-     *
-     * @return string|null
-     */
-    public function getCurrencyIsoCodeById(int $idCurrency): ?string
-    {
-        try {
-            if ($currency = $this->getCurrencyById($idCurrency)) {
-                return $currency->iso_code;
-            }
-
-            return null;
-        } catch (Throwable $e) {
-            $this->moduleHelper->logErrorMsg(__METHOD__, $e);
-            return null;
-        }
-    }
-
-    /**
      * @param string $table
      * @param int $status
      * @param array $ids
+     * @param string $msg
      *
      * @return int|null
      */
-    public function updateStatusForEntityByIds(string $table, int $status, array $ids): ?int
+    public function updateStatusForEntityByIds(string $table, int $status, array $ids, string $msg = ''): ?int
     {
         try {
             $queryBuilder = new QueryBuilder(new Database());
-            $sql = sprintf(
-                "UPDATE `%s` SET `%s` = %d WHERE %s",
-                _DB_PREFIX_ . $table,
-                EI::C_SYNC_STATUS,
-                $status,
-                $queryBuilder->buildWhereConditions('AND', [EI::T_PRIMARY_MAPPINGS[$table] => $ids])
+            $result = Db::getInstance()->query(
+                sprintf(
+                    "UPDATE `%s` SET `%s` = %d, `%s` = %s WHERE %s",
+                    _DB_PREFIX_ . $table,
+                    EI::C_SYNC_STATUS,
+                    $status,
+                    EI::C_ERROR_MSG,
+                    $msg,
+                    $queryBuilder->buildWhereConditions('AND', [EI::T_PRIMARY_MAPPINGS[$table] => $ids])
+                )
             );
-
-            $this->moduleHelper->logInfoMsg($sql);
-
-            $result = Db::getInstance()->query($sql);
             if (($result instanceof PDOStatement && $rowCount = $result->rowCount()) ||
                 ($result instanceof mysqli && $rowCount = $result->affected_rows)
             ) {

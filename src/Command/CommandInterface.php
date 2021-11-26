@@ -42,4 +42,8 @@ interface CommandInterface
     const MSG_INVALID_JOB = 'Error. Invalid job with jobCode: %s.';
     const MSG_RUNTIME_ERR = "Error thrown during execution with jobCode: %s.\nError %s";
     const MSG_ALREADY_RUNNING = 'The command %s is already running in another process.';
+
+    const KEY_UPDATE_TYPE = 'update_type';
+    const SYNC_UPDATE_TYPE_PROFILE = 'profile';
+    const SYNC_UPDATE_TYPE_EVENT = 'event';
 }
