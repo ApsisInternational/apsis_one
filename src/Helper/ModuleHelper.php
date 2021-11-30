@@ -383,7 +383,7 @@ class ModuleHelper extends LoggerHelper
      *
      * @return int|null
      */
-    protected function getEmailAttributeVersionId(Client $client, string $sectionDiscriminator): ?int
+    public function getEmailAttributeVersionId(Client $client, string $sectionDiscriminator): ?int
     {
         try {
             if (empty($sectionDiscriminator)) {
@@ -510,5 +510,35 @@ class ModuleHelper extends LoggerHelper
         }
 
         return null;
+    }
+
+    /**
+     * @param Client $client
+     * @param string $sectionDiscriminator
+     *
+     * @return array|null
+     */
+    public function getEventsDiscToVerMapping(Client $client, string $sectionDiscriminator): ?array
+    {
+        try {
+            $eventDefinition = $client->getEvents($sectionDiscriminator);
+            if (empty($eventDefinition) || ! isset($eventDefinition->items) || empty($eventDefinition->items)) {
+                return null;
+            }
+
+            $versionsArr = [];
+            foreach ($eventDefinition->items as $item) {
+                foreach ($item->versions as $version) {
+                    if ($version->deprecated_at === null) {
+                        $versionsArr[$item->discriminator] = $version->id;
+                        break;
+                    }
+                }
+            }
+            return $versionsArr;
+        } catch (Throwable $e) {
+            $this->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
     }
 }

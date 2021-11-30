@@ -11,22 +11,31 @@ use DateInterval;
 class DateHelper extends LoggerHelper
 {
     /**
-     * @param string|null $date
      * @param string $format
+     * @param string|null $date
+     * @param int|null $idShop
+     * @param string|null $oPtz
      *
-     * @return string
+     * @return int|string|null
      */
-    public function formatDateForPlatformCompatibility(?string $date = null, string $format = self::TIMESTAMP): string
+    public function formatDate(string $format, ?string $date = null, ?int $idShop = null, ?string $oPtz = null)
     {
         try {
             if (empty($date)) {
-                $date = 'now';
+                $date = self::DT_NOW;
             }
 
-            return $this->getDateTimeFromTime($date)->format($format);
+            $dateTime = $this->getDateTimeFromTimeAndTimeZone($date, $this->getShopsTimezone(null, $idShop));
+
+            if (! empty($oPtz)) {
+                $dateTime->setTimezone(new DateTimeZone($oPtz));
+            }
+
+            $formattedDateTime = $dateTime->format($format);
+            return $format === self::TIMESTAMP ? (int) $formattedDateTime : $formattedDateTime;
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
-            return '';
+            return $format === self::TIMESTAMP ? 0 : '';
         }
     }
 
@@ -34,55 +43,22 @@ class DateHelper extends LoggerHelper
      * @param string|null $date
      * @param string $format
      *
-     * @return string
+     * @return string|int
      */
-    public function addSecond(?string $date = null, string $format = self::TIMESTAMP): string
+    public function addSecond(?string $date = null, string $format = self::TIMESTAMP)
     {
         try {
             if (empty($date)) {
-                $date = 'now';
+                $date = self::DT_NOW;
             }
 
-            return $this->getDateTimeFromTime($date)
+            $formattedDateTime = $this->getDateTimeFromTime($date)
                 ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
                 ->format($format);
+            return $format === self::TIMESTAMP ? (int) $formattedDateTime : $formattedDateTime;
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);
             return '';
-        }
-    }
-
-    /**
-     * @param string $inputDateTime
-     * @param int $day
-     *
-     * @return string
-     */
-    public function getFormattedDateTimeWithAddedInterval(string $inputDateTime, int $day = 1): string
-    {
-        try {
-            return $this->getDateTimeFromTimeAndTimeZone($inputDateTime)
-                ->add($this->getDateIntervalFromIntervalSpec(sprintf('P%sD', $day)))
-                ->format(self::ISO_8601);
-        } catch (Throwable $e) {
-            $this->logErrorMsg(__METHOD__, $e);
-            return '';
-        }
-    }
-
-    /**
-     * @param string $inputDateTime
-     *
-     * @return bool
-     */
-    public function isExpired(string $inputDateTime): bool
-    {
-        try {
-            $nowDateTime = $this->getDateTimeFromTimeAndTimeZone()->format(self::ISO_8601);
-            return ($nowDateTime > $inputDateTime);
-        } catch (Throwable $e) {
-            $this->logErrorMsg(__METHOD__, $e);
-            return false;
         }
     }
 
@@ -94,7 +70,7 @@ class DateHelper extends LoggerHelper
      *
      * @throws Throwable
      */
-    public function getDateTimeFromTimeAndTimeZone(string $time = 'now', string $timezone = 'UTC'): DateTime
+    public function getDateTimeFromTimeAndTimeZone(string $time = self::DT_NOW, string $timezone = self::TZ_UTC): DateTime
     {
         return new DateTime($time, new DateTimeZone($timezone));
     }
@@ -106,7 +82,7 @@ class DateHelper extends LoggerHelper
      *
      * @throws Throwable
      */
-    public function getDateTimeFromTime(string $time = 'now'): DateTime
+    public function getDateTimeFromTime(string $time = self::DT_NOW): DateTime
     {
         return new DateTime($time);
     }

@@ -11,8 +11,6 @@ use Apsis\One\Api\ClientFactory;
 use Apsis\One\Model\SchemaInterface as SI;
 use Apsis\One\Module\SetupInterface;
 use Symfony\Component\Console\Command\LockableTrait;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 class Sync extends AbstractCommand
@@ -61,33 +59,33 @@ class Sync extends AbstractCommand
     /**
      * {@inheritdoc}
      */
-    protected function processCommand(InputInterface $input, OutputInterface $output): int
+    protected function processCommand(): int
     {
         try {
-            switch ($input->getArgument(self::ARG_REQ_JOB)) {
+            switch ($this->input->getArgument(self::ARG_REQ_JOB)) {
                 case self::JOB_TYPE_PROFILE:
-                    $this->syncProfiles($output);
+                    $this->syncProfiles();
                     break;
                 case self::JOB_TYPE_EVENT:
-                    $this->syncEvents($output);
+                    $this->syncEvents();
                     break;
                 default:
-                    $this->outputInvalidJobErrorMsg($input, $output);
+                    $this->outputInvalidJobErrorMsg();
             }
 
             $this->release();
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln($e->getMessage());
+            $this->output->writeln($e->getMessage());
         }
 
         return 0;
     }
 
     /**
-     * @param OutputInterface $output
+     * Start Profile sync process for each shop
      */
-    private function syncProfiles(OutputInterface $output): void
+    private function syncProfiles(): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
@@ -96,7 +94,7 @@ class Sync extends AbstractCommand
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
 
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
                     $message .= $check;
                     continue;
                 }
@@ -105,18 +103,18 @@ class Sync extends AbstractCommand
                 $profilesToSync = $this->entityHelper
                     ->getProfileRepository()
                     ->findBySyncStatusForGivenShop([EI::SS_PENDING], [$shopId]);
+
                 if (empty($profilesToSync) || ! is_array($profilesToSync) || ! $client instanceof Client) {
                     continue;
                 }
 
                 $items = [];
                 foreach ($profilesToSync as $profile) {
-                    if (! empty($item = $this->entityHelper->getProfileDataArrForExport($profile, false))) {
-                        $items[$profile->getId()] = array_merge(
-                            [self::KEY_UPDATE_TYPE => self::SYNC_UPDATE_TYPE_PROFILE],
-                            $item
-                        );
+                    if (empty($item = $this->entityHelper->getProfileDataArrForExport($profile, false))) {
+                        continue;
                     }
+
+                    $items[$profile->getId()] = array_merge([self::KEY_UPDATE_TYPE => self::SYNC_TYPE_PROFILE], $item);
                 }
 
                 if (empty($items)) {
@@ -129,15 +127,10 @@ class Sync extends AbstractCommand
                 $result = $client->justinDsmInsertOrUpdate(
                     $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR], $items
                 );
+
                 if ($result === false) {
-                    $this->entityHelper->logInfoMsg(
-                        sprintf("%s. Unable to post Profiles, Shop {%d}. Will try again", __METHOD__, $shopId)
-                    );
                     continue;
                 } elseif (is_string($result)) {
-                    $this->entityHelper->logInfoMsg(
-                        sprintf("%s. Unable to post Profiles, Error {%s} Shop {%d}", __METHOD__, $result, $shopId)
-                    );
                     $this->entityHelper->updateStatusForEntityByIds(EI::T_PROFILE, EI::SS_FAILED, $ids, $result);
                     continue;
                 }
@@ -146,24 +139,23 @@ class Sync extends AbstractCommand
                 $message .= sprintf( "\nSynced %d Profiles for Shop ID: %d.", $num, $shopId);
             }
         } catch (Throwable $e) {
-            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_PROFILE, $e->getMessage());
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_PROFILE, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return;
         }
 
-        $this->outputSuccessMsg($output, self::JOB_TYPE_PROFILE, $message);
+        $this->outputSuccessMsg(self::JOB_TYPE_PROFILE, $message);
     }
 
     /**
-     * @param OutputInterface $output
+     * Start Event sync process for each shop
      */
-    private function syncEvents(OutputInterface $output): void
+    private function syncEvents(): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
 
         try {
-            $profiles = [];
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
                 $this->loadGenericContext($shopId);
@@ -177,76 +169,156 @@ class Sync extends AbstractCommand
                 $eventsCollection = $this->entityHelper
                     ->getEventRepository()
                     ->findBySyncStatusForGivenShop([EI::SS_PENDING], [$shopId]);
+
                 if (empty($eventsCollection) || ! is_array($eventsCollection) || ! $client instanceof Client) {
                     continue;
                 }
 
-                $items = [];
+                $eventsDiscToVerMapping = $this->moduleHelper->getEventsDiscToVerMapping(
+                    $client, $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR]
+                );
+
+                if (empty($eventsDiscToVerMapping)) {
+                    continue;
+                }
+
+                $groupedEvents = [];
 
                 /** @var Event $event */
                 foreach ($eventsCollection as $event) {
-                    $eventsDataArr = $this->entityHelper->getEventDataArrForExport($event);
+                    $eventsDataArr = $this->entityHelper->getEventDataArrForExport($event, HI::ISO_8601);
+
                     if (empty($eventsDataArr) || ! is_array($eventsDataArr)) {
                         continue;
                     }
 
                     foreach ($eventsDataArr as $index => $eventArr) {
-                        $profileId = $event->getIdApsisProfile();
-                        if (! isset($profiles[$profileId])) {
-                            $profiles[$profileId] = $this->entityHelper
-                                ->getProfileRepository()
-                                ->findOneById($profileId);
-                        }
+                        $discriminator = $eventArr[SI::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR];
 
-                        if (! $profiles[$profileId] instanceof Profile) {
-                            $this->entityHelper->logInfoMsg(
-                                sprintf("%s. Profile with id {%d} not found.", __METHOD__, $profileId)
-                            );
+                        if (! isset($eventsDiscToVerMapping[$discriminator])) {
                             continue;
                         }
 
-                        $items[$index] = [
-                            self::KEY_UPDATE_TYPE => self::SYNC_UPDATE_TYPE_EVENT,
-                            SI::PROFILE_SCHEMA_TYPE_ENTRY => $profiles[$profileId]->getIdIntegration(),
-                            SI::PROFILE_SCHEMA_TYPE_FIELDS => $eventArr
+                        $groupedEvents[$event->getIdApsisProfile()][$index] = [
+                            'event_time' => $eventArr[SI::SCHEMA_PROFILE_EVENT_ITEM_TIME],
+                            'version_id' => $eventsDiscToVerMapping[$discriminator],
+                            'data' => $eventArr[SI::SCHEMA_PROFILE_EVENT_ITEM_DATA]
                         ];
                     }
                 }
 
-                if (empty($items)) {
-                    continue;
+                if (! empty($groupedEvents)) {
+                    //$this->entityHelper->logInfoMsg(var_export($groupedEvents, true));
+                    $message = $this->syncGroupedEventsPerProfile($groupedEvents, $client, $shopId, $message);
                 }
-
-                //$this->entityHelper->logInfoMsg(var_export($items, true));
-
-                $ids = $this->getEventIdsFromArr($items);
-                $result = $client->justinDsmInsertOrUpdate(
-                    $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR], $items
-                );
-                if ($result === false) {
-                    $this->entityHelper->logInfoMsg(
-                        sprintf("%s. Unable to post Events, Shop {%d}. Will try again", __METHOD__, $shopId)
-                    );
-                    continue;
-                } elseif (is_string($result)) {
-                    $this->entityHelper->logInfoMsg(
-                        sprintf("%s. Unable to post Events, Error {%s} Shop {%d}", __METHOD__, $result, $shopId)
-                    );
-                    $this->entityHelper->updateStatusForEntityByIds(EI::T_EVENT, EI::SS_FAILED, $ids, $result);
-                    continue;
-                }
-
-                $num = $this->entityHelper->updateStatusForEntityByIds(EI::T_EVENT, EI::SS_SYNCED, $ids);
-                $message .= sprintf("\nSynced %d Events for Shop ID: %d.", $num, $shopId);
-
             }
         } catch (Throwable $e) {
-            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_EVENT, $e->getMessage());
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_EVENT, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return;
         }
 
-        $this->outputSuccessMsg($output, self::JOB_TYPE_EVENT, $message);
+        $this->outputSuccessMsg(self::JOB_TYPE_EVENT, $message);
+    }
+
+    /**
+     * @param array $gEvents
+     * @param Client $client
+     * @param int $shopId
+     * @param string $message
+     *
+     * @return string
+     */
+    protected function syncGroupedEventsPerProfile(array $gEvents, Client $client, int $shopId, string $message): string
+    {
+        try {
+            foreach ($gEvents as $profileId => $events) {
+                if (empty($profileId) || empty($events)) {
+                    continue;
+                }
+
+                $eventIds = $this->getEventIdsFromArr($events);
+                $profile = $this->entityHelper
+                    ->getProfileRepository()
+                    ->findOneById($profileId);
+
+                if (! $profile instanceof Profile) {
+                    continue;
+                }
+
+                $check = $this->syncProfileForEvent($client, $profile);
+
+                if (! $check) {
+                    continue;
+                }
+
+                $status = $client->addEventsToProfile(
+                    $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
+                    $profile->getIdIntegration(),
+                    $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
+                    $events
+                );
+
+                if ($status === false) {
+                    continue;
+                } elseif (is_string($status)) {
+                    $this->entityHelper->updateStatusForEntityByIds(EI::T_EVENT, EI::SS_FAILED, $eventIds, $status);
+                    continue;
+                }
+
+                $num = $this->entityHelper->updateStatusForEntityByIds(EI::T_EVENT, EI::SS_SYNCED, $eventIds);
+                $message .= sprintf("\nSynced %d Events for Shop ID: %d.", $num, $shopId);
+            }
+        } catch (Throwable $e) {
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_EVENT, $e->getMessage());
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return $message;
+    }
+
+    /**
+     * @param Client $client
+     * @param Profile $profile
+     *
+     * @return bool|null
+     */
+    protected function syncProfileForEvent(Client $client, Profile $profile): ?bool
+    {
+        try {
+            if ($profile->getSyncStatus() === EI::SS_SYNCED) {
+                return true;
+            }
+
+            $emailAttributeVersionId = $this->moduleHelper->getEmailAttributeVersionId(
+                $client, $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR]
+            );
+
+            if (empty($emailAttributeVersionId)) {
+                return false;
+            }
+
+            $status = $client->addAttributesToProfile(
+                $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
+                $profile->getIdIntegration(),
+                $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
+                [$emailAttributeVersionId => $profile->getEmail()]
+            );
+
+            if ($status === false) {
+                return false;
+            } elseif (is_string($status)) {
+                $profile->setErrorMessage($status)->setSyncStatus(EI::SS_FAILED)->update();
+                return false;
+            } else {
+                return true;
+            }
+
+        } catch (Throwable $e) {
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_EVENT, $e->getMessage());
+            $this->entityHelper->logErrorMsg(__METHOD__, $e);
+            return null;
+        }
     }
 
     /**

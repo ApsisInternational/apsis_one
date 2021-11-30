@@ -154,21 +154,28 @@ abstract class AbstractRepository extends EntityRepository implements Repository
     /**
      * @param array $statusArr
      * @param array $idShopArr
+     * @param int $afterId
      *
      * @return int|null
      */
-    public function getTotalCountBySyncStatusAndShop(array $statusArr, array $idShopArr): ?int
+    public function getTotalCountBySyncStatusAndShop(array $statusArr, array $idShopArr, int $afterId): ?int
     {
         try {
             if ($this instanceof AbandonedCartRepository) {
                 return null;
             }
 
-            $where = $this->buildWhereClause([EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr]);
-            return EntityHelper::fetchSingleValueFromRow(
-                sprintf('SELECT COUNT(*) FROM %s WHERE %s', $this->getTableNameWithPrefix(), $where),
-                'integer'
+            $pCol =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
+            $condArr = [EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr];
+
+            if ($afterId > 0) {
+                $condArr[$pCol] = $afterId;
+            }
+
+            $sql = sprintf(
+                'SELECT COUNT(*) FROM %s WHERE %s', $this->getTableNameWithPrefix(), $this->buildWhereClause($condArr)
             );
+            return EntityHelper::fetchSingleValueFromRow(str_replace($pCol . " =", $pCol . " >", $sql), 'integer');
         } catch (Throwable $e) {
             $this->logger->logErrorMsg(__METHOD__, $e);
             return null;

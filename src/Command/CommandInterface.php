@@ -44,6 +44,5 @@ interface CommandInterface
     const MSG_ALREADY_RUNNING = 'The command %s is already running in another process.';
 
     const KEY_UPDATE_TYPE = 'update_type';
-    const SYNC_UPDATE_TYPE_PROFILE = 'profile';
-    const SYNC_UPDATE_TYPE_EVENT = 'event';
+    const SYNC_TYPE_PROFILE = 'profile';
 }

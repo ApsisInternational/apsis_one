@@ -2,6 +2,7 @@
 
 use Apsis\One\Controller\AbstractApiController;
 use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Model\Profile;
 use Apsis\One\Model\Profile\Schema;
 use Apsis\One\Module\SetupInterface;
 use Apsis\One\Context\LinkContext;
@@ -84,10 +85,12 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $afterIdFromRequest = isset($this->queryParams[self::QUERY_PARAM_AFTER_ID]) ?
                 (int) $this->queryParams[self::QUERY_PARAM_AFTER_ID] : 0;
             $profilesDataArr = $this->getProfilesDataArr($afterIdFromRequest);
-            $afterIdFromDataArr = $profilesDataArr[self::QUERY_PARAM_AFTER_ID];
+            $afterIdFromDataArr = $profilesDataArr[self::BODY_PARAM_LINKS_NEXT];
+            $remaining = $profilesDataArr[self::BODY_PARAM_COUNT];
 
             $paramSelf = empty($afterIdFromRequest) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromRequest];
-            $paramNext = empty($afterIdFromDataArr) ? [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromDataArr];
+            $paramNext = (empty($afterIdFromDataArr) || empty($remaining)) ?
+                [] : [self::QUERY_PARAM_AFTER_ID => $afterIdFromDataArr];
 
             return [
                 self::BODY_PARAM_LINKS => [
@@ -151,14 +154,18 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             if (! empty($profiles) && is_array($profiles)) {
                 $inclEvents = isset($this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS]);
 
+                /** @var Profile $profile */
                 foreach ($profiles as $profile) {
                     $item = $entityHelper->getProfileDataArrForExport(
                         $profile,
                         ($inclEvents && $this->configs->getEventSyncFlag($this->groupId, $this->shopId))
                     );
-                    if (! empty($item)) {
-                        $items[] = $item;
+
+                    if (empty($item)) {
+                        continue;
                     }
+
+                    $items[$profile->getId()] = $item;
                 }
             }
 
@@ -166,13 +173,19 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $this->handleExcErr($e, __METHOD__);
         }
 
-        return [self::JSON_BODY_PARAM_ITEMS => $items, self::QUERY_PARAM_AFTER_ID => (int) array_key_last($items)];
+        return [
+            self::JSON_BODY_PARAM_ITEMS => array_values($items),
+            self::BODY_PARAM_LINKS_NEXT => (int) array_key_last($items),
+            self::BODY_PARAM_COUNT => $this->getTotalCount((int) array_key_last($items))
+        ];
     }
 
     /**
+     * @param int $afterId
+     *
      * @return int|null
      */
-    protected function getTotalCount(): ?int
+    protected function getTotalCount(int $afterId = 0): ?int
     {
         try {
             /** @var EntityHelper $entityHelper */
@@ -180,7 +193,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             return $entityHelper->getProfileRepository()
                 ->getTotalCountBySyncStatusAndShop(
                     [EI::SS_JUSTIN],
-                    $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId)
+                    $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId),
+                    $afterId
                 );
         } catch (Throwable $e) {
             $this->handleExcErr($e, __METHOD__);

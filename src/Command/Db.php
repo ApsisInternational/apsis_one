@@ -5,13 +5,11 @@ namespace Apsis\One\Command;
 use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Module\SetupInterface;
+use Symfony\Component\Console\Command\LockableTrait;
+use Apsis\One\Model\EntityInterface as EI;
 use DateTime;
 use mysqli;
 use PDOStatement;
-use Symfony\Component\Console\Command\LockableTrait;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Apsis\One\Model\EntityInterface as EI;
 use Db as PsDb;
 use Throwable;
 
@@ -61,36 +59,36 @@ class Db extends AbstractCommand
     /**
      * {@inheritdoc}
      */
-    protected function processCommand(InputInterface $input, OutputInterface $output): int
+    protected function processCommand(): int
     {
         try {
-            switch ($input->getArgument(self::ARG_REQ_JOB)) {
+            switch ($this->input->getArgument(self::ARG_REQ_JOB)) {
                 case self::JOB_TYPE_SCAN_AC:
-                    $this->scanDbForAbandonedCarts($output);
+                    $this->scanDbForAbandonedCarts();
                     break;
                 case self::JOB_TYPE_SCAN_SUBS_UPDATE:
-                    $this->scanDbForSilentSubscriptionUpdate($output);
+                    $this->scanDbForSilentSubscriptionUpdate();
                     break;
                 case self::JOB_TYPE_SCAN_MISSING_PROFILES:
-                    $this->scanDbForSilentMissingProfilesFromSqlImport($output);
+                    $this->scanDbForSilentMissingProfilesFromSqlImport();
                     break;
                 default:
-                    $this->outputInvalidJobErrorMsg($input, $output);
+                    $this->outputInvalidJobErrorMsg();
             }
 
             $this->release();
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln($e->getMessage());
+            $this->output->writeln($e->getMessage());
         }
 
         return 0;
     }
 
     /**
-     * @param OutputInterface $output
+     * Scan DB for direct imported customers and subscribers via sql or script
      */
-    private function scanDbForSilentMissingProfilesFromSqlImport(OutputInterface $output): void
+    private function scanDbForSilentMissingProfilesFromSqlImport(): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
@@ -98,7 +96,7 @@ class Db extends AbstractCommand
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
                     $message .= $check;
                     continue;
                 }
@@ -120,25 +118,26 @@ class Db extends AbstractCommand
                 }
             }
         } catch (Throwable $e) {
-            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_MISSING_PROFILES, $e->getMessage());
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_SCAN_MISSING_PROFILES, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return;
         }
 
-        $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_MISSING_PROFILES, $message);
+        $this->outputSuccessMsg(self::JOB_TYPE_SCAN_MISSING_PROFILES, $message);
     }
 
     /**
-     * @param OutputInterface $output
+     * Scan DB and find abandoned carts
      */
-    private function scanDbForAbandonedCarts(OutputInterface $output): void
+    private function scanDbForAbandonedCarts(): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
 
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected((int) $shop[EI::C_ID_SHOP]))) {
+                $shopId = (int) $shop[EI::C_ID_SHOP];
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
                     $message .= $check;
                     continue;
                 }
@@ -156,21 +155,21 @@ class Db extends AbstractCommand
                     $fromTime->format('Y-m-d H:i:s'), // '2021-01-03 15:59:10'
                     $toTime->format('Y-m-d H:i:s') // '2021-12-03 15:59:10'
                 );
-                $message .= $this->executeQueryAndGetResultString($sql, $shop[EI::C_ID_SHOP], 'Abandoned Carts');
+                $message .= $this->executeQueryAndGetResultString($sql, $shopId, 'Abandoned Carts');
             }
         } catch (Throwable $e) {
-            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_AC, $e->getMessage());
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_SCAN_AC, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return;
         }
 
-        $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_AC, $message);
+        $this->outputSuccessMsg(self::JOB_TYPE_SCAN_AC, $message);
     }
 
     /**
-     * @param OutputInterface $output
+     * Scan DB for subscription updates made using direct sql queries
      */
-    private function scanDbForSilentSubscriptionUpdate(OutputInterface $output): void
+    private function scanDbForSilentSubscriptionUpdate(): void
     {
         $this->entityHelper->logInfoMsg(__METHOD__);
         $message = '';
@@ -179,7 +178,7 @@ class Db extends AbstractCommand
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $updated = $eventsCreated = 0;
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
                     $message .= $check;
                     continue;
                 }
@@ -208,12 +207,12 @@ class Db extends AbstractCommand
                 );
             }
         } catch (Throwable $e) {
-            $this->outputRuntimeErrorMsg($output, self::JOB_TYPE_SCAN_SUBS_UPDATE, $e->getMessage());
+            $this->outputRuntimeErrorMsg(self::JOB_TYPE_SCAN_SUBS_UPDATE, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             return;
         }
 
-        $this->outputSuccessMsg($output, self::JOB_TYPE_SCAN_SUBS_UPDATE, $message);
+        $this->outputSuccessMsg(self::JOB_TYPE_SCAN_SUBS_UPDATE, $message);
     }
 
     /**

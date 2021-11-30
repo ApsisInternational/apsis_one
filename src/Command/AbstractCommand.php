@@ -4,7 +4,6 @@ namespace Apsis\One\Command;
 
 use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Context\ShopContext;
-use Apsis\One\Helper\DateHelper;
 use Apsis\One\Helper\ModuleHelper;
 use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Helper\EntityHelper;
@@ -19,6 +18,16 @@ use Throwable;
 abstract class AbstractCommand extends Command implements CommandInterface
 {
     use LockableTrait;
+
+    /**
+     * @var InputInterface
+     */
+    protected $input;
+
+    /**
+     * @var OutputInterface
+     */
+    protected $output;
 
     /**
      * @var string
@@ -76,12 +85,9 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected $installationConfigs;
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     *
      * @return int
      */
-    abstract protected function processCommand(InputInterface $input, OutputInterface $output): int;
+    abstract protected function processCommand(): int;
 
     /**
      * @param null $name
@@ -129,7 +135,10 @@ abstract class AbstractCommand extends Command implements CommandInterface
                 return 0;
             }
 
-            return $this->processCommand($input, $output);
+            $this->input = $input;
+            $this->output = $output;
+
+            return $this->processCommand();
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $output->writeln($e->getMessage());
@@ -138,52 +147,48 @@ abstract class AbstractCommand extends Command implements CommandInterface
     }
 
     /**
-     * @param OutputInterface $output
      * @param string $jobCode
      * @param string $msg
      */
-    protected function outputSuccessMsg(OutputInterface $output, string $jobCode, string $msg): void
+    protected function outputSuccessMsg(string $jobCode, string $msg): void
     {
         try {
             $message = sprintf(self::MSG_SUCCESS , $jobCode, $msg);
             $this->entityHelper->logInfoMsg($message);
-            $output->writeln('<info>' . $message . '</info>');
+            $this->output->writeln('<info>' . $message . '</info>');
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln($e->getMessage());
+            $this->output->writeln($e->getMessage());
         }
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
      */
-    protected function outputInvalidJobErrorMsg(InputInterface $input, OutputInterface $output): void
+    protected function outputInvalidJobErrorMsg(): void
     {
         try {
-            $message = sprintf(self::MSG_INVALID_JOB, (string) $input->getArgument(self::ARG_REQ_JOB));
+            $message = sprintf(self::MSG_INVALID_JOB, (string) $this->input->getArgument(self::ARG_REQ_JOB));
             $this->entityHelper->logInfoMsg($message);
-            $output->writeln('<error>' . $message . '</error>');
+            $this->output->writeln('<error>' . $message . '</error>');
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln($e->getMessage());
+            $this->output->writeln($e->getMessage());
         }
     }
 
     /**
-     * @param OutputInterface $output
      * @param string $jobCode
      * @param string $err
      */
-    protected function outputRuntimeErrorMsg(OutputInterface $output, string $jobCode, string $err) : void
+    protected function outputRuntimeErrorMsg(string $jobCode, string $err) : void
     {
         try {
             $message = sprintf(self::MSG_RUNTIME_ERR, $jobCode, $err);
             $this->entityHelper->logInfoMsg($message);
-            $output->writeln('<error>' . $message . '</error>');
+            $this->output->writeln('<error>' . $message . '</error>');
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            $output->writeln($e->getMessage());
+            $this->output->writeln($e->getMessage());
         }
     }
 
@@ -193,7 +198,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
      *
      * @return string
      */
-    protected function isModuleAndFeatureActiveAndConnected(int $shopId, string $feature = self::JOB_TYPE_PROFILE): ?string
+    protected function isModuleAndFeatureActiveAndConnected(int $shopId, string $feature): ?string
     {
         if (! $this->moduleHelper->isModuleEnabledForContext(null, $shopId)) {
             return sprintf("\nSkipping for Shop ID {%d}, Module is disabled.", $shopId);

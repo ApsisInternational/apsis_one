@@ -10,6 +10,9 @@ interface HelperInterface
     const TIMESTAMP = 'U';
     const ISO_8601 = 'c';
 
+    const TZ_UTC = 'UTC';
+    const DT_NOW = 'now';
+
     /** CUSTOMER ENTITY HOOKS  */
     const CUSTOMER_HOOK_ADD_AFTER = 'actionObjectCustomerAddAfter';
     const CUSTOMER_HOOK_UPDATE_AFTER = 'actionObjectCustomerUpdateAfter';

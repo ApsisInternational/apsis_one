@@ -534,10 +534,11 @@ class EntityHelper extends LoggerHelper
 
     /**
      * @param Event $event
+     * @param string $dtFormat
      *
      * @return array|null
      */
-    public function getEventDataArrForExport(Event $event): ?array
+    public function getEventDataArrForExport(Event $event, string $dtFormat = self::TIMESTAMP): ?array
     {
         try {
             if (empty($eventData =  json_decode($event->getEventData(), true)) || empty($event->getEventType())) {
@@ -549,7 +550,8 @@ class EntityHelper extends LoggerHelper
             }
 
             /** @var SchemaInterface $schemaProvider */
-            $schemaProvider = $this->moduleHelper->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$event->getEventType()]);
+            $schemaProvider = $this->moduleHelper
+                ->getService(SchemaInterface::EVENT_TYPE_TO_SCHEMA_MAP[$event->getEventType()]);
             /** @var DataInterface $dataProvider */
             $dataProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_EVENT_CONTAINER);
 
@@ -567,7 +569,7 @@ class EntityHelper extends LoggerHelper
             $dateHelper = $this->moduleHelper->getService(HelperInterface::SERVICE_HELPER_DATE);
 
             $discriminator = SchemaInterface::EVENT_TYPE_TO_DISCRIMINATOR_MAP[$event->getEventType()];
-            $createdAt = (int) $dateHelper->formatDateForPlatformCompatibility($event->getDateAdd());
+            $createdAt = $dateHelper->formatDate($dtFormat, $event->getDateAdd(), $event->getIdShop(), self::TZ_UTC);
             $eventsArr[$event->getId()] = [
                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $createdAt,
                 SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
@@ -576,13 +578,15 @@ class EntityHelper extends LoggerHelper
             ];
 
             if (is_array($discriminator) && ! empty($subEvents)) {
+                $withAddedSecond = $createdAt;
                 foreach ($subEvents as $index => $subEvent) {
                     if (empty($subEvent[SchemaInterface::KEY_MAIN])) {
                         continue;
                     }
 
                     $eventsArr['p' . $event->getId() . 'c' . $index] = [
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $createdAt,
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
+                            $withAddedSecond = $dateHelper->addSecond($withAddedSecond, $dtFormat),
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                             $discriminator[SchemaInterface::KEY_ITEMS],
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
