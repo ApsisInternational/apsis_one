@@ -40,29 +40,6 @@ class DateHelper extends LoggerHelper
     }
 
     /**
-     * @param string|null $date
-     * @param string $format
-     *
-     * @return string|int
-     */
-    public function addSecond(?string $date = null, string $format = self::TIMESTAMP)
-    {
-        try {
-            if (empty($date)) {
-                $date = self::DT_NOW;
-            }
-
-            $formattedDateTime = $this->getDateTimeFromTime($date)
-                ->add($this->getDateIntervalFromIntervalSpec('PT1S'))
-                ->format($format);
-            return $format === self::TIMESTAMP ? (int) $formattedDateTime : $formattedDateTime;
-        } catch (Throwable $e) {
-            $this->logErrorMsg(__METHOD__, $e);
-            return '';
-        }
-    }
-
-    /**
      * @param string $time
      * @param string $timezone
      *

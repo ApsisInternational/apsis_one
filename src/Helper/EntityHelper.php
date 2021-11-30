@@ -578,15 +578,13 @@ class EntityHelper extends LoggerHelper
             ];
 
             if (is_array($discriminator) && ! empty($subEvents)) {
-                $withAddedSecond = $createdAt;
                 foreach ($subEvents as $index => $subEvent) {
                     if (empty($subEvent[SchemaInterface::KEY_MAIN])) {
                         continue;
                     }
 
                     $eventsArr['p' . $event->getId() . 'c' . $index] = [
-                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME =>
-                            $withAddedSecond = $dateHelper->addSecond($withAddedSecond, $dtFormat),
+                        SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_TIME => $createdAt,
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR =>
                             $discriminator[SchemaInterface::KEY_ITEMS],
                         SchemaInterface::SCHEMA_PROFILE_EVENT_ITEM_DATA => $subEvent[SchemaInterface::KEY_MAIN]
