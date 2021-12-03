@@ -2,8 +2,13 @@
 
 namespace Apsis\One\Model;
 
+use Apsis\One\Api\Client;
+use Apsis\One\Api\ClientFactory;
 use Apsis\One\Helper\EntityHelper;
+use Apsis\One\Helper\HelperInterface as HI;
 use Apsis\One\Helper\ModuleHelper;
+use Apsis\One\Module\Configuration\Configs;
+use Apsis\One\Module\SetupInterface;
 use Db;
 use ObjectModel;
 use PrestaShopDatabaseException;
@@ -107,10 +112,35 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
     {
         $check = parent::delete();
 
-        // Remove linked Events and ACs
+        // Only for Profile delete
         if ($check && $this instanceof Profile) {
-            Db::getInstance()->delete(self::T_EVENT, 'id_apsis_profile = ' . (int) $this->id);
-            Db::getInstance()->delete(self::T_ABANDONED_CART, 'id_apsis_profile = ' . (int) $this->id);
+            // Remove linked Events and ACs
+            Db::getInstance()->delete(self::T_EVENT, self::C_ID_PROFILE . ' = ' . (int) $this->id);
+            Db::getInstance()->delete(self::T_ABANDONED_CART, self::C_ID_PROFILE . ' = ' . (int) $this->id);
+
+            // Remove from APSIS One
+            $moduleHelper = new ModuleHelper();
+            if (! $moduleHelper->isModuleEnabledForContext(null, $this->getIdShop())) {
+                return true;
+            }
+
+            /** @var Configs $configs */
+            $configs = $moduleHelper->getService(HI::SERVICE_MODULE_CONFIGS);
+            if (empty($insConfigs = $configs->getInstallationConfigs(null, $this->getIdShop())) ||
+                $configs->isAnyClientConfigMissing($insConfigs, null, $this->getIdShop())
+            ) {
+                return true;
+            }
+
+            /** @var ClientFactory $clientFactory */
+            $clientFactory = $moduleHelper->getService(HI::SERVICE_MODULE_API_CLIENT_FACTORY);
+            $client = $clientFactory->getApiClient(null, $this->getIdShop());
+            if ($client instanceof Client) {
+                $client->deleteProfile(
+                    $insConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
+                    $this->getIdIntegration()
+                );
+            }
         }
 
         return $check;

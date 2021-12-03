@@ -270,13 +270,12 @@ class Apsis_one extends Module implements SetupInterface
                 return null;
             }
 
-            /**  See Method hookDisplayAdminCustomersForm() Class ps_emailsubscription
-            $input = [];
-            $this->context->smarty->assign(['input' => $input]);
-            return $this->display(__FILE__, 'views/templates/admin/newsletter_subscribe.tpl');
-             **/
+            $this->smarty->assign([
+                'url' => $this->context->link->getModuleLink(self::MODULE_NAME, 'subscription'),
+                'titlePage' => 'Subscriptions',
+            ]);
 
-            return 'YES';
+            return $this->fetch('module:apsis_one/views/templates/front/hookDisplayCustomerAccount.tpl');
         } catch (Throwable $e) {
             $this->helper->logErrorMsg(__METHOD__, $e);
             return null;

@@ -105,7 +105,6 @@ class HookProcessor extends AbstractSetup
             if ($customer->deleted || $hookName === HI::CUSTOMER_HOOK_DELETE_AFTER) {
                 if ($profile instanceof Profile) {
                     $profile->delete();
-                    // @todo remove Profile from One.
                 }
             } elseif ($profile instanceof Profile) {
                 $this->entityHelper->updateProfileForCustomerEntity($profile, $customer);
@@ -174,19 +173,9 @@ class HookProcessor extends AbstractSetup
                         EI::ET_NEWS_GUEST_OPTOUT
                     );
                 }
-                // Non Customer, record does not exist. Ps removed the record, we need to remove subscription from One.
+                // PS EN entity deleted the record (non-customer), we also need to delete.
                 elseif (! $emailSubscriptionId && ! $customerIdIsSubs && $profile instanceof Profile) {
-
-                    // Event: Non customer user unsubscribes from newsletter
-                    $this->entityHelper->registerSubsEventsForSubscriber(
-                        $profile->getId(),
-                        $profile->getIdNewsletter(),
-                        EI::ET_NEWS_GUEST_OPTOUT
-                    );
-
-                    $this->entityHelper->updateProfileForEmailSubscriptionEntity($profile, 0, false);
-
-                    // @todo remove subscription from One in single call or figure our how to do with bulk.
+                    $profile->delete();
                 }
                 // Is Customer, delegate to customer entity hook processor
                 elseif (! $emailSubscriptionId && $customerIdNotSubs > 0) {

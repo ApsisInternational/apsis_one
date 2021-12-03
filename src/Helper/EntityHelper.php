@@ -181,21 +181,21 @@ class EntityHelper extends LoggerHelper
     /**
      * @param Profile $profile
      * @param int $emailSubscriptionId
-     * @param bool $subscriber
+     * @param bool $isSubscriber
      */
     public function updateProfileForEmailSubscriptionEntity(
         Profile $profile,
         int $emailSubscriptionId,
-        bool $subscriber = EI::YES
+        bool $isSubscriber = EI::YES
     ): void {
         try {
             $profile->setIdNewsletter($emailSubscriptionId)
-                ->setIsNewsletter($subscriber)
+                ->setIsNewsletter($isSubscriber)
                 ->setIdCustomer()
                 ->setIsCustomer()
                 ->setIsOffers()
                 ->setIsGuest()
-                ->setSyncStatus($emailSubscriptionId ? EI::SS_PENDING : EI::SS_NOTHING)
+                ->setSyncStatus()
                 ->update(true);
         } catch (Throwable $e) {
             $this->logErrorMsg(__METHOD__, $e);

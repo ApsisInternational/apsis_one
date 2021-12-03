@@ -46,7 +46,6 @@ class ProfileController extends AbstractController
      */
     public function deleteAction(Request $request, ProfileFilters $filter): Response
     {
-        // @todo remove Profile from One, and subscriptions if any
         return parent::processDelete($request, $filter);
     }
 

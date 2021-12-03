@@ -164,7 +164,6 @@ interface EntityInterface extends PsEntityInterface
     const NO_INT = 0;
 
     /** SYNC STATUS */
-    const SS_NOTHING = 0;
     const SS_PENDING = 1;
     const SS_JUSTIN = 2;
     const SS_SYNCED = 3;

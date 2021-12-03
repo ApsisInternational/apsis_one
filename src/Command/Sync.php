@@ -246,11 +246,12 @@ class Sync extends AbstractCommand
                     continue;
                 }
 
+                /**
                 $check = $this->syncProfileForEvent($client, $profile);
-
                 if (! $check) {
                     continue;
                 }
+                **/
 
                 $status = $client->addEventsToProfile(
                     $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
