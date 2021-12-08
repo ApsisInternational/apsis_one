@@ -263,10 +263,12 @@ class Apsis_one extends Module implements SetupInterface
      */
     public function hookDisplayCustomerAccount(array $hookArgs): ?string
     {
-        $this->helper->logInfoMsg(__METHOD__);
-
         try {
-            if (! $this->helper->isModuleEnabledForCurrentShop()) {
+            /** @var Configs $configs */
+            $configs = $this->helper->getService(HelperInterface::SERVICE_MODULE_CONFIGS);
+            if (! $this->helper->isModuleEnabledForCurrentShop() || empty($ic = $configs->getInstallationConfigs()) ||
+                $configs->isAnyClientConfigMissing($ic) || ! $configs->getProfileSyncFlag()
+            ) {
                 return null;
             }
 
