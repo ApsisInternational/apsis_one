@@ -614,6 +614,16 @@ class EntityHelper extends LoggerHelper
             $dataArr = $this->setProductDataInArr(json_decode($dataArr, true));
             $dataArr[EI::C_TOKEN] = $abandonedCart->getToken();
 
+            /** @var DateHelper $dateHelper */
+            $dateHelper = $this->moduleHelper->getService(HelperInterface::SERVICE_HELPER_DATE);
+            $createdAt = $dateHelper->formatDate(
+                self::TIMESTAMP,
+                $abandonedCart->getDateAdd(),
+                $abandonedCart->getIdShop(),
+                self::TZ_UTC
+            );
+            $dataArr[SchemaInterface::SCHEMA_AC_ITEM_CREATED_AT] = $createdAt;
+
             /** @var SchemaInterface $schemaProvider */
             $schemaProvider = $this->moduleHelper->getService(HelperInterface::SERVICE_ABANDONED_CART_SCHEMA);
             /** @var DataInterface $dataProvider */

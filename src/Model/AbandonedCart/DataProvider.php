@@ -44,6 +44,16 @@ class DataProvider extends EventDataProvider
     /**
      * @param string $type
      *
+     * @return int|null
+     */
+    protected function getCreatedAt(string $type): ?int
+    {
+        return $this->getFormattedValueByType('createdAt', $type);
+    }
+
+    /**
+     * @param string $type
+     *
      * @return string|null
      */
     protected function getCartRebuildUrl(string $type): ?string

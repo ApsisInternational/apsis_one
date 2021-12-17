@@ -223,10 +223,11 @@ interface SchemaInterface
         ]
     ];
     const SCHEMA_PROFILE_EVENT_ITEM_TIME = 'eventTime';
+    const SCHEMA_AC_ITEM_CREATED_AT = 'createdAt';
     const SCHEMA_PROFILE_EVENT_ITEM_DISCRIMINATOR = 'eventDiscriminator';
     const SCHEMA_PROFILE_EVENT_ITEM_DATA = 'eventData';
     const SCHEMA_PROFILE_EVENT = [
-        'eventTime' => [
+        self::SCHEMA_PROFILE_EVENT_ITEM_TIME => [
             self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_PROFILE_EVENT_ITEM_TIME,
             self::SCHEMA_KEY_DISPLAY_NAME => 'Event Time',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
@@ -369,7 +370,13 @@ interface SchemaInterface
             self::SCHEMA_KEY_DISPLAY_NAME => 'Items Count',
             self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
             self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_UNSIGNED_INT
-        ]
+        ],
+        self::SCHEMA_AC_ITEM_CREATED_AT => [
+            self::SCHEMA_KEY_LOGICAL_NAME => self::SCHEMA_AC_ITEM_CREATED_AT,
+            self::SCHEMA_KEY_DISPLAY_NAME => 'Created At',
+            self::SCHEMA_KEY_TYPE => self::DATA_TYPE_INT,
+            self::SCHEMA_KEY_VALIDATE => self::VALIDATE_FORMAT_DATE_TIMESTAMP_NOT_NULL
+        ],
     ];
     const SCHEMA_FIELD_GROUP_ORDER = [
         'orderReference' => [
