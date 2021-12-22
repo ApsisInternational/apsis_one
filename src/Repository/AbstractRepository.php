@@ -38,8 +38,9 @@ abstract class AbstractRepository extends EntityRepository implements Repository
      */
     protected function buildSqlQuery(string $where, string $limit = '0 , 1', string $from = ''): string
     {
+        $primary =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
         $from = empty($from) ? $this->getTableNameWithPrefix() : $from;
-        return sprintf('SELECT * FROM %s WHERE %s LIMIT %s', $from, $where, $limit);
+        return sprintf('SELECT * FROM %s WHERE %s ORDER BY %s ASC LIMIT %s', $from, $where, $primary, $limit);
     }
 
     /**
