@@ -314,7 +314,7 @@ class Install extends AbstractSetup
         try {
             $status = true;
             foreach (self::T_PROFILE_MIGRATE_DATA_FROM_TABLES as $sql) {
-                $status = $status && Db::getInstance()->execute($sql);
+                $status = $status && Db::getInstance()->execute(sprintf($sql, EI::SS_JUSTIN));
             }
             return $status;
         } catch (Throwable $e) {

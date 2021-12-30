@@ -412,7 +412,7 @@ class Client extends AbstractHttpRest
      */
     public function justinDsmInsertOrUpdate(string $sectionDiscriminator, array $items)
     {
-        $this->setUrl('/audience/sections/' . $sectionDiscriminator . '/integrations/prestashop/updates')
+        $this->setUrl('/sections/' . $sectionDiscriminator . '/integrations/prestashop/updates')
             ->setVerb(self::VERB_POST)
             ->buildBody(['items' => $items]);
         return $this->executeRequestAndReturnResponse(__METHOD__);

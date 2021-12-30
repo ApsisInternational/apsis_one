@@ -137,7 +137,7 @@ abstract class AbstractEntity extends ObjectModel implements EntityInterface
             $client = $clientFactory->getApiClient(null, $this->getIdShop());
             if ($client instanceof Client) {
                 $client->deleteProfile(
-                    $insConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
+                    $insConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
                     $this->getIdIntegration()
                 );
             }

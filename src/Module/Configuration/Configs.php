@@ -265,13 +265,16 @@ class Configs implements SetupInterface
     public function saveInstallationConfigs(array $configs, ?int $idShopGroup = null, ?int $idShop = null): bool
     {
         try {
-            $forLog = $configs;
-
             if (! empty($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
                 $configs[self::INSTALLATION_CONFIG_CLIENT_SECRET] =
                     $this->phpEncryption->encrypt($configs[self::INSTALLATION_CONFIG_CLIENT_SECRET]);
+            }
 
-                $forLog[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'An encrypted value';
+            if (! empty($configs[self::INSTALLATION_CONFIG_API_BASE_URL]) &&
+                substr($configs[self::INSTALLATION_CONFIG_API_BASE_URL], -1) == '/'
+            ) {
+                $configs[self::INSTALLATION_CONFIG_API_BASE_URL] =
+                    substr($configs[self::INSTALLATION_CONFIG_API_BASE_URL], 0, -1);
             }
 
             if (($value = json_encode($configs)) === false) {
@@ -279,7 +282,7 @@ class Configs implements SetupInterface
             }
 
 
-            $this->logValueChange(__METHOD__, $this->getInstallationConfigs($idShopGroup, $idShop), $forLog);
+            $this->logValueChange(__METHOD__, $this->getInstallationConfigs($idShopGroup, $idShop), $configs);
 
             return Configuration::updateValue(
                 self::CONFIG_KEY_INSTALLATION_CONFIGS,
@@ -660,6 +663,13 @@ class Configs implements SetupInterface
      */
     protected function logValueChange(string $method, $oldValue, $newValue = null): void
     {
+        if (isset($oldValue[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
+            $oldValue[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'An encrypted value';
+        }
+        if (isset($newValue[self::INSTALLATION_CONFIG_CLIENT_SECRET])) {
+            $newValue[self::INSTALLATION_CONFIG_CLIENT_SECRET] = 'An encrypted value';
+        }
+
         $info = ['Method' => $method, 'Previous Value' => $oldValue, 'New Value' => $newValue];
         $this->module->helper->logDebugMsg(__METHOD__, $info);
     }

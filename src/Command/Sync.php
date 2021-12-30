@@ -114,6 +114,7 @@ class Sync extends AbstractCommand
                         continue;
                     }
 
+                    unset($item[SI::PROFILE_SCHEMA_TYPE_EVENTS]);
                     $items[$profile->getId()] = array_merge([self::KEY_UPDATE_TYPE => self::SYNC_TYPE_PROFILE], $item);
                 }
 
@@ -121,11 +122,10 @@ class Sync extends AbstractCommand
                     continue;
                 }
 
-                //$this->entityHelper->logInfoMsg(var_export($items, true));
-
                 $ids = array_keys($items);
                 $result = $client->justinDsmInsertOrUpdate(
-                    $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR], $items
+                    $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
+                    array_values($items)
                 );
 
                 if ($result === false) {
@@ -208,7 +208,6 @@ class Sync extends AbstractCommand
                 }
 
                 if (! empty($groupedEvents)) {
-                    //$this->entityHelper->logInfoMsg(var_export($groupedEvents, true));
                     $message = $this->syncGroupedEventsPerProfile($groupedEvents, $client, $shopId, $message);
                 }
             }
@@ -246,18 +245,12 @@ class Sync extends AbstractCommand
                     continue;
                 }
 
-                /**
-                $check = $this->syncProfileForEvent($client, $profile);
-                if (! $check) {
-                    continue;
-                }
-                **/
-
+                $this->syncProfileForEvent($client, $profile);
                 $status = $client->addEventsToProfile(
                     $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
                     $profile->getIdIntegration(),
                     $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
-                    $events
+                    array_values($events)
                 );
 
                 if ($status === false) {
@@ -282,43 +275,46 @@ class Sync extends AbstractCommand
      * @param Client $client
      * @param Profile $profile
      *
-     * @return bool|null
+     * @return void
      */
-    protected function syncProfileForEvent(Client $client, Profile $profile): ?bool
+    protected function syncProfileForEvent(Client $client, Profile $profile): void
     {
         try {
             if ($profile->getSyncStatus() === EI::SS_SYNCED) {
-                return true;
+                return;
             }
 
-            $emailAttributeVersionId = $this->moduleHelper->getEmailAttributeVersionId(
-                $client, $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR]
-            );
+            $secDisc = $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR];
 
+            $emailAttributeVersionId = $this->moduleHelper->getAttributeVersionId($client, $secDisc, HI::EMAIL_DISC);
             if (empty($emailAttributeVersionId)) {
-                return false;
+                return;
             }
 
-            $status = $client->addAttributesToProfile(
+            $attributes = [$emailAttributeVersionId => $profile->getEmail()];
+
+            if ($profile->getIdCustomer() && $customer = $this->moduleHelper->getCustomerById($profile->getIdCustomer())) {
+                $fNameAttributeVersionId = $this->moduleHelper->getAttributeVersionId($client, $secDisc, HI::F_NAME_DISC);
+                if (strlen($customer->firstname) && $fNameAttributeVersionId) {
+                    $attributes[$fNameAttributeVersionId] = $customer->firstname;
+                }
+
+                $lNameAttributeVersionId = $this->moduleHelper->getAttributeVersionId($client, $secDisc, HI::L_NAME_DISC);
+                if (strlen($customer->lastname) && $lNameAttributeVersionId) {
+                    $attributes[$lNameAttributeVersionId] = $customer->lastname;
+                }
+            }
+
+            $client->addAttributesToProfile(
                 $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR],
                 $profile->getIdIntegration(),
-                $this->installationConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR],
-                [$emailAttributeVersionId => $profile->getEmail()]
+                $secDisc,
+                $attributes
             );
-
-            if ($status === false) {
-                return false;
-            } elseif (is_string($status)) {
-                $profile->setErrorMessage($status)->setSyncStatus(EI::SS_FAILED)->update();
-                return false;
-            } else {
-                return true;
-            }
 
         } catch (Throwable $e) {
             $this->outputRuntimeErrorMsg(self::JOB_TYPE_EVENT, $e->getMessage());
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
-            return null;
         }
     }
 

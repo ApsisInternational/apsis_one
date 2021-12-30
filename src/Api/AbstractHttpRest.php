@@ -398,9 +398,10 @@ abstract class AbstractHttpRest implements ApiControllerInterface
                 'Method' => $method,
                 'Request time in seconds' => $this->responseInfo['total_time'],
                 'Endpoint URL' => $this->responseInfo['url'],
-                'Http code' => $this->responseInfo['http_code']
+                'Http code' => $this->responseInfo['http_code'],
+                'Response' => $response
             ];
-            $this->helper->logDebugMsg('CURL Transfer', $info);
+            $this->helper->logDebugMsg(__METHOD__, ['CURL Transfer' => $info]);
         }
 
         if (isset($response->status) && isset($response->detail)) {

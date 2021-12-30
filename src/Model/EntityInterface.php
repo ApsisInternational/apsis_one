@@ -411,7 +411,7 @@ interface EntityInterface extends PsEntityInterface
                     ON (c.`id_default_group`, c.`id_lang`) = (gl.`id_group`, gl.`id_lang`)
                 WHERE c.`id_customer` = pc.`id_customer`
             ) AS `profile_data`,
-            ' . self::SS_JUSTIN . ' as `sync_status`,
+            %d as `sync_status`,
             "" as `error_message`,
             NOW() as `date_upd`
         FROM `' . _DB_PREFIX_ . 'customer` pc
@@ -470,7 +470,7 @@ interface EntityInterface extends PsEntityInterface
                     ON (en.`id_lang` = l.`id_lang`)
                 WHERE en.`id` = pes.`id`
             ) AS `profile_data`,
-            ' . self::SS_JUSTIN . ' as `sync_status`,
+            %d as `sync_status`,
             "" as `error_message`,
             NOW() as `date_upd`
         FROM `' . _DB_PREFIX_ . 'emailsubscription` pes

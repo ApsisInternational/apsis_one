@@ -209,7 +209,7 @@ abstract class AbstractData implements DataInterface
                     $type = ! empty($value) && is_string($value) ? $type : 'null';
                     break;
                 case SchemaInterface::DATA_TYPE_BOOLEAN:
-                    $value = isset($value) && (is_bool($value) || in_array($value, [0, 1])) ? $value : 'null';
+                    $type = isset($value) && (is_bool($value) || in_array($value, [0, 1])) ? $type : 'null';
                     break;
                 default:
                     $type = 'null';

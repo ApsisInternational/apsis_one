@@ -420,22 +420,20 @@ abstract class AbstractApiController extends ModuleFrontController implements Ap
     protected function isDataValid($data, string $type): bool
     {
         $isValid = false;
-        if (! empty($data)) {
-            try {
-                switch ($type) {
-                    case self::DATA_TYPE_STRING:
-                        $isValid = is_string($data);
-                        break;
-                    case self::DATA_TYPE_INT:
-                        $isValid = is_numeric($data);
-                        break;
-                    case SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL:
-                        $isValid = filter_var($data, FILTER_VALIDATE_URL);
-                        break;
-                }
-            } catch (Throwable $e) {
-                $this->handleExcErr($e, __METHOD__);
+        try {
+            switch ($type) {
+                case self::DATA_TYPE_STRING:
+                    $isValid = ! empty($data) && is_string($data);
+                    break;
+                case self::DATA_TYPE_INT:
+                    $isValid = is_numeric($data);
+                    break;
+                case SchemaInterface::VALIDATE_FORMAT_URL_NOT_NULL:
+                    $isValid = ! empty($data) && filter_var($data, FILTER_VALIDATE_URL);
+                    break;
             }
+        } catch (Throwable $e) {
+            $this->handleExcErr($e, __METHOD__);
         }
         return $isValid;
     }

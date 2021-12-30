@@ -114,6 +114,7 @@ class Db extends AbstractCommand
                         $shopId
                     );
                     $entity = sprintf("Profiles (%s)", $table);
+                    $sql = sprintf($sql, EI::SS_PENDING);
                     $message .= $this->executeQueryAndGetResultString($sql . $cond, $shopId, $entity);
                 }
             }

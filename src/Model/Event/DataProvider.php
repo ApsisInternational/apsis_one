@@ -3,9 +3,74 @@
 namespace Apsis\One\Model\Event;
 
 use Apsis\One\Model\AbstractDataProvider;
+use Apsis\One\Model\SchemaInterface;
+use Throwable;
 
 class DataProvider extends AbstractDataProvider
 {
+    /**
+     * @inheritDoc
+     */
+    protected function getValue(string $logicalName, string $type, string $validate)
+    {
+        $value = parent::getValue($logicalName, $type, $validate);
+        if (is_null($value)) {
+            $value = $this->getDefaultValueByType($type);
+        }
+        return $value;
+    }
+
+    /**
+     * @param string $type
+     *
+     * @return false|float|int|string|null
+     */
+    protected function getDefaultValueByType(string $type)
+    {
+        switch ($type) {
+            case SchemaInterface::DATA_TYPE_DOUBLE:
+                $value = 0.00;
+                break;
+            case SchemaInterface::DATA_TYPE_INT:
+                $value = 0;
+                break;
+            case SchemaInterface::DATA_TYPE_STRING:
+                $value = '';
+                break;
+            case SchemaInterface::DATA_TYPE_BOOLEAN:
+                $value = false;
+                break;
+            default:
+                $value = $type = null;
+        }
+
+        settype($value, $type);
+        return $value;
+    }
+
+    /**
+     * @param string $key
+     * @param string $type
+     * @param bool $isPhone
+     * @param int $addressType
+     *
+     * @return bool|float|int|mixed|string
+     */
+    protected function getFormattedValueByType(string $key, string $type, bool $isPhone = false, int $addressType = 0)
+    {
+        $value = $this->objectData[$key] ?? null;
+
+        try {
+            if (is_null($value)) {
+                $value = $this->getDefaultValueByType($type);
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return $value;
+    }
+
     /**
      * @param string $type
      *
@@ -89,9 +154,9 @@ class DataProvider extends AbstractDataProvider
     /**
      * @param string $type
      *
-     * @return string|null
+     * @return int|null
      */
-    protected function getReviewRating(string $type): ?string
+    protected function getReviewRating(string $type): ?int
     {
         return $this->getFormattedValueByType('review_rating', $type);
     }

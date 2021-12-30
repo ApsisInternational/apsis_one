@@ -148,8 +148,11 @@ interface HelperInterface
         self::FROM_CONTAINER_SA => ''
     ];
 
-    const APSIS_WEB_COOKIE_NAME = 'Ely_vID';
-    const APSIS_WEB_COOKIE_DURATION = 31536000; // 1 Year
+    const WEB_COOKIE_NAME = 'Ely_vID';
+    const WEB_COOKIE_DURATION = 31536000; // 1 Year
+    const EMAIL_DISC = 'com.apsis1.attributes.email';
+    const F_NAME_DISC = 'com.apsis1.attributes.firstname';
+    const L_NAME_DISC = 'com.apsis1.attributes.lastname';
 
     /**
      * @param string $message

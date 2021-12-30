@@ -152,7 +152,8 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
                 );
 
             if (! empty($profiles) && is_array($profiles)) {
-                $inclEvents = isset($this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS]);
+                $inclEvents = isset($this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS]) &&
+                    (int) $this->queryParams[self::QUERY_PARAM_INCLUDE_EVENTS] === 1;
 
                 /** @var Profile $profile */
                 foreach ($profiles as $profile) {

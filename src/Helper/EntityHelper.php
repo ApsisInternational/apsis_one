@@ -793,7 +793,7 @@ class EntityHelper extends LoggerHelper
                     EI::C_SYNC_STATUS,
                     $status,
                     EI::C_ERROR_MSG,
-                    $msg,
+                    $queryBuilder->quote($msg),
                     $queryBuilder->buildWhereConditions('AND', [EI::T_PRIMARY_MAPPINGS[$table] => $ids])
                 )
             );

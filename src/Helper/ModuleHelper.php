@@ -325,28 +325,28 @@ class ModuleHelper extends LoggerHelper
         $clientFactory = $this->getService(self::SERVICE_MODULE_API_CLIENT_FACTORY);
 
         $client = $clientFactory->getApiClient();
-        $sectionDiscriminator = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR);
-        $keySpaceDiscriminator = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR);
+        $sectionDisc = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR);
+        $keySpaceDisc = $configs->getInstallationConfigByKey(SI::INSTALLATION_CONFIG_KEYSPACE_DISCRIMINATOR);
 
-        if (empty($sectionDiscriminator) || empty($keySpaceDiscriminator) || ! $client instanceof Client) {
+        if (empty($sectionDisc) || empty($keySpaceDisc) || ! $client instanceof Client) {
             return;
         }
 
-        $keySpacesToMerge = $this->getKeySpacesToMerge($profile->getIdIntegration(), $sectionDiscriminator);
+        $keySpacesToMerge = $this->getKeySpacesToMerge($profile->getIdIntegration(), $keySpaceDisc);
         if (empty($keySpacesToMerge)) {
             return;
         }
 
         if ($profile->getSyncStatus() !== EntityInterface::SS_SYNCED) {
-            $emailAttributeVersionId = $this->getEmailAttributeVersionId($client, $sectionDiscriminator);
+            $emailAttributeVersionId = $this->getAttributeVersionId($client, $sectionDisc, self::EMAIL_DISC);
             if (empty($emailAttributeVersionId)) {
                 return;
             }
 
             $status = $client->addAttributesToProfile(
-                $keySpaceDiscriminator,
+                $keySpaceDisc,
                 $profile->getIdIntegration(),
-                $sectionDiscriminator,
+                $sectionDisc,
                 [$emailAttributeVersionId => $profile->getEmail()]
             );
 
@@ -366,7 +366,7 @@ class ModuleHelper extends LoggerHelper
                 [
                     'Message' => 'Conflict merging with web profile, creating new cookie value.',
                     'Profile' => $profile->getIdIntegration(),
-                    self::APSIS_WEB_COOKIE_NAME => $keySpacesToMerge[1]['profile_key']
+                    self::WEB_COOKIE_NAME => $keySpacesToMerge[1]['profile_key']
                 ]
             );
 
@@ -380,10 +380,11 @@ class ModuleHelper extends LoggerHelper
     /**
      * @param Client $client
      * @param string $sectionDiscriminator
+     * @param string $attrDisc
      *
      * @return int|null
      */
-    public function getEmailAttributeVersionId(Client $client, string $sectionDiscriminator): ?int
+    public function getAttributeVersionId(Client $client, string $sectionDiscriminator, string $attrDisc): ?int
     {
         try {
             if (empty($sectionDiscriminator)) {
@@ -393,7 +394,7 @@ class ModuleHelper extends LoggerHelper
             $attributes = $client->getAttributes($sectionDiscriminator);
             if ($attributes && isset($attributes->items)) {
                 foreach ($attributes->items as $attribute) {
-                    if ($attribute->discriminator === 'com.apsis1.attributes.email') {
+                    if ($attribute->discriminator === $attrDisc) {
                         foreach ($attribute->versions as $version) {
                             if ($version->deprecated_at === null) {
                                 return (int) $version->id;
@@ -422,7 +423,7 @@ class ModuleHelper extends LoggerHelper
                 return null;
             }
 
-            $elyCookieValue = $_COOKIE[self::APSIS_WEB_COOKIE_NAME] ?? null;
+            $elyCookieValue = $_COOKIE[self::WEB_COOKIE_NAME] ?? null;
             if (empty($elyCookieValue)) {
                 return null;
             }
@@ -453,19 +454,19 @@ class ModuleHelper extends LoggerHelper
             $domain = $this->getDomainFromBaseUrl();
             if (is_string($domain) && strlen($domain)) {
                 $status = setcookie(
-                    self::APSIS_WEB_COOKIE_NAME,
+                    self::WEB_COOKIE_NAME,
                     $keySpacesToMerge[1]['profile_key'],
-                    self::APSIS_WEB_COOKIE_DURATION + time(),
+                    self::WEB_COOKIE_DURATION + time(),
                     '/',
                     $domain
                 );
 
                 if (! $status) {
                     $this->logInfoMsg(
-                        sprintf("%s. The cookie %s could not be sent.", __METHOD__, self::APSIS_WEB_COOKIE_NAME)
+                        sprintf("%s. The cookie %s could not be sent.", __METHOD__, self::WEB_COOKIE_NAME)
                     );
                 } else {
-                    $info = ['Name' => self::APSIS_WEB_COOKIE_NAME, 'Value' => $keySpacesToMerge[1]['profile_key']];
+                    $info = ['Name' => self::WEB_COOKIE_NAME, 'Value' => $keySpacesToMerge[1]['profile_key']];
                     $this->logDebugMsg(__METHOD__, $info);
                 }
             }
