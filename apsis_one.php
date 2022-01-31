@@ -6,6 +6,8 @@ if (!defined('_PS_VERSION_')) {
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use Apsis\One\Helper\EntityHelper;
+use Apsis\One\Model\Profile;
 use Apsis\One\Module\Install;
 use Apsis\One\Module\SetupInterface;
 use Apsis\One\Module\Uninstall;
@@ -282,5 +284,74 @@ class Apsis_one extends Module implements SetupInterface
             $this->helper->logErrorMsg(__METHOD__, $e);
             return null;
         }
+    }
+
+    /**
+     * @param $customer
+     *
+     * @return string
+     */
+    public function hookActionExportGDPRData($customer): string
+    {
+        try {
+            $this->helper->logDebugMsg(__METHOD__, $customer);
+            if (! empty($customer['id'])) {
+                /** @var EntityHelper $entityHelper */
+                $entityHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+                $profile = $entityHelper->getProfileRepository()->findOneByCustomerId($customer['id']);
+                if ($profile instanceof Profile) {
+                    $this->helper->logDebugMsg(__METHOD__, ['Profile Id' => $profile->getId()]);
+                    return $profile->toJson();
+                }
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return json_encode('APSIS One: No Profile found to export.');
+    }
+
+    /**
+     * @param $customer
+     *
+     * @return string
+     */
+    public function hookActionDeleteGDPRCustomer($customer): string
+    {
+        try {
+            if (! empty($customer['email']) && Validate::isEmail($customer['email']) && ! empty($customer['id_shop'])) {
+                /** @var EntityHelper $entityHelper */
+                $entityHelper = $this->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
+                $profile = $entityHelper->getProfileRepository()
+                    ->findOneByEmailForGivenShop($customer['email'], $customer['id_shop']);
+
+                if ($profile instanceof Profile) {
+                    if ($profile->delete()) {
+                        $this->helper->logDebugMsg(
+                            __METHOD__,
+                            [
+                                'Profile Integration Id' => $profile->getIdIntegration(),
+                                'Customer Id' => $profile->getIdCustomer(),
+                                'Customer Email' => $profile->getEmail(),
+                            ]
+                        );
+                        return json_encode(true);
+                    }
+                }
+            }
+        } catch (Throwable $e) {
+            $this->helper->logErrorMsg(__METHOD__, $e);
+        }
+
+        return json_encode('APSIS One: No Profile found to delete.');
+    }
+
+    /**
+     * @return void
+     */
+    public function hookRegisterGDPRConsent(): void
+    {
+        /* Since Prestashop 1.7.8, modules must implement a listener for all the hooks they register. Even for hooks
+        that doesn't need a listener */
     }
 }
