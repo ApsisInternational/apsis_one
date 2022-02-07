@@ -49,7 +49,11 @@ interface SetupInterface
 
     /** MODULE */
     const MODULE_NAME = 'apsis_one';
+    const MODULE_AUTHOR = 'APSIS';
+    const MODULE_TAB = 'advertising_marketing';
     const MODULE_DISPLAY_NAME = 'APSIS One';
+    const MODULE_DESCRIPTION = 'Grow faster with the all-in-One marketing platform.';
+    const MODULE_MSG_UNINSTALL = 'Are you sure you want to uninstall?';
     const MODULE_VERSION  = '1.0.0';
     const MODULE_CONFIG_TAB = 'Configure Module';
     const MODULE_LOG_VIEWER_TAB = 'Log Viewer';

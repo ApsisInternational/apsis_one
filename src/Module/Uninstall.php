@@ -22,8 +22,7 @@ class Uninstall extends AbstractSetup
             return $this->uninstallConfigurations() &&
                 $this->uninstallHooks() &&
                 $this->removeTables() &&
-                $this->uninstallTabs() &&
-                $this->module->uninstall(true);
+                $this->uninstallTabs();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return false;

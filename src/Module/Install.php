@@ -35,7 +35,6 @@ class Install extends AbstractSetup
                 $this->populateTables() &&
                 $this->installConfigurations() &&
                 $this->installTabs() &&
-                $this->module->install(true) &&
                 $this->installHooks();
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
