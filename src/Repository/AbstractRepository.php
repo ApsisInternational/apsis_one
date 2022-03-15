@@ -166,7 +166,10 @@ abstract class AbstractRepository extends EntityRepository implements Repository
             }
 
             $pCol =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
-            $condArr = [EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr];
+            $condArr = [EI::C_ID_SHOP => $idShopArr];
+            if (! empty($statusArr)) {
+                $condArr = array_merge($condArr, [EI::C_SYNC_STATUS => $statusArr]);
+            }
 
             if ($afterId > 0) {
                 $condArr[$pCol] = $afterId;
