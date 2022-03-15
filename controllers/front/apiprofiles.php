@@ -146,7 +146,7 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
             $entityHelper = $this->module->helper->getService(HelperInterface::SERVICE_HELPER_ENTITY);
             $profiles = $this->getProfileRepository()
                 ->findBySyncStatusForGivenShop(
-                    [EI::SS_JUSTIN],
+                    [],
                     $this->module->helper->getStoreIdArrFromContext((int) $this->groupId, (int) $this->shopId),
                     $afterId
                 );

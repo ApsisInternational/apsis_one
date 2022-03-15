@@ -139,12 +139,11 @@ abstract class AbstractRepository extends EntityRepository implements Repository
             }
 
             $primary =  EI::T_PRIMARY_MAPPINGS[$this->entityMetaData->getTableName()];
-            $sql = $this->buildSqlQuery(
-                $this->buildWhereClause(
-                    [EI::C_SYNC_STATUS => $statusArr, EI::C_ID_SHOP => $idShopArr, $primary => $afterId]
-                ),
-                self::QUERY_LIMIT
-            );
+            $conditions = [EI::C_ID_SHOP => $idShopArr, $primary => $afterId];
+            if (! empty($statusArr)) {
+                $conditions = array_merge($conditions, [EI::C_SYNC_STATUS => $statusArr]);
+            }
+            $sql = $this->buildSqlQuery($this->buildWhereClause($conditions), self::QUERY_LIMIT);
             return $this->hydrateMany($this->db->select(str_replace($primary . " =", $primary . " >", $sql)));
         } catch (Throwable $e) {
             $this->logger->logErrorMsg(__METHOD__, $e);
