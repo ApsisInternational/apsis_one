@@ -405,6 +405,9 @@ abstract class AbstractHttpRest implements ApiControllerInterface
         }
 
         if (isset($response->status) && isset($response->detail)) {
+            //Log error
+            $this->helper->logDebugMsg($method, (array) $response);
+
             if (strpos($method, '::getAccessToken') !== false) {
                 // Return as it is
                 return $response;
@@ -415,9 +418,6 @@ abstract class AbstractHttpRest implements ApiControllerInterface
                 //For Profile merge request
                 return self::HTTP_CODE_409;
             }
-
-            //Log error
-            $this->helper->logDebugMsg($method, (array) $response);
 
             //All other error response handling
             return (in_array($response->status, self::HTTP_ERROR_CODES_TO_RETRY)) ? false : (string) $response->detail;
