@@ -86,7 +86,8 @@ class ClientFactory
         $host = $configs[SetupInterface::INSTALLATION_CONFIG_API_BASE_URL];
 
         $apiClient = new Client($this->helper, $host);
-        $apiClient->setClientCredentials($clientId, $clientSecret);
+        $apiClient->setConfigScope($this->configs, $idShopGroup, $idShop)
+            ->setClientCredentials($clientId, $clientSecret);
 
         $token = $this->getToken($apiClient, $idShopGroup, $idShop);
 

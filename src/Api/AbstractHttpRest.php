@@ -4,6 +4,7 @@ namespace Apsis\One\Api;
 
 use Apsis\One\Controller\ApiControllerInterface;
 use Apsis\One\Helper\HelperInterface;
+use Apsis\One\Module\Configuration\Configs;
 use Apsis\One\Module\SetupInterface;
 use Exception;
 use Throwable;
@@ -38,6 +39,21 @@ abstract class AbstractHttpRest implements ApiControllerInterface
      * @var string
      */
     protected $clientSecret;
+
+    /**
+     * @var null|int
+     */
+    protected $idShopGroup;
+
+    /**
+     * @var null|int
+     */
+    protected $idShop;
+
+    /**
+     * @var Configs
+     */
+    protected $configs;
 
     /**
      * @var string
@@ -355,6 +371,21 @@ abstract class AbstractHttpRest implements ApiControllerInterface
     }
 
     /**
+     * @param Configs $configs
+     * @param int|null $idShopGroup
+     * @param int|null $idShop
+     *
+     * @return $this
+     */
+    public function setConfigScope(Configs $configs, ?int $idShopGroup, ?int $idShop): AbstractHttpRest
+    {
+        $this->configs = $configs;
+        $this->idShopGroup = $idShopGroup;
+        $this->idShop = $idShop;
+        return $this;
+    }
+
+    /**
      * Set url.
      *
      * @param string $url
@@ -413,6 +444,7 @@ abstract class AbstractHttpRest implements ApiControllerInterface
                 return $response;
             } elseif (in_array($response->status, self::HTTP_CODES_FORCE_GENERATE_TOKEN)) {
                 // Client factory will automatically generate new one. If not then will disable automatically.
+                $this->configs->clearTokenConfigs($this->idShopGroup, $this->idShop);
                 return false;
             } elseif ($response->status === self::HTTP_CODE_409) {
                 //For Profile merge request

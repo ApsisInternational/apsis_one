@@ -364,11 +364,8 @@ interface EntityInterface extends PsEntityInterface
                                     "id_address_delivery", o.`id_address_delivery`
                                 )
                             FROM `' . _DB_PREFIX_ . 'orders` o
-                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-                                ON (o.`current_state` = os.`id_order_state`)
                             WHERE o.`id_customer` = c.`id_customer`
                                 AND o.`id_shop` = c.`id_shop`
-                                AND os.`invoice` = ' . self::YES_INT . '
                             ORDER BY o.`id_order` DESC
                             LIMIT 1
                         ),
@@ -518,11 +515,8 @@ interface EntityInterface extends PsEntityInterface
                             "id_address_delivery", o.`id_address_delivery`
                         )
                     FROM `' . _DB_PREFIX_ . 'orders` o
-                    INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-                        ON (o.`current_state` = os.`id_order_state`)
                     WHERE o.`id_customer` = c.`id_customer`
                         AND o.`id_shop` = c.`id_shop`
-                        AND os.`invoice` = ' . self::YES_INT . '
                     ORDER BY o.`id_order` DESC
                     LIMIT 1
                 ),
@@ -625,11 +619,8 @@ interface EntityInterface extends PsEntityInterface
                                     "id_address_delivery", o.`id_address_delivery`
                                 )
                             FROM `' . _DB_PREFIX_ . 'orders` o
-                            INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-                                ON (o.`current_state` = os.`id_order_state`)
                             WHERE o.`id_customer` = c.`id_customer`
                                 AND o.`id_shop` = c.`id_shop`
-                                AND os.`invoice` = ' . self::YES_INT . '
                             ORDER BY o.`id_order` DESC
                             LIMIT 1
                         ),
@@ -869,8 +860,7 @@ interface EntityInterface extends PsEntityInterface
         INNER JOIN `' . _DB_PREFIX_ . 'product_lang` pl
             ON (pl.`id_product`, pl.`id_shop`, pl.`id_lang`) = (p.`id_product`, s.`id_shop`, c.`id_lang`)
         WHERE
-            pc.`deleted` = ' . self::NO_INT . ' AND
-            pc.`validate` = ' . self::YES_INT;
+            pc.`deleted` = ' . self::NO_INT;
 
     const EVENT_REVIEW_PRODUCT_SQL_COND = ' AND pc.`id_product_comment` = %d LIMIT 1 ';
 
@@ -948,11 +938,8 @@ interface EntityInterface extends PsEntityInterface
             ON (sg.`id_shop_group` = o.`id_shop_group`)
         INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
             ON (cr.`id_currency` = o.`id_currency`)
-        INNER JOIN `' . _DB_PREFIX_ . 'order_state` os
-            ON (os.`id_order_state` = o.`current_state`)
         WHERE
-            o.`valid` = ' . self::YES_INT . ' AND
-            os.`invoice` = ' . self::YES_INT;
+            o.`valid` = ' . self::YES_INT;
 
     const EVENT_ORDER_INSERT_SQL_COND = ' AND
             o.`id_order` = %d AND

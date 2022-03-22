@@ -281,9 +281,10 @@ class Configs implements SetupInterface
                 return false;
             }
 
+            //Force clear token configs
+            $this->clearTokenConfigs($idShopGroup, $idShop);
 
             $this->logValueChange(__METHOD__, $this->getInstallationConfigs($idShopGroup, $idShop), $configs);
-
             return Configuration::updateValue(
                 self::CONFIG_KEY_INSTALLATION_CONFIGS,
                 empty($configs) ? '' : $value,
@@ -531,9 +532,7 @@ class Configs implements SetupInterface
     {
         $this->module->helper->logInfoMsg(__METHOD__);
 
-        return $this->disableSyncs($idShopGroup, $idShop) &&
-            $this->clearTokenConfigs($idShopGroup, $idShop) &&
-            $this->saveInstallationConfigs([], $idShopGroup, $idShop);
+        return $this->disableSyncs($idShopGroup, $idShop) && $this->saveInstallationConfigs([], $idShopGroup, $idShop);
     }
 
     /**
