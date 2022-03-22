@@ -270,7 +270,7 @@ interface EntityInterface extends PsEntityInterface
         self::SS_PENDING => 'Pending',
         self::SS_SYNCED => 'Synced',
         self::SS_FAILED => 'Failed',
-        self::SS_JUSTIN => 'JUSTIN Sync'
+        self::SS_JUSTIN => 'Unmodified'
     ];
     const COLUMN_ET_LABEL_MAPPINGS = [
         self::ET_CUST_LOGIN => 'Customer Login',
@@ -937,11 +937,10 @@ interface EntityInterface extends PsEntityInterface
         INNER JOIN `' . _DB_PREFIX_ . 'shop_group` sg
             ON (sg.`id_shop_group` = o.`id_shop_group`)
         INNER JOIN `' . _DB_PREFIX_ . 'currency` cr
-            ON (cr.`id_currency` = o.`id_currency`)
-        WHERE
-            o.`valid` = ' . self::YES_INT;
+            ON (cr.`id_currency` = o.`id_currency`) ';
 
-    const EVENT_ORDER_INSERT_SQL_COND = ' AND
+    const EVENT_ORDER_INSERT_SQL_COND = '
+        WHERE
             o.`id_order` = %d AND
             NOT EXISTS
             (
