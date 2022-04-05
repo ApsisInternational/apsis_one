@@ -2,6 +2,8 @@
 
 namespace Apsis\One\Module;
 
+use Apsis\One\Api\Client;
+use Apsis\One\Api\ClientFactory;
 use Apsis\One\Context\LinkContext;
 use Apsis\One\Helper\HelperInterface;
 use Apsis_one;
@@ -74,8 +76,17 @@ class Configuration extends AbstractSetup
             $helper->fields_value[self::READ_ONLY_FILED_BASE_URL] = $context->getBaseUrl();
             $helper->fields_value[self::CONFIG_KEY_GLOBAL_KEY] = $this->configs->getGlobalKey();
 
-            $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] =
-                empty($this->configs->getInstallationConfigs()) ? 'NOT CONNECTED' : 'CONNECTED';
+            $status = 'NOT CONNECTED';
+            $installConfigs = $this->configs->getInstallationConfigs();
+            if (! empty($installConfigs) &&
+                ! empty($installConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR])
+            ) {
+                $status = $this->getSectionName(
+                    $installConfigs[SetupInterface::INSTALLATION_CONFIG_SECTION_DISCRIMINATOR]
+                );
+            }
+
+            $helper->fields_value[self::READ_ONLY_FIELD_ACCOUNT_STATUS] = $status;
             $helper->fields_value[self::CONFIG_KEY_PROFILE_SYNC_FLAG] =
                 Tools::getValue(
                     self::CONFIG_KEY_PROFILE_SYNC_FLAG,
@@ -100,6 +111,41 @@ class Configuration extends AbstractSetup
         } catch (Throwable $e) {
             $this->module->helper->logErrorMsg(__METHOD__, $e);
             return '';
+        }
+    }
+
+    /**
+     * @param string $sectionDiscriminator
+     *
+     * @return string
+     */
+    protected function getSectionName(string $sectionDiscriminator): string
+    {
+        try {
+            $status = 'NOT CONNECTED';
+
+            /** @var ClientFactory $clientFactory */
+            $clientFactory = $this->module->helper->getService(HelperInterface::SERVICE_MODULE_API_CLIENT_FACTORY);
+            $client = $clientFactory->getApiClient();
+            if (! $client instanceof Client) {
+                return $status;
+            }
+
+            $response = $client->getSections();
+            if (! isset($response->items) || ! is_array($response->items)) {
+                return $status;
+            }
+
+            foreach ($response->items as $section) {
+                if ($section->discriminator === $sectionDiscriminator) {
+                    return sprintf('CONNECTED: SECTION > %s', strlen($section->name) ? $section->name : $section->id);
+                }
+            }
+
+            return $status;
+        } catch (Throwable $e) {
+            $this->module->helper->logErrorMsg(__METHOD__, $e);
+            return 'ERROR: Check log file.';
         }
     }
 
