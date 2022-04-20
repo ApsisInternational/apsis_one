@@ -176,9 +176,26 @@ class apsis_OneApiprofilesModuleFrontController extends AbstractApiController
 
         return [
             self::JSON_BODY_PARAM_ITEMS => array_values($items),
-            self::BODY_PARAM_LINKS_NEXT => (int) array_key_last($items),
-            self::BODY_PARAM_COUNT => $this->getTotalCount((int) array_key_last($items))
+            self::BODY_PARAM_LINKS_NEXT => (int) $this->getArrayLastKey($items),
+            self::BODY_PARAM_COUNT => $this->getTotalCount((int) $this->getArrayLastKey($items))
         ];
+    }
+
+    /**
+     * @param array $array
+     *
+     * @return int|string|null
+     */
+    protected function getArrayLastKey(array $array)
+    {
+        if (function_exists("array_key_last")) {
+            return array_key_last($array);
+        } else {
+            if (empty($array)) {
+                return NULL;
+            }
+            return array_keys($array)[count($array)-1];
+        }
     }
 
     /**
