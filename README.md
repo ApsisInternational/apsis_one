@@ -36,3 +36,7 @@ You are welcome to contribute to our APSIS One integration for PrestaShop. You c
 - Report a bug: Create a [GitHub issue](https://github.com/ApsisInternational/apsis_one/issues/new) including detailed description, steps to reproduce issue, PrestaShop version including the module version number.
 - Fix a bug: Please clone our [Develop branch](https://github.com/ApsisInternational/apsis_one/tree/develop) to include your changes and submit your Pull Request.
 - To request a feature: Please contact us through [support](https://www.apsis.com/services/support)
+
+## Internal Docs
+
+- [Documentation](https://efficy-my.sharepoint.com/:w:/p/aqa/EQugtPZAkOZKoAVQ4uRJczABAC9TI2qjIqBIuGO7WUXadw?e=uHARqg)

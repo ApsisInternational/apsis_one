@@ -20,7 +20,7 @@ class Db extends AbstractCommand
     /**
      * @var string
      */
-    protected $commandName = self::COMMAND_NAME_DB;
+    protected $commandName = 'apsis-one:db';
 
     /**
      * @var string
@@ -30,17 +30,20 @@ class Db extends AbstractCommand
     /**
      * @var string
      */
-    protected $commandHelp = self::COMMAND_HELP_DESC_DB;
+    protected $commandHelp = 'This commands allows you to ' . self::COMMAND_DESC_DB . " '" . self::JOB_TYPE_SCAN_AC .
+    "' to find abandoned carts." . " '" . self::JOB_TYPE_SCAN_MISSING .
+    "' to find missing Profiles and subscription updates.";
 
     /**
      * @var string
      */
-    protected $argumentReqDesc = self::ARG_REQ_DESC_DB;
+    protected $argumentReqDesc = 'Which operations job do you want to run?' . " '" . self::JOB_TYPE_SCAN_AC . "'" .
+    "' / '" . self::JOB_TYPE_SCAN_MISSING . "'";
 
     /**
      * @var array
      */
-    protected $processorMsg = self:: MSG_PROCESSOR_DB;
+    protected $processorMsg = ['===================', 'APSIS DB Operations', '===================', ''];
 
     /**
      * @var DateHelper
@@ -66,22 +69,19 @@ class Db extends AbstractCommand
                 case self::JOB_TYPE_SCAN_AC:
                     $this->scanDbForAbandonedCarts();
                     break;
-                case self::JOB_TYPE_SCAN_SUBS_UPDATE:
+                case self::JOB_TYPE_SCAN_MISSING:
                     $this->scanDbForSilentSubscriptionUpdate();
-                    break;
-                case self::JOB_TYPE_SCAN_MISSING_PROFILES:
                     $this->scanDbForSilentMissingProfilesFromSqlImport();
                     break;
                 default:
                     $this->outputInvalidJobErrorMsg();
             }
-
-            $this->release();
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $this->output->writeln($e->getMessage());
         }
 
+        $this->release();
         return 0;
     }
 
@@ -96,7 +96,7 @@ class Db extends AbstractCommand
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
                     $message .= $check;
                     continue;
                 }
@@ -138,7 +138,7 @@ class Db extends AbstractCommand
         try {
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
                     $message .= $check;
                     continue;
                 }
@@ -179,7 +179,7 @@ class Db extends AbstractCommand
             foreach ($this->shopContext->getAllActiveShopsList() as $shop) {
                 $updated = $eventsCreated = 0;
                 $shopId = (int) $shop[EI::C_ID_SHOP];
-                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId, self::JOB_TYPE_PROFILE))) {
+                if (is_string($check = $this->isModuleAndFeatureActiveAndConnected($shopId))) {
                     $message .= $check;
                     continue;
                 }

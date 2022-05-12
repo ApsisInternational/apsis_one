@@ -111,9 +111,12 @@ abstract class AbstractCommand extends Command implements CommandInterface
     {
         try {
             $this->setName($this->commandName)
-                ->addArgument(self::ARG_REQ_JOB, InputArgument::REQUIRED, $this->argumentReqDesc)
                 ->setDescription($this->commandDesc)
                 ->setHelp($this->commandHelp);
+
+            if ($this instanceof Db) {
+                $this->addArgument(self::ARG_REQ_JOB, InputArgument::REQUIRED, $this->argumentReqDesc);
+            }
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
         }
@@ -128,7 +131,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
             $output->writeln($this->processorMsg);
 
             if (! $this->lock()) {
-                $message = sprintf(self::MSG_ALREADY_RUNNING, $this->commandName);
+                $message = sprintf('The command %s is already running in another process.', $this->commandName);
                 $this->entityHelper->logInfoMsg($message);
                 $output->writeln('<info>' . $message . '</info>');
 
@@ -153,7 +156,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected function outputSuccessMsg(string $jobCode, string $msg): void
     {
         try {
-            $message = sprintf(self::MSG_SUCCESS , $jobCode, $msg);
+            $message = sprintf('Successfully executed job with jobCode: %s. %s', $jobCode, $msg);
             $this->entityHelper->logInfoMsg($message);
             $this->output->writeln('<info>' . $message . '</info>');
         } catch (Throwable $e) {
@@ -167,7 +170,10 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected function outputInvalidJobErrorMsg(): void
     {
         try {
-            $message = sprintf(self::MSG_INVALID_JOB, (string) $this->input->getArgument(self::ARG_REQ_JOB));
+            $message = sprintf(
+                'Error. Invalid job with jobCode: %s.',
+                (string) $this->input->getArgument(self::ARG_REQ_JOB)
+            );
             $this->entityHelper->logInfoMsg($message);
             $this->output->writeln('<error>' . $message . '</error>');
         } catch (Throwable $e) {
@@ -183,7 +189,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
     protected function outputRuntimeErrorMsg(string $jobCode, string $err) : void
     {
         try {
-            $message = sprintf(self::MSG_RUNTIME_ERR, $jobCode, $err);
+            $message = sprintf("Error thrown during execution with jobCode: %s.\nError %s", $jobCode, $err);
             $this->entityHelper->logInfoMsg($message);
             $this->output->writeln('<error>' . $message . '</error>');
         } catch (Throwable $e) {
@@ -198,7 +204,7 @@ abstract class AbstractCommand extends Command implements CommandInterface
      *
      * @return string
      */
-    protected function isModuleAndFeatureActiveAndConnected(int $shopId, string $feature): ?string
+    protected function isModuleAndFeatureActiveAndConnected(int $shopId, string $feature = ''): ?string
     {
         if (! $this->moduleHelper->isModuleEnabledForContext(null, $shopId)) {
             return sprintf("\nSkipping for Shop ID {%d}, Module is disabled.", $shopId);

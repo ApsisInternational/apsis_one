@@ -20,7 +20,7 @@ class Sync extends AbstractCommand
     /**
      * @var string
      */
-    protected $commandName = self::COMMAND_NAME_SYNC;
+    protected $commandName = 'apsis-one:sync';
 
     /**
      * @var string
@@ -30,17 +30,12 @@ class Sync extends AbstractCommand
     /**
      * @var string
      */
-    protected $commandHelp = self::COMMAND_HELP_DESC_SYNC;
-
-    /**
-     * @var string
-     */
-    protected $argumentReqDesc = self::ARG_REQ_DESC_SYNC;
+    protected $commandHelp = 'This commands allows you to ' . self::COMMAND_DESC_SYNC;
 
     /**
      * @var array
      */
-    protected $processorMsg = self:: MSG_PROCESSOR_SYNC;
+    protected $processorMsg = ['=====================', 'APSIS Sync Operations', '=====================', ''];
 
     /**
      * @var ClientFactory
@@ -62,23 +57,14 @@ class Sync extends AbstractCommand
     protected function processCommand(): int
     {
         try {
-            switch ($this->input->getArgument(self::ARG_REQ_JOB)) {
-                case self::JOB_TYPE_PROFILE:
-                    $this->syncProfiles();
-                    break;
-                case self::JOB_TYPE_EVENT:
-                    $this->syncEvents();
-                    break;
-                default:
-                    $this->outputInvalidJobErrorMsg();
-            }
-
-            $this->release();
+            $this->syncProfiles();
+            $this->syncEvents();
         } catch (Throwable $e) {
             $this->entityHelper->logErrorMsg(__METHOD__, $e);
             $this->output->writeln($e->getMessage());
         }
 
+        $this->release();
         return 0;
     }
 
@@ -109,13 +95,14 @@ class Sync extends AbstractCommand
                 }
 
                 $items = [];
+                /** @var Profile $profile */
                 foreach ($profilesToSync as $profile) {
                     if (empty($item = $this->entityHelper->getProfileDataArrForExport($profile, false))) {
                         continue;
                     }
 
                     unset($item[SI::PROFILE_SCHEMA_TYPE_EVENTS]);
-                    $items[$profile->getId()] = array_merge([self::KEY_UPDATE_TYPE => self::SYNC_TYPE_PROFILE], $item);
+                    $items[$profile->getId()] = array_merge(['update_type' => 'profile'], $item);
                 }
 
                 if (empty($items)) {
