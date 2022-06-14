@@ -39,4 +39,4 @@ You are welcome to contribute to our APSIS One integration for PrestaShop. You c
 
 ## Internal Docs
 
-- [Documentation](https://efficy-my.sharepoint.com/:w:/p/aqa/EQugtPZAkOZKoAVQ4uRJczABAC9TI2qjIqBIuGO7WUXadw?e=uHARqg)
+- [Documentation](https://efficy-my.sharepoint.com/:w:/p/aqa/EQugtPZAkOZKoAVQ4uRJczABrvjtppQrDdv_T9aCU7rrhA?e=YndY6r)
